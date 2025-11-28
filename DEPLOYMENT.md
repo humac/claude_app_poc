@@ -1,0 +1,419 @@
+# Deployment Guide - Asset Registration System
+
+This guide explains how to deploy the Asset Registration System to Portainer using GitHub Actions with Cloudflare tunnel support for hosting at `assets.jvhlabs.com`.
+
+## Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [GitHub Container Registry Setup](#github-container-registry-setup)
+3. [Portainer Stack Setup](#portainer-stack-setup)
+4. [GitHub Actions Secrets](#github-actions-secrets)
+5. [Cloudflare Tunnel Setup](#cloudflare-tunnel-setup)
+6. [Deployment Process](#deployment-process)
+7. [Troubleshooting](#troubleshooting)
+
+## Prerequisites
+
+- GitHub account with repository access
+- Portainer instance running and accessible
+- Cloudflare account with domain (jvhlabs.com)
+- Docker host accessible by Portainer
+
+## GitHub Container Registry Setup
+
+### 1. Enable GitHub Packages
+
+1. Go to your repository settings
+2. Navigate to "Actions" → "General"
+3. Scroll to "Workflow permissions"
+4. Select "Read and write permissions"
+5. Check "Allow GitHub Actions to create and approve pull requests"
+6. Save changes
+
+### 2. Make Container Registry Public (Optional)
+
+To avoid authentication issues with Portainer:
+
+1. Go to your repository packages: `https://github.com/YOUR_USERNAME/claude_app_poc/packages`
+2. Click on each package (frontend and backend)
+3. Go to "Package settings"
+4. Scroll to "Danger Zone"
+5. Click "Change visibility" → "Public"
+
+Alternatively, configure Portainer with GitHub Container Registry credentials.
+
+## Portainer Stack Setup
+
+### 1. Create New Stack
+
+1. Log in to Portainer
+2. Select your environment
+3. Go to "Stacks" → "Add stack"
+4. Choose "Git Repository" or "Web editor"
+
+### 2. Configure Stack
+
+**Stack Name:** `asset-registration`
+
+**Method 1: Using Git Repository**
+- Repository URL: `https://github.com/YOUR_USERNAME/claude_app_poc`
+- Repository reference: `refs/heads/main`
+- Compose path: `docker-compose.portainer.yml`
+
+**Method 2: Using Web Editor**
+- Copy content from `docker-compose.portainer.yml`
+- Paste into the web editor
+
+### 3. Set Environment Variables
+
+In Portainer stack configuration, add these environment variables:
+
+```env
+GITHUB_REPOSITORY=YOUR_USERNAME/claude_app_poc
+APP_PORT=8080
+JWT_SECRET=your-super-secret-jwt-key-minimum-32-characters-long
+ADMIN_EMAIL=admin@jvhlabs.com
+```
+
+**IMPORTANT:** Generate a strong JWT_SECRET:
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+### 4. Deploy Stack
+
+1. Click "Deploy the stack"
+2. Wait for containers to start
+3. Verify deployment in "Containers" section
+
+### 5. Setup Webhook for Auto-Deploy
+
+1. In Portainer, go to your stack
+2. Scroll to "Webhook" section
+3. Click "Create a webhook"
+4. Copy the webhook URL (you'll need this for GitHub Secrets)
+
+## GitHub Actions Secrets
+
+### 1. Add Repository Secrets
+
+Go to your repository: Settings → Secrets and variables → Actions → New repository secret
+
+Add the following secret:
+
+**PORTAINER_WEBHOOK_URL**
+- Value: The webhook URL from Portainer (e.g., `https://portainer.example.com/api/stacks/webhooks/xxxx-xxxx-xxxx`)
+
+### 2. Verify Secrets
+
+Ensure these secrets are set:
+- ✅ `PORTAINER_WEBHOOK_URL` - Portainer webhook for auto-deployment
+- ✅ `GITHUB_TOKEN` - Automatically provided by GitHub Actions
+
+## Cloudflare Tunnel Setup
+
+### Option 1: Using Docker (Recommended for Portainer)
+
+1. **Add Cloudflare Tunnel to Stack**
+
+Create a new stack or add to existing `docker-compose.portainer.yml`:
+
+```yaml
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - asset-network
+```
+
+2. **Create Cloudflare Tunnel**
+
+Via Cloudflare Dashboard:
+- Go to Zero Trust → Networks → Tunnels
+- Click "Create a tunnel"
+- Choose "Cloudflared"
+- Name it "asset-registration"
+- Click "Save tunnel"
+- Copy the tunnel token
+
+3. **Configure Public Hostname**
+
+In tunnel settings:
+- Click "Public Hostname" → "Add a public hostname"
+- Subdomain: `assets`
+- Domain: `jvhlabs.com`
+- Service: `http://asset-registration-frontend:80`
+- Save hostname
+
+4. **Add Token to Portainer**
+
+In your Portainer stack environment variables:
+```env
+CLOUDFLARE_TUNNEL_TOKEN=your-tunnel-token-here
+```
+
+### Option 2: Using cloudflared CLI (Direct on host)
+
+1. **Install cloudflared**
+```bash
+# Linux
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
+sudo chmod +x /usr/local/bin/cloudflared
+```
+
+2. **Authenticate**
+```bash
+cloudflared tunnel login
+```
+
+3. **Create Tunnel**
+```bash
+cloudflared tunnel create asset-registration
+```
+
+4. **Configure Tunnel**
+
+Edit the provided `cloudflare-tunnel.yml` file:
+- Replace `YOUR_TUNNEL_ID_HERE` with your actual tunnel ID
+- Update credentials file path
+
+5. **Create DNS Record**
+```bash
+cloudflared tunnel route dns asset-registration assets.jvhlabs.com
+```
+
+6. **Run Tunnel as Service**
+```bash
+# Install as systemd service
+sudo cloudflared service install
+sudo systemctl enable cloudflared
+sudo systemctl start cloudflared
+```
+
+## Deployment Process
+
+### Automatic Deployment
+
+1. **Push to Main Branch**
+```bash
+git push origin main
+```
+
+2. **GitHub Actions will automatically:**
+   - Build frontend Docker image
+   - Build backend Docker image
+   - Push images to GitHub Container Registry
+   - Trigger Portainer webhook to redeploy stack
+
+3. **Monitor Deployment**
+   - GitHub: Actions tab → Watch workflow progress
+   - Portainer: Stacks → asset-registration → Check container status
+
+### Manual Deployment
+
+1. **Via GitHub Actions**
+   - Go to Actions tab
+   - Select "Deploy to Portainer" workflow
+   - Click "Run workflow"
+   - Select branch (main)
+   - Run workflow
+
+2. **Via Portainer Webhook**
+```bash
+curl -X POST "YOUR_PORTAINER_WEBHOOK_URL"
+```
+
+3. **Via Portainer UI**
+   - Go to Stacks → asset-registration
+   - Click "Update the stack"
+   - Enable "Pull latest image"
+   - Click "Update"
+
+## Post-Deployment
+
+### 1. Verify Application
+
+Access your application at: `https://assets.jvhlabs.com`
+
+### 2. Create First Admin User
+
+1. Navigate to `https://assets.jvhlabs.com`
+2. Click "Register"
+3. Create your account
+4. **First user automatically becomes admin**
+
+### 3. Add Companies
+
+1. Log in as admin
+2. Go to "Company Management" tab
+3. Add your companies
+4. Users can now register assets with company dropdown
+
+### 4. Configure Additional Admins (Optional)
+
+**Method 1: Via Admin UI**
+1. Go to "Admin Settings" → "User Management"
+2. Find user and change role to "Admin"
+
+**Method 2: Via Environment Variable**
+1. Update `ADMIN_EMAIL` in Portainer stack env vars
+2. Users with that email will be admin upon registration
+
+## Troubleshooting
+
+### Containers Not Starting
+
+**Check logs:**
+```bash
+docker logs asset-registration-backend
+docker logs asset-registration-frontend
+```
+
+**Common issues:**
+- Missing environment variables
+- Port conflicts (change APP_PORT)
+- Volume permission issues
+
+### Cannot Pull Images
+
+**If using private GitHub Container Registry:**
+
+1. Create GitHub Personal Access Token (PAT):
+   - GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+   - Generate new token with `read:packages` scope
+
+2. Add registry credentials to Portainer:
+   - Portainer → Registries → Add registry
+   - Type: Custom
+   - Name: GitHub Container Registry
+   - Registry URL: `ghcr.io`
+   - Username: Your GitHub username
+   - Password: Your PAT
+
+3. Update stack to use authenticated registry
+
+### Cloudflare Tunnel Issues
+
+**Tunnel not connecting:**
+```bash
+# Check tunnel status
+cloudflared tunnel info asset-registration
+
+# Test connection
+cloudflared tunnel run asset-registration
+```
+
+**DNS not resolving:**
+- Verify CNAME record in Cloudflare DNS
+- Ensure proxy status is "Proxied" (orange cloud)
+- Wait 5-10 minutes for DNS propagation
+
+### Database Issues
+
+**Data not persisting:**
+- Verify volume is created: `docker volume ls | grep asset-data`
+- Check volume mount in container: `docker inspect asset-registration-backend`
+
+**Reset database:**
+```bash
+# WARNING: This deletes all data
+docker volume rm asset-data
+# Redeploy stack
+```
+
+### GitHub Actions Failures
+
+**Build failures:**
+- Check Dockerfile syntax
+- Verify all dependencies in package.json
+- Check build logs in GitHub Actions
+
+**Deployment failures:**
+- Verify PORTAINER_WEBHOOK_URL is correct
+- Test webhook manually: `curl -X POST "$WEBHOOK_URL"`
+- Check Portainer logs
+
+## Security Recommendations
+
+1. **Change JWT_SECRET** - Use a strong, random secret (64+ characters)
+2. **Use HTTPS** - Cloudflare automatically provides SSL
+3. **Regular Updates** - Pull latest images regularly
+4. **Backup Database** - Schedule regular backups of the `asset-data` volume
+5. **Monitor Logs** - Set up log aggregation for security monitoring
+6. **Restrict Access** - Use Cloudflare Access policies if needed
+
+## Backup and Restore
+
+### Backup Database
+
+```bash
+# Create backup
+docker run --rm \
+  -v asset-data:/data \
+  -v $(pwd):/backup \
+  alpine tar czf /backup/asset-data-backup-$(date +%Y%m%d).tar.gz -C /data .
+```
+
+### Restore Database
+
+```bash
+# Restore from backup
+docker run --rm \
+  -v asset-data:/data \
+  -v $(pwd):/backup \
+  alpine tar xzf /backup/asset-data-backup-YYYYMMDD.tar.gz -C /data
+```
+
+## Monitoring
+
+### Health Checks
+
+Both containers have health checks configured:
+
+**Backend:** `http://localhost:3001/api/health`
+**Frontend:** `http://localhost:80`
+
+### Portainer Monitoring
+
+- View container stats in Portainer dashboard
+- Set up webhooks for container status notifications
+- Enable logging drivers for centralized logs
+
+## Updating the Application
+
+### Via Git Push (Automatic)
+
+```bash
+git add .
+git commit -m "Update application"
+git push origin main
+```
+
+GitHub Actions will automatically rebuild and redeploy.
+
+### Manual Update
+
+1. Pull latest images in Portainer
+2. Or trigger webhook manually
+3. Containers will restart with new images
+
+---
+
+## Quick Reference
+
+**Application URL:** https://assets.jvhlabs.com
+**Default Port:** 8080
+**Backend API:** http://localhost:3001/api
+**Docker Volume:** asset-data
+**Network:** asset-network
+
+## Support
+
+For issues or questions:
+1. Check logs in Portainer
+2. Review GitHub Actions workflow runs
+3. Verify Cloudflare tunnel status
+4. Check this documentation

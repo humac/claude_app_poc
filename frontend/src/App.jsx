@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -15,6 +16,9 @@ import {
   MenuItem,
   Avatar,
   Chip,
+  Divider,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import {
   AccountCircle,
@@ -23,6 +27,7 @@ import {
   Business,
   Assessment,
   AdminPanelSettings,
+  Person,
 } from '@mui/icons-material';
 import { useAuth } from './contexts/AuthContext';
 import AssetList from './components/AssetList';
@@ -35,10 +40,11 @@ import AuthPage from './components/AuthPage';
 function App() {
   const { user, logout, loading, isAuthenticated } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleAssetRegistered = () => {
     setRefreshKey(prev => prev + 1);
@@ -52,9 +58,29 @@ function App() {
     setAnchorEl(null);
   };
 
+  const handleProfileClick = () => {
+    handleMenuClose();
+    navigate('/profile');
+  };
+
   const handleLogout = () => {
     handleMenuClose();
     logout();
+  };
+
+  // Determine active tab based on current route
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path === '/' || path === '/assets') return 0;
+    if (path === '/companies') return 1;
+    if (path === '/audit') return 2;
+    if (path === '/admin') return 3;
+    return false;
+  };
+
+  const handleTabChange = (event, newValue) => {
+    const routes = ['/', '/companies', '/audit', '/admin'];
+    navigate(routes[newValue]);
   };
 
   if (loading) {
@@ -77,14 +103,14 @@ function App() {
   }
 
   const tabConfig = [
-    { label: 'Asset Management', icon: <Dashboard />, value: 0, role: null },
-    { label: 'Company Management', icon: <Business />, value: 1, role: 'admin' },
-    { label: 'Audit & Reporting', icon: <Assessment />, value: 2, role: null },
-    { label: 'Profile', icon: <AccountCircle />, value: 3, role: null },
-    { label: 'Admin Settings', icon: <AdminPanelSettings />, value: 4, role: 'admin' },
+    { label: 'Asset Management', icon: <Dashboard />, value: 0, role: null, path: '/' },
+    { label: 'Company Management', icon: <Business />, value: 1, role: 'admin', path: '/companies' },
+    { label: 'Audit & Reporting', icon: <Assessment />, value: 2, role: null, path: '/audit' },
+    { label: 'Admin Settings', icon: <AdminPanelSettings />, value: 3, role: 'admin', path: '/admin' },
   ];
 
   const visibleTabs = tabConfig.filter(tab => !tab.role || user?.role === tab.role);
+  const activeTab = getActiveTab();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -136,6 +162,9 @@ function App() {
             onClose={handleMenuClose}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            PaperProps={{
+              sx: { minWidth: 200 }
+            }}
           >
             <MenuItem disabled>
               <Box>
@@ -147,9 +176,18 @@ function App() {
                 </Typography>
               </Box>
             </MenuItem>
+            <Divider />
+            <MenuItem onClick={handleProfileClick}>
+              <ListItemIcon>
+                <Person fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Profile</ListItemText>
+            </MenuItem>
             <MenuItem onClick={handleLogout}>
-              <ExitToApp sx={{ mr: 1 }} fontSize="small" />
-              Logout
+              <ListItemIcon>
+                <ExitToApp fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Logout</ListItemText>
             </MenuItem>
           </Menu>
         </Toolbar>
@@ -158,7 +196,7 @@ function App() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
           <Tabs
             value={activeTab}
-            onChange={(e, newValue) => setActiveTab(newValue)}
+            onChange={handleTabChange}
             variant={isMobile ? 'scrollable' : 'standard'}
             scrollButtons={isMobile ? 'auto' : false}
             sx={{ px: isMobile ? 0 : 3 }}
@@ -176,15 +214,24 @@ function App() {
         </Box>
       </AppBar>
 
-      {/* Main Content */}
+      {/* Main Content with Routes */}
       <Container maxWidth="xl" sx={{ flexGrow: 1, py: 3 }}>
-        {activeTab === 0 && (
-          <AssetList refresh={refreshKey} onAssetRegistered={handleAssetRegistered} />
-        )}
-        {activeTab === 1 && user?.role === 'admin' && <CompanyManagement />}
-        {activeTab === 2 && <AuditReporting />}
-        {activeTab === 3 && <Profile />}
-        {activeTab === 4 && user?.role === 'admin' && <AdminSettings />}
+        <Routes>
+          <Route path="/" element={
+            <AssetList refresh={refreshKey} onAssetRegistered={handleAssetRegistered} />
+          } />
+          <Route path="/assets" element={
+            <AssetList refresh={refreshKey} onAssetRegistered={handleAssetRegistered} />
+          } />
+          {user?.role === 'admin' && (
+            <Route path="/companies" element={<CompanyManagement />} />
+          )}
+          <Route path="/audit" element={<AuditReporting />} />
+          {user?.role === 'admin' && (
+            <Route path="/admin" element={<AdminSettings />} />
+          )}
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
       </Container>
     </Box>
   );

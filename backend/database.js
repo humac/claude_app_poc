@@ -217,6 +217,8 @@ const initDb = async () => {
       last_login TIMESTAMP,
       first_name TEXT,
       last_name TEXT,
+      manager_name TEXT,
+      manager_email TEXT,
       oidc_sub TEXT UNIQUE,
       mfa_enabled INTEGER DEFAULT 0,
       mfa_secret TEXT,
@@ -233,6 +235,8 @@ const initDb = async () => {
       last_login TEXT,
       first_name TEXT,
       last_name TEXT,
+      manager_name TEXT,
+      manager_email TEXT,
       oidc_sub TEXT,
       mfa_enabled INTEGER DEFAULT 0,
       mfa_secret TEXT,
@@ -275,6 +279,28 @@ const initDb = async () => {
   await dbRun(auditLogsTable);
   await dbRun(usersTable);
   await dbRun(oidcSettingsTable);
+
+  // Migrate existing databases to add manager fields to users table
+  try {
+    if (isPostgres) {
+      await dbRun('ALTER TABLE users ADD COLUMN IF NOT EXISTS manager_name TEXT');
+      await dbRun('ALTER TABLE users ADD COLUMN IF NOT EXISTS manager_email TEXT');
+    } else {
+      // SQLite doesn't support IF NOT EXISTS for ALTER TABLE, so check first
+      const columns = await dbAll("PRAGMA table_info(users)");
+      const hasManagerName = columns.some(col => col.name === 'manager_name');
+      const hasManagerEmail = columns.some(col => col.name === 'manager_email');
+
+      if (!hasManagerName) {
+        await dbRun('ALTER TABLE users ADD COLUMN manager_name TEXT');
+      }
+      if (!hasManagerEmail) {
+        await dbRun('ALTER TABLE users ADD COLUMN manager_email TEXT');
+      }
+    }
+  } catch (err) {
+    console.log('Manager columns may already exist in users table:', err.message);
+  }
 
   // Insert default OIDC settings if not exists
   const checkSettings = await dbGet('SELECT id FROM oidc_settings WHERE id = 1');
@@ -554,8 +580,8 @@ export const userDb = {
   create: async (user) => {
     const now = new Date().toISOString();
     const insertQuery = `
-      INSERT INTO users (email, password_hash, name, role, created_at, first_name, last_name)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (email, password_hash, name, role, created_at, first_name, last_name, manager_name, manager_email)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ${isPostgres ? 'RETURNING id' : ''}
     `;
     const result = await dbRun(insertQuery, [
@@ -565,7 +591,9 @@ export const userDb = {
       user.role || 'employee',
       now,
       user.first_name || null,
-      user.last_name || null
+      user.last_name || null,
+      user.manager_name || null,
+      user.manager_email || null
     ]);
     const id = isPostgres ? result.rows?.[0]?.id : result.lastInsertRowid;
     return { id };
@@ -581,16 +609,16 @@ export const userDb = {
   delete: async (id) => dbRun('DELETE FROM users WHERE id = ?', [id]),
   updateProfile: async (id, profile) => dbRun(`
     UPDATE users
-    SET name = ?, first_name = ?, last_name = ?
+    SET name = ?, first_name = ?, last_name = ?, manager_name = ?, manager_email = ?
     WHERE id = ?
-  `, [profile.name, profile.first_name || null, profile.last_name || null, id]),
+  `, [profile.name, profile.first_name || null, profile.last_name || null, profile.manager_name || null, profile.manager_email || null, id]),
   updatePassword: async (id, passwordHash) => dbRun('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, id]),
   getByOIDCSub: async (oidcSub) => dbGet('SELECT * FROM users WHERE oidc_sub = ?', [oidcSub]),
   createFromOIDC: async (userData) => {
     const now = new Date().toISOString();
     const insertQuery = `
-      INSERT INTO users (email, password_hash, name, role, created_at, first_name, last_name, oidc_sub)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (email, password_hash, name, role, created_at, first_name, last_name, manager_name, manager_email, oidc_sub)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ${isPostgres ? 'RETURNING id' : ''}
     `;
     const result = await dbRun(insertQuery, [
@@ -601,6 +629,8 @@ export const userDb = {
       now,
       userData.first_name || null,
       userData.last_name || null,
+      userData.manager_name || null,
+      userData.manager_email || null,
       userData.oidcSub
     ]);
     const id = isPostgres ? result.rows?.[0]?.id : result.lastInsertRowid;
@@ -778,8 +808,8 @@ export const importSqliteDatabase = async (sqlitePath) => {
       await client.query(
         `INSERT INTO users (
           id, email, password_hash, name, role, created_at, last_login,
-          first_name, last_name, oidc_sub, mfa_enabled, mfa_secret, mfa_backup_codes
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)` ,
+          first_name, last_name, manager_name, manager_email, oidc_sub, mfa_enabled, mfa_secret, mfa_backup_codes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)` ,
         [
           row.id,
           row.email,
@@ -790,6 +820,8 @@ export const importSqliteDatabase = async (sqlitePath) => {
           parseDate(row.last_login),
           row.first_name || null,
           row.last_name || null,
+          row.manager_name || null,
+          row.manager_email || null,
           row.oidc_sub || null,
           row.mfa_enabled || 0,
           row.mfa_secret || null,

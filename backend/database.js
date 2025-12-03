@@ -157,7 +157,7 @@ const initDb = () => {
 
   // Migration: Add oidc_sub column for OIDC authentication
   try {
-    db.exec('ALTER TABLE users ADD COLUMN oidc_sub TEXT UNIQUE');
+    db.exec('ALTER TABLE users ADD COLUMN oidc_sub TEXT');
   } catch (e) {
     // Column already exists
   }
@@ -171,7 +171,13 @@ const initDb = () => {
   db.exec('CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp)');
   db.exec('CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_logs(entity_type, entity_id)');
   db.exec('CREATE INDEX IF NOT EXISTS idx_user_email ON users(email)');
-  db.exec('CREATE INDEX IF NOT EXISTS idx_user_oidc_sub ON users(oidc_sub)');
+
+  // Create unique index for oidc_sub (handles uniqueness constraint)
+  try {
+    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_user_oidc_sub ON users(oidc_sub) WHERE oidc_sub IS NOT NULL');
+  } catch (e) {
+    // Index already exists
+  }
 
   console.log('Database initialized successfully');
 };

@@ -158,8 +158,8 @@ const Profile = () => {
       <Grid container spacing={3}>
         {/* Profile Information Card */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent>
+          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <Person sx={{ mr: 1 }} color="primary" />
                 <Typography variant="h5" fontWeight={600}>
@@ -168,35 +168,33 @@ const Profile = () => {
               </Box>
 
               <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary">
-                      Email
-                    </Typography>
-                    <Typography variant="body1" fontWeight={600}>
-                      {user?.email}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary">
-                      Role
-                    </Typography>
-                    <Chip
-                      label={user?.role?.toUpperCase()}
-                      color={getRoleColor(user?.role)}
-                      size="small"
-                      sx={{ mt: 0.5, fontWeight: 600 }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary">
-                      Current Name
-                    </Typography>
-                    <Typography variant="body1" fontWeight={600}>
-                      {user?.name || 'Not set'}
-                    </Typography>
-                  </Grid>
-                </Grid>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Email
+                  </Typography>
+                  <Typography variant="body1" fontWeight={600}>
+                    {user?.email}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Role
+                  </Typography>
+                  <Chip
+                    label={user?.role?.toUpperCase()}
+                    color={getRoleColor(user?.role)}
+                    size="small"
+                    sx={{ fontWeight: 600 }}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Current Name
+                  </Typography>
+                  <Typography variant="body1" fontWeight={600}>
+                    {user?.name || 'Not set'}
+                  </Typography>
+                </Box>
               </Paper>
 
               {success && (
@@ -211,31 +209,27 @@ const Profile = () => {
                 </Alert>
               )}
 
-              <Box component="form" onSubmit={handleSubmit}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="First Name"
-                      name="first_name"
-                      value={formData.first_name}
-                      onChange={handleChange}
-                      required
-                      placeholder="John"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Last Name"
-                      name="last_name"
-                      value={formData.last_name}
-                      onChange={handleChange}
-                      required
-                      placeholder="Doe"
-                    />
-                  </Grid>
-                </Grid>
+              <Box component="form" onSubmit={handleSubmit} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <TextField
+                  fullWidth
+                  label="First Name"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  required
+                  placeholder="John"
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  label="Last Name"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Doe"
+                  sx={{ mb: 2 }}
+                />
 
                 <Button
                   type="submit"
@@ -243,7 +237,7 @@ const Profile = () => {
                   fullWidth
                   disabled={loading}
                   startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-                  sx={{ mt: 3 }}
+                  sx={{ mt: 'auto' }}
                 >
                   {loading ? 'Updating...' : 'Update Profile'}
                 </Button>
@@ -254,8 +248,8 @@ const Profile = () => {
 
         {/* Change Password Card */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent>
+          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <Lock sx={{ mr: 1 }} color="primary" />
                 <Typography variant="h5" fontWeight={600}>
@@ -275,7 +269,7 @@ const Profile = () => {
                 </Alert>
               )}
 
-              <Box component="form" onSubmit={handlePasswordSubmit}>
+              <Box component="form" onSubmit={handlePasswordSubmit} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                 <TextField
                   fullWidth
                   type="password"
@@ -311,7 +305,7 @@ const Profile = () => {
                   required
                   placeholder="Confirm new password"
                   inputProps={{ minLength: 6 }}
-                  sx={{ mb: 3 }}
+                  sx={{ mb: 2 }}
                 />
 
                 <Button
@@ -320,6 +314,7 @@ const Profile = () => {
                   fullWidth
                   disabled={passwordLoading}
                   startIcon={passwordLoading ? <CircularProgress size={20} /> : <Lock />}
+                  sx={{ mt: 'auto' }}
                 >
                   {passwordLoading ? 'Changing Password...' : 'Change Password'}
                 </Button>

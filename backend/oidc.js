@@ -1,4 +1,4 @@
-import { Issuer, generators } from 'openid-client';
+import * as client from 'openid-client';
 
 // OIDC Configuration - will be loaded from database
 let OIDC_CONFIG = {
@@ -17,7 +17,7 @@ let OIDC_CONFIG = {
   defaultRole: 'employee',
 };
 
-let oidcClient = null;
+let config = null;
 let codeVerifierStore = new Map(); // Store PKCE code verifiers temporarily
 
 /**
@@ -45,32 +45,28 @@ async function initializeOIDC(settings = null) {
 
   if (!OIDC_CONFIG.enabled) {
     console.log('OIDC is disabled');
-    oidcClient = null;
+    config = null;
     return null;
   }
 
   if (!OIDC_CONFIG.issuerUrl || !OIDC_CONFIG.clientId) {
     console.error('OIDC configuration missing: issuer_url and client_id are required');
-    oidcClient = null;
+    config = null;
     return null;
   }
 
   try {
     console.log(`Initializing OIDC with issuer: ${OIDC_CONFIG.issuerUrl}`);
-    const issuer = await Issuer.discover(OIDC_CONFIG.issuerUrl);
 
-    oidcClient = new issuer.Client({
-      client_id: OIDC_CONFIG.clientId,
-      client_secret: OIDC_CONFIG.clientSecret,
-      redirect_uris: [OIDC_CONFIG.redirectUri],
-      response_types: ['code'],
-    });
+    // Discover the issuer configuration
+    const issuerUrl = new URL(OIDC_CONFIG.issuerUrl);
+    config = await client.discovery(issuerUrl, OIDC_CONFIG.clientId, OIDC_CONFIG.clientSecret);
 
     console.log('OIDC client initialized successfully');
-    return oidcClient;
+    return config;
   } catch (error) {
     console.error('Failed to initialize OIDC:', error.message);
-    oidcClient = null;
+    config = null;
     return null;
   }
 }
@@ -78,13 +74,13 @@ async function initializeOIDC(settings = null) {
 /**
  * Generate authorization URL for OIDC login
  */
-function getAuthorizationUrl(state) {
-  if (!oidcClient) {
+async function getAuthorizationUrl(state) {
+  if (!config) {
     throw new Error('OIDC client not initialized');
   }
 
-  const code_verifier = generators.codeVerifier();
-  const code_challenge = generators.codeChallenge(code_verifier);
+  const code_verifier = client.randomPKCECodeVerifier();
+  const code_challenge = await client.calculatePKCECodeChallenge(code_verifier);
 
   // Store code verifier for later use in callback
   codeVerifierStore.set(state, code_verifier);
@@ -94,21 +90,21 @@ function getAuthorizationUrl(state) {
     codeVerifierStore.delete(state);
   }, 10 * 60 * 1000);
 
-  const authUrl = oidcClient.authorizationUrl({
+  const authUrl = client.buildAuthorizationUrl(config, {
     scope: OIDC_CONFIG.scope,
     state: state,
     code_challenge,
     code_challenge_method: 'S256',
   });
 
-  return authUrl;
+  return authUrl.href;
 }
 
 /**
  * Handle OIDC callback and exchange code for tokens
  */
 async function handleCallback(callbackParams, state) {
-  if (!oidcClient) {
+  if (!config) {
     throw new Error('OIDC client not initialized');
   }
 
@@ -118,16 +114,18 @@ async function handleCallback(callbackParams, state) {
   }
 
   try {
-    const tokenSet = await oidcClient.callback(
-      OIDC_CONFIG.redirectUri,
-      callbackParams,
-      { code_verifier, state }
-    );
+    const currentUrl = new URL(OIDC_CONFIG.redirectUri);
+    currentUrl.search = new URLSearchParams(callbackParams).toString();
+
+    const tokens = await client.authorizationCodeGrant(config, currentUrl, {
+      pkceCodeVerifier: code_verifier,
+      expectedState: state,
+    });
 
     // Clean up used code verifier
     codeVerifierStore.delete(state);
 
-    return tokenSet;
+    return tokens;
   } catch (error) {
     codeVerifierStore.delete(state);
     throw error;
@@ -137,12 +135,12 @@ async function handleCallback(callbackParams, state) {
 /**
  * Get user info from OIDC provider
  */
-async function getUserInfo(tokenSet) {
-  if (!oidcClient) {
+async function getUserInfo(tokens) {
+  if (!config) {
     throw new Error('OIDC client not initialized');
   }
 
-  const userinfo = await oidcClient.userinfo(tokenSet.access_token);
+  const userinfo = await client.fetchUserInfo(config, tokens.access_token);
   return userinfo;
 }
 
@@ -234,7 +232,7 @@ function mapRole(oidcRoles) {
  * Check if OIDC is enabled
  */
 function isOIDCEnabled() {
-  return OIDC_CONFIG.enabled && oidcClient !== null;
+  return OIDC_CONFIG.enabled && config !== null;
 }
 
 export {

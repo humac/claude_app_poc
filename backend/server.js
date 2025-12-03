@@ -441,7 +441,7 @@ app.get('/api/auth/oidc/config', (req, res) => {
 });
 
 // Initiate OIDC login
-app.get('/api/auth/oidc/login', (req, res) => {
+app.get('/api/auth/oidc/login', async (req, res) => {
   try {
     if (!isOIDCEnabled()) {
       return res.status(503).json({ error: 'OIDC is not enabled' });
@@ -463,7 +463,7 @@ app.get('/api/auth/oidc/login', (req, res) => {
       }
     }
 
-    const authUrl = getAuthorizationUrl(state);
+    const authUrl = await getAuthorizationUrl(state);
     res.json({ authUrl, state });
   } catch (error) {
     console.error('OIDC login init error:', error);

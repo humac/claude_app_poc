@@ -22,8 +22,6 @@ const AssetRegistrationForm = ({ onAssetRegistered }) => {
   const [formData, setFormData] = useState({
     employee_name: '',
     employee_email: '',
-    manager_name: '',
-    manager_email: '',
     client_name: '',
     laptop_make: '',
     laptop_model: '',
@@ -90,8 +88,6 @@ const AssetRegistrationForm = ({ onAssetRegistered }) => {
       setFormData({
         employee_name: '',
         employee_email: '',
-        manager_name: '',
-        manager_email: '',
         client_name: '',
         laptop_make: '',
         laptop_model: '',
@@ -159,39 +155,6 @@ const AssetRegistrationForm = ({ onAssetRegistered }) => {
                 onChange={handleChange}
                 required
                 placeholder="john.doe@company.com"
-              />
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* Manager Information Section */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" color="primary" sx={{ fontWeight: 600, mb: 2 }}>
-            Manager Information
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Manager Name"
-                name="manager_name"
-                value={formData.manager_name}
-                onChange={handleChange}
-                required
-                placeholder="Jane Smith"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                type="email"
-                label="Manager Email"
-                name="manager_email"
-                value={formData.manager_email}
-                onChange={handleChange}
-                required
-                placeholder="jane.smith@company.com"
               />
             </Grid>
           </Grid>

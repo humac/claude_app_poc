@@ -79,7 +79,7 @@ app.get('/api/health', (req, res) => {
 // Register new user
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { email, password, name, first_name, last_name } = req.body;
+    const { email, password, name, first_name, last_name, manager_name, manager_email } = req.body;
 
     // Validation - accept either 'name' or 'first_name + last_name'
     if (!email || !password) {
@@ -124,6 +124,8 @@ app.post('/api/auth/register', async (req, res) => {
       name: name || `${first_name} ${last_name}`,
       first_name: first_name || null,
       last_name: last_name || null,
+      manager_name: manager_name || null,
+      manager_email: manager_email || null,
       role: userRole
     });
 
@@ -142,6 +144,8 @@ app.post('/api/auth/register', async (req, res) => {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
+        manager_name: newUser.manager_name,
+        manager_email: newUser.manager_email,
         registration_method: 'local'
       },
       newUser.email
@@ -157,7 +161,9 @@ app.post('/api/auth/register', async (req, res) => {
         name: newUser.name,
         role: newUser.role,
         first_name: newUser.first_name,
-        last_name: newUser.last_name
+        last_name: newUser.last_name,
+        manager_name: newUser.manager_name,
+        manager_email: newUser.manager_email
       }
     });
   } catch (error) {
@@ -223,7 +229,9 @@ app.post('/api/auth/login', async (req, res) => {
         name: user.name,
         role: user.role,
         first_name: user.first_name,
-        last_name: user.last_name
+        last_name: user.last_name,
+        manager_name: user.manager_name,
+        manager_email: user.manager_email
       }
     });
   } catch (error) {
@@ -246,7 +254,9 @@ app.get('/api/auth/me', authenticate, async (req, res) => {
       name: user.name,
       role: user.role,
       first_name: user.first_name,
-      last_name: user.last_name
+      last_name: user.last_name,
+      manager_name: user.manager_name,
+      manager_email: user.manager_email
     });
   } catch (error) {
     console.error('Get user error:', error);
@@ -257,7 +267,7 @@ app.get('/api/auth/me', authenticate, async (req, res) => {
 // Update user profile
 app.put('/api/auth/profile', authenticate, async (req, res) => {
   try {
-    const { first_name, last_name } = req.body;
+    const { first_name, last_name, manager_name, manager_email } = req.body;
 
     // Validation
     if (!first_name || !last_name) {
@@ -269,10 +279,16 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
     // Get old profile data for audit
     const oldUser = await userDb.getById(req.user.id);
 
+    // Calculate name from first_name and last_name
+    const name = `${first_name} ${last_name}`;
+
     // Update profile
     await userDb.updateProfile(req.user.id, {
+      name,
       first_name,
-      last_name
+      last_name,
+      manager_name: manager_name || null,
+      manager_email: manager_email || null
     });
 
     // Get updated user
@@ -287,8 +303,12 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
       {
         old_first_name: oldUser.first_name,
         old_last_name: oldUser.last_name,
+        old_manager_name: oldUser.manager_name,
+        old_manager_email: oldUser.manager_email,
         new_first_name: first_name,
-        new_last_name: last_name
+        new_last_name: last_name,
+        new_manager_name: manager_name,
+        new_manager_email: manager_email
       },
       user.email
     );
@@ -301,7 +321,9 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
         name: user.name,
         role: user.role,
         first_name: user.first_name,
-        last_name: user.last_name
+        last_name: user.last_name,
+        manager_name: user.manager_name,
+        manager_email: user.manager_email
       }
     });
   } catch (error) {
@@ -563,7 +585,9 @@ app.post('/api/auth/mfa/verify-login', async (req, res) => {
         name: user.name,
         role: user.role,
         first_name: user.first_name,
-        last_name: user.last_name
+        last_name: user.last_name,
+        manager_name: user.manager_name,
+        manager_email: user.manager_email
       }
     });
   } catch (error) {
@@ -634,7 +658,9 @@ app.put('/api/auth/users/:id/role', authenticate, authorize('admin'), async (req
         name: updatedUser.name,
         role: updatedUser.role,
         first_name: updatedUser.first_name,
-        last_name: updatedUser.last_name
+        last_name: updatedUser.last_name,
+        manager_name: updatedUser.manager_name,
+        manager_email: updatedUser.manager_email
       }
     });
   } catch (error) {
@@ -956,7 +982,9 @@ app.get('/api/auth/oidc/callback', async (req, res) => {
         name: user.name,
         role: user.role,
         first_name: user.first_name,
-        last_name: user.last_name
+        last_name: user.last_name,
+        manager_name: user.manager_name,
+        manager_email: user.manager_email
       }
     });
   } catch (error) {
@@ -1039,8 +1067,6 @@ app.post('/api/assets/import', authenticate, upload.single('file'), async (req, 
     const requiredFields = [
       'employee_name',
       'employee_email',
-      'manager_name',
-      'manager_email',
       'client_name',
       'laptop_serial_number',
       'laptop_asset_tag'
@@ -1068,11 +1094,24 @@ app.post('/api/assets/import', authenticate, upload.single('file'), async (req, 
         continue;
       }
 
+      // Get manager data from employee's user record
+      const employeeUser = await userDb.getByEmail(normalizedRow.employee_email);
+      let manager_name = '';
+      let manager_email = '';
+
+      if (employeeUser && employeeUser.manager_name && employeeUser.manager_email) {
+        manager_name = employeeUser.manager_name;
+        manager_email = employeeUser.manager_email;
+      } else {
+        errors.push(`Row ${index + 2}: Employee user not found or manager information not set for ${normalizedRow.employee_email}`);
+        continue;
+      }
+
       const assetData = {
         employee_name: normalizedRow.employee_name,
         employee_email: normalizedRow.employee_email,
-        manager_name: normalizedRow.manager_name,
-        manager_email: normalizedRow.manager_email,
+        manager_name,
+        manager_email,
         client_name: normalizedRow.client_name,
         laptop_make: normalizedRow.laptop_make || '',
         laptop_model: normalizedRow.laptop_model || '',
@@ -1131,17 +1170,36 @@ app.post('/api/assets/import', authenticate, upload.single('file'), async (req, 
 // Create new asset
 app.post('/api/assets', authenticate, async (req, res) => {
   try {
-    const { employee_name, employee_email, manager_name, manager_email, client_name, laptop_serial_number, laptop_asset_tag, notes } = req.body;
+    const { employee_name, employee_email, client_name, laptop_serial_number, laptop_asset_tag, notes } = req.body;
 
     // Validation
-    if (!employee_name || !employee_email || !manager_name || !manager_email || !client_name || !laptop_serial_number || !laptop_asset_tag) {
+    if (!employee_name || !employee_email || !client_name || !laptop_serial_number || !laptop_asset_tag) {
       return res.status(400).json({
         error: 'Missing required fields',
-        required: ['employee_name', 'employee_email', 'manager_name', 'manager_email', 'client_name', 'laptop_serial_number', 'laptop_asset_tag']
+        required: ['employee_name', 'employee_email', 'client_name', 'laptop_serial_number', 'laptop_asset_tag']
       });
     }
 
-    const result = await assetDb.create(req.body);
+    // Get manager data from employee's user record
+    const employeeUser = await userDb.getByEmail(employee_email);
+    let manager_name = '';
+    let manager_email = '';
+
+    if (employeeUser && employeeUser.manager_name && employeeUser.manager_email) {
+      manager_name = employeeUser.manager_name;
+      manager_email = employeeUser.manager_email;
+    } else {
+      // If user doesn't exist or doesn't have manager info, require it in the request
+      return res.status(400).json({
+        error: 'Employee user not found or manager information not set. Please ensure the employee is registered with manager information.'
+      });
+    }
+
+    const result = await assetDb.create({
+      ...req.body,
+      manager_name,
+      manager_email
+    });
     const newAsset = await assetDb.getById(result.id);
 
     // Log audit
@@ -1153,6 +1211,8 @@ app.post('/api/assets', authenticate, async (req, res) => {
       {
         employee_name,
         employee_email,
+        manager_name,
+        manager_email,
         client_name,
         laptop_serial_number,
         laptop_asset_tag
@@ -1235,16 +1295,34 @@ app.put('/api/assets/:id', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Asset not found' });
     }
 
-    const { employee_name, employee_email, manager_name, manager_email, client_name, laptop_serial_number, laptop_asset_tag, status, notes } = req.body;
+    const { employee_name, employee_email, client_name, laptop_serial_number, laptop_asset_tag, status, notes } = req.body;
 
-    if (!employee_name || !employee_email || !manager_name || !manager_email || !client_name || !laptop_serial_number || !laptop_asset_tag) {
+    if (!employee_name || !employee_email || !client_name || !laptop_serial_number || !laptop_asset_tag) {
       return res.status(400).json({
         error: 'Missing required fields',
-        required: ['employee_name', 'employee_email', 'manager_name', 'manager_email', 'client_name', 'laptop_serial_number', 'laptop_asset_tag']
+        required: ['employee_name', 'employee_email', 'client_name', 'laptop_serial_number', 'laptop_asset_tag']
       });
     }
 
-    await assetDb.update(req.params.id, req.body);
+    // Get manager data from employee's user record
+    const employeeUser = await userDb.getByEmail(employee_email);
+    let manager_name = '';
+    let manager_email = '';
+
+    if (employeeUser && employeeUser.manager_name && employeeUser.manager_email) {
+      manager_name = employeeUser.manager_name;
+      manager_email = employeeUser.manager_email;
+    } else {
+      return res.status(400).json({
+        error: 'Employee user not found or manager information not set. Please ensure the employee is registered with manager information.'
+      });
+    }
+
+    await assetDb.update(req.params.id, {
+      ...req.body,
+      manager_name,
+      manager_email
+    });
     const updatedAsset = await assetDb.getById(req.params.id);
 
     res.json({

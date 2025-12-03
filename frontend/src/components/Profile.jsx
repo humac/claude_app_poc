@@ -2,23 +2,19 @@ import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
-  CardContent,
   Typography,
   TextField,
   Button,
   Alert,
   Grid,
   Chip,
-  Paper,
   CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Switch,
-  FormControlLabel,
 } from '@mui/material';
-import { Save, Lock, Person, Security, CheckCircle, Cancel } from '@mui/icons-material';
+import { Person, CheckCircle, Cancel } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import MFASetupModal from './MFASetupModal';
 
@@ -182,8 +178,8 @@ const Profile = () => {
   const getRoleColor = (role) => {
     const colors = {
       admin: 'error',
-      manager: 'warning',
-      employee: 'info',
+      manager: 'success',
+      employee: 'primary',
     };
     return colors[role] || 'default';
   };
@@ -233,21 +229,44 @@ const Profile = () => {
   };
 
   return (
-    <Card sx={{ p: 3 }}>
-      <Grid container spacing={3}>
-        {/* Profile Information Card */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Person sx={{ mr: 1 }} color="primary" />
-                <Typography variant="h5" fontWeight={600}>
-                  Profile Information
-                </Typography>
-              </Box>
+    <>
+      <Card sx={{ p: 3 }}>
+        {/* Header */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+          <Person color="primary" />
+          <Typography variant="h5" fontWeight={600}>
+            Profile Settings
+          </Typography>
+        </Box>
 
-              <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
-                <Box sx={{ mb: 2 }}>
+        {/* Global Success/Error Messages */}
+        {success && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            Profile updated successfully!
+          </Alert>
+        )}
+
+        {passwordSuccess && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            Password changed successfully!
+          </Alert>
+        )}
+
+        {mfaSuccess && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            {mfaSuccess}
+          </Alert>
+        )}
+
+        <Grid container spacing={3}>
+          {/* Account Information */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 3, bgcolor: 'background.default', height: '100%' }}>
+              <Typography variant="h6" gutterBottom>
+                Account Information
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                <Box>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     Email
                   </Typography>
@@ -255,7 +274,7 @@ const Profile = () => {
                     {user?.email}
                   </Typography>
                 </Box>
-                <Box sx={{ mb: 2 }}>
+                <Box>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     Role
                   </Typography>
@@ -274,13 +293,19 @@ const Profile = () => {
                     {user?.name || 'Not set'}
                   </Typography>
                 </Box>
-              </Paper>
+              </Box>
+            </Card>
+          </Grid>
 
-              {success && (
-                <Alert severity="success" sx={{ mb: 2 }}>
-                  Profile updated successfully!
-                </Alert>
-              )}
+          {/* Update Profile */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 3, bgcolor: 'background.default', height: '100%' }}>
+              <Typography variant="h6" gutterBottom>
+                Update Profile
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Update your first and last name. Your email address cannot be changed.
+              </Typography>
 
               {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
@@ -288,7 +313,7 @@ const Profile = () => {
                 </Alert>
               )}
 
-              <Box component="form" onSubmit={handleSubmit} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Box component="form" onSubmit={handleSubmit}>
                 <TextField
                   fullWidth
                   label="First Name"
@@ -313,34 +338,23 @@ const Profile = () => {
                 <Button
                   type="submit"
                   variant="contained"
-                  fullWidth
                   disabled={loading}
-                  startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-                  sx={{ mt: 'auto' }}
                 >
-                  {loading ? 'Updating...' : 'Update Profile'}
+                  {loading ? <CircularProgress size={24} /> : 'Update Profile'}
                 </Button>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+            </Card>
+          </Grid>
 
-        {/* Change Password Card */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Lock sx={{ mr: 1 }} color="primary" />
-                <Typography variant="h5" fontWeight={600}>
-                  Change Password
-                </Typography>
-              </Box>
-
-              {passwordSuccess && (
-                <Alert severity="success" sx={{ mb: 2 }}>
-                  Password changed successfully!
-                </Alert>
-              )}
+          {/* Change Password */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 3, bgcolor: 'background.default', height: '100%' }}>
+              <Typography variant="h6" gutterBottom>
+                Change Password
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Update your password to keep your account secure. Passwords must be at least 6 characters long.
+              </Typography>
 
               {passwordError && (
                 <Alert severity="error" sx={{ mb: 2 }}>
@@ -348,7 +362,7 @@ const Profile = () => {
                 </Alert>
               )}
 
-              <Box component="form" onSubmit={handlePasswordSubmit} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Box component="form" onSubmit={handlePasswordSubmit}>
                 <TextField
                   fullWidth
                   type="password"
@@ -390,34 +404,23 @@ const Profile = () => {
                 <Button
                   type="submit"
                   variant="contained"
-                  fullWidth
                   disabled={passwordLoading}
-                  startIcon={passwordLoading ? <CircularProgress size={20} /> : <Lock />}
-                  sx={{ mt: 'auto' }}
                 >
-                  {passwordLoading ? 'Changing Password...' : 'Change Password'}
+                  {passwordLoading ? <CircularProgress size={24} /> : 'Change Password'}
                 </Button>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+            </Card>
+          </Grid>
 
-        {/* Two-Factor Authentication Card */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Security sx={{ mr: 1 }} color="primary" />
-                <Typography variant="h5" fontWeight={600}>
-                  Two-Factor Authentication
-                </Typography>
-              </Box>
-
-              {mfaSuccess && (
-                <Alert severity="success" sx={{ mb: 2 }}>
-                  {mfaSuccess}
-                </Alert>
-              )}
+          {/* Two-Factor Authentication */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 3, bgcolor: 'background.default', height: '100%' }}>
+              <Typography variant="h6" gutterBottom>
+                Two-Factor Authentication
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Add an extra layer of security to your account by requiring a verification code from your phone in addition to your password.
+              </Typography>
 
               {mfaError && (
                 <Alert severity="error" sx={{ mb: 2 }}>
@@ -425,60 +428,61 @@ const Profile = () => {
                 </Alert>
               )}
 
-              <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box>
-                    <Typography variant="body1" fontWeight={600} gutterBottom>
-                      Status
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {mfaEnabled ? (
-                        <>
-                          <CheckCircle color="success" fontSize="small" />
-                          <Typography variant="body2" color="success.main" fontWeight={600}>
-                            Enabled
-                          </Typography>
-                        </>
-                      ) : (
-                        <>
-                          <Cancel color="error" fontSize="small" />
-                          <Typography variant="body2" color="error.main">
-                            Disabled
-                          </Typography>
-                        </>
-                      )}
-                    </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Status
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {mfaEnabled ? (
+                      <>
+                        <CheckCircle color="success" fontSize="small" />
+                        <Typography variant="body2" color="success.main" fontWeight={600}>
+                          Enabled
+                        </Typography>
+                      </>
+                    ) : (
+                      <>
+                        <Cancel color="error" fontSize="small" />
+                        <Typography variant="body2" color="error.main">
+                          Disabled
+                        </Typography>
+                      </>
+                    )}
                   </Box>
-
-                  {mfaEnabled ? (
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => setShowDisableMFA(true)}
-                    >
-                      Disable MFA
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      onClick={() => setShowMFASetup(true)}
-                    >
-                      Enable MFA
-                    </Button>
-                  )}
                 </Box>
-              </Paper>
+
+                {mfaEnabled ? (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => setShowDisableMFA(true)}
+                  >
+                    Disable MFA
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => setShowMFASetup(true)}
+                  >
+                    Enable MFA
+                  </Button>
+                )}
+              </Box>
 
               <Alert severity="info">
                 <Typography variant="body2">
-                  Two-factor authentication adds an extra layer of security to your account by requiring
-                  a verification code from your phone in addition to your password.
+                  {mfaEnabled
+                    ? 'Two-factor authentication is currently protecting your account.'
+                    : 'Enable two-factor authentication to better protect your account from unauthorized access.'}
                 </Typography>
               </Alert>
-            </CardContent>
-          </Card>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
+      </Card>
 
       {/* MFA Setup Modal */}
       <MFASetupModal
@@ -528,6 +532,7 @@ const Profile = () => {
               setDisablePassword('');
               setMfaError('');
             }}
+            variant="outlined"
           >
             Cancel
           </Button>
@@ -541,7 +546,7 @@ const Profile = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Card>
+    </>
   );
 };
 

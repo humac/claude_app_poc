@@ -201,15 +201,13 @@ const CompanyManagement = () => {
               Company Management ({companies.length} companies)
             </Typography>
           </Box>
-          {!showForm && (
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setShowForm(true)}
-            >
-              Add Company
-            </Button>
-          )}
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setShowForm(true)}
+          >
+            Add Company
+          </Button>
         </Box>
 
         {/* Success Message */}
@@ -222,67 +220,6 @@ const CompanyManagement = () => {
         {/* Error Message */}
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
-        )}
-
-        {/* Form */}
-        {showForm && (
-          <Box sx={{ mb: 4, p: 3, bgcolor: 'background.default', borderRadius: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              {editingCompany ? 'Edit Company' : 'Add New Company'}
-            </Typography>
-
-            {formError && (
-              <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
-                {formError}
-              </Alert>
-            )}
-
-            <Box component="form" onSubmit={handleSubmit}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    required
-                    id="name"
-                    name="name"
-                    label="Company Name"
-                    placeholder="Acme Corporation"
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    id="description"
-                    name="description"
-                    label="Description (Optional)"
-                    placeholder="Brief description of the company..."
-                    value={formData.description}
-                    onChange={handleChange}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button type="submit" variant="contained">
-                      {editingCompany ? 'Update Company' : 'Add Company'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      onClick={handleCancel}
-                    >
-                      Cancel
-                    </Button>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Box>
-          </Box>
         )}
 
         {/* Companies Table */}
@@ -347,6 +284,59 @@ const CompanyManagement = () => {
           </TableContainer>
         )}
       </Card>
+
+      {/* Add/Edit Company Dialog */}
+      <Dialog
+        open={showForm}
+        onClose={handleCancel}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {editingCompany ? 'Edit Company' : 'Add New Company'}
+        </DialogTitle>
+        <DialogContent>
+          {formError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {formError}
+            </Alert>
+          )}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              required
+              id="name"
+              name="name"
+              label="Company Name"
+              placeholder="Acme Corporation"
+              value={formData.name}
+              onChange={handleChange}
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              id="description"
+              name="description"
+              label="Description (Optional)"
+              placeholder="Brief description of the company..."
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancel} variant="outlined">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} variant="contained">
+            {editingCompany ? 'Update Company' : 'Add Company'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog

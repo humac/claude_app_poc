@@ -1,26 +1,52 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { assetDb, companyDb, auditDb, userDb, oidcSettingsDb } from './database.js';
+import { assetDb, companyDb, auditDb, userDb, oidcSettingsDb, databaseSettings, databaseEngine, importSqliteDatabase } from './database.js';
 import { authenticate, authorize, hashPassword, comparePassword, generateToken } from './auth.js';
 import { initializeOIDC, getAuthorizationUrl, handleCallback, getUserInfo, extractUserData, isOIDCEnabled } from './oidc.js';
 import { generateMFASecret, verifyTOTP, generateBackupCodes, formatBackupCode } from './mfa.js';
 import { randomBytes } from 'crypto';
+import multer from 'multer';
+import { readFile, unlink } from 'fs/promises';
+import os from 'os';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 25 * 1024 * 1024 } });
+
+const parseCSVFile = async (filePath) => {
+  const content = await readFile(filePath, 'utf8');
+  const lines = content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) return [];
+
+  const headers = lines[0].split(',').map((header) => header.trim());
+
+  return lines.slice(1).map((line) => {
+    const values = line.split(',').map((value) => value.trim());
+    const record = {};
+
+    headers.forEach((header, index) => {
+      record[header] = values[index] || '';
+    });
+
+    return record;
+  });
+};
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Initialize database
-assetDb.init();
+const pendingMFALogins = new Map();
 
 // Initialize OIDC from database settings (async)
-(async () => {
+const initializeOIDCFromSettings = async () => {
   try {
-    const settings = oidcSettingsDb.get();
+    const settings = await oidcSettingsDb.get();
     if (settings && settings.enabled === 1) {
       await initializeOIDC(settings);
     } else {
@@ -29,10 +55,9 @@ assetDb.init();
   } catch (err) {
     console.error('OIDC initialization failed:', err.message);
   }
-})();
+};
 
 // Store for pending MFA logins (in production, use Redis)
-const pendingMFALogins = new Map();
 
 // Cleanup expired MFA sessions every 5 minutes
 setInterval(() => {
@@ -70,7 +95,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = userDb.getByEmail(email);
+    const existingUser = await userDb.getByEmail(email);
     if (existingUser) {
       return res.status(409).json({ error: 'User with this email already exists' });
     }
@@ -82,7 +107,7 @@ app.post('/api/auth/register', async (req, res) => {
     // 1. First user becomes admin
     // 2. User with email matching ADMIN_EMAIL env var becomes admin
     // 3. Otherwise, default to 'employee'
-    const allUsers = userDb.getAll();
+    const allUsers = await userDb.getAll();
     const isFirstUser = allUsers.length === 0;
     const isAdminEmail = process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase();
 
@@ -93,7 +118,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     // Create user
-    const result = userDb.create({
+    const result = await userDb.create({
       email,
       password_hash,
       name: name || `${first_name} ${last_name}`,
@@ -102,7 +127,7 @@ app.post('/api/auth/register', async (req, res) => {
       role: userRole
     });
 
-    const newUser = userDb.getById(result.lastInsertRowid);
+    const newUser = await userDb.getById(result.id);
 
     // Generate token
     const token = generateToken(newUser);
@@ -139,7 +164,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Find user
-    const user = userDb.getByEmail(email);
+    const user = await userDb.getByEmail(email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -169,7 +194,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Update last login
-    userDb.updateLastLogin(user.id);
+    await userDb.updateLastLogin(user.id);
 
     // Generate token
     const token = generateToken(user);
@@ -193,9 +218,9 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Get current user (verify token)
-app.get('/api/auth/me', authenticate, (req, res) => {
+app.get('/api/auth/me', authenticate, async (req, res) => {
   try {
-    const user = userDb.getById(req.user.id);
+    const user = await userDb.getById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -215,7 +240,7 @@ app.get('/api/auth/me', authenticate, (req, res) => {
 });
 
 // Update user profile
-app.put('/api/auth/profile', authenticate, (req, res) => {
+app.put('/api/auth/profile', authenticate, async (req, res) => {
   try {
     const { first_name, last_name } = req.body;
 
@@ -227,13 +252,13 @@ app.put('/api/auth/profile', authenticate, (req, res) => {
     }
 
     // Update profile
-    userDb.updateProfile(req.user.id, {
+    await userDb.updateProfile(req.user.id, {
       first_name,
       last_name
     });
 
     // Get updated user
-    const user = userDb.getById(req.user.id);
+    const user = await userDb.getById(req.user.id);
 
     res.json({
       message: 'Profile updated successfully',
@@ -277,7 +302,7 @@ app.put('/api/auth/change-password', authenticate, async (req, res) => {
     }
 
     // Get current user
-    const user = userDb.getById(req.user.id);
+    const user = await userDb.getById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -292,17 +317,17 @@ app.put('/api/auth/change-password', authenticate, async (req, res) => {
     const newPasswordHash = await hashPassword(newPassword);
 
     // Update password in database
-    userDb.updatePassword(req.user.id, newPasswordHash);
+    await userDb.updatePassword(req.user.id, newPasswordHash);
 
     // Log the password change
-    auditDb.create({
-      action: 'change_password',
-      entity_type: 'user',
-      entity_id: user.id,
-      entity_name: user.email,
-      details: 'Password changed successfully',
-      user_email: user.email
-    });
+    await auditDb.log(
+      'change_password',
+      'user',
+      user.id,
+      user.email,
+      'Password changed successfully',
+      user.email
+    );
 
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
@@ -314,9 +339,9 @@ app.put('/api/auth/change-password', authenticate, async (req, res) => {
 // ===== MFA Endpoints =====
 
 // Get MFA status for current user
-app.get('/api/auth/mfa/status', authenticate, (req, res) => {
+app.get('/api/auth/mfa/status', authenticate, async (req, res) => {
   try {
-    const mfaStatus = userDb.getMFAStatus(req.user.id);
+    const mfaStatus = await userDb.getMFAStatus(req.user.id);
     res.json({
       enabled: mfaStatus?.mfa_enabled === 1,
       hasBackupCodes: mfaStatus?.mfa_backup_codes ? JSON.parse(mfaStatus.mfa_backup_codes).length > 0 : false
@@ -330,7 +355,7 @@ app.get('/api/auth/mfa/status', authenticate, (req, res) => {
 // Start MFA enrollment
 app.post('/api/auth/mfa/enroll', authenticate, async (req, res) => {
   try {
-    const user = userDb.getById(req.user.id);
+    const user = await userDb.getById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -388,13 +413,13 @@ app.post('/api/auth/mfa/verify-enrollment', authenticate, async (req, res) => {
     const backupCodes = generateBackupCodes();
 
     // Enable MFA in database
-    userDb.enableMFA(req.user.id, enrollment.secret, backupCodes);
+    await userDb.enableMFA(req.user.id, enrollment.secret, backupCodes);
 
     // Clean up pending enrollment
     pendingMFALogins.delete(enrollKey);
 
     // Log the action
-    auditDb.log(
+    await auditDb.log(
       'enable_mfa',
       'user',
       req.user.id,
@@ -423,7 +448,7 @@ app.post('/api/auth/mfa/disable', authenticate, async (req, res) => {
     }
 
     // Verify password
-    const user = userDb.getById(req.user.id);
+    const user = await userDb.getById(req.user.id);
     const isValid = await comparePassword(password, user.password_hash);
 
     if (!isValid) {
@@ -431,10 +456,10 @@ app.post('/api/auth/mfa/disable', authenticate, async (req, res) => {
     }
 
     // Disable MFA
-    userDb.disableMFA(req.user.id);
+    await userDb.disableMFA(req.user.id);
 
     // Log the action
-    auditDb.log(
+    await auditDb.log(
       'disable_mfa',
       'user',
       req.user.id,
@@ -467,7 +492,7 @@ app.post('/api/auth/mfa/verify-login', async (req, res) => {
     }
 
     // Get user
-    const user = userDb.getById(pendingLogin.userId);
+    const user = await userDb.getById(pendingLogin.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -477,7 +502,7 @@ app.post('/api/auth/mfa/verify-login', async (req, res) => {
     if (useBackupCode) {
       // Verify and consume backup code
       const cleanedCode = token.replace(/-/g, '').toUpperCase();
-      isValid = userDb.useBackupCode(user.id, cleanedCode);
+      isValid = await userDb.useBackupCode(user.id, cleanedCode);
     } else {
       // Verify TOTP token
       isValid = verifyTOTP(user.mfa_secret, token);
@@ -491,7 +516,7 @@ app.post('/api/auth/mfa/verify-login', async (req, res) => {
     pendingMFALogins.delete(mfaSessionId);
 
     // Update last login
-    userDb.updateLastLogin(user.id);
+    await userDb.updateLastLogin(user.id);
 
     // Generate token
     const authToken = generateToken(user);
@@ -515,9 +540,9 @@ app.post('/api/auth/mfa/verify-login', async (req, res) => {
 });
 
 // Get all users (admin only)
-app.get('/api/auth/users', authenticate, authorize('admin'), (req, res) => {
+app.get('/api/auth/users', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const users = userDb.getAll();
+    const users = await userDb.getAll();
     res.json(users);
   } catch (error) {
     console.error('Get users error:', error);
@@ -526,7 +551,7 @@ app.get('/api/auth/users', authenticate, authorize('admin'), (req, res) => {
 });
 
 // Update user role (admin only)
-app.put('/api/auth/users/:id/role', authenticate, authorize('admin'), (req, res) => {
+app.put('/api/auth/users/:id/role', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { role } = req.body;
     const userId = parseInt(req.params.id);
@@ -538,7 +563,7 @@ app.put('/api/auth/users/:id/role', authenticate, authorize('admin'), (req, res)
       });
     }
 
-    const user = userDb.getById(userId);
+    const user = await userDb.getById(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -550,8 +575,8 @@ app.put('/api/auth/users/:id/role', authenticate, authorize('admin'), (req, res)
       });
     }
 
-    userDb.updateRole(userId, role);
-    const updatedUser = userDb.getById(userId);
+    await userDb.updateRole(userId, role);
+    const updatedUser = await userDb.getById(userId);
 
     res.json({
       message: 'User role updated successfully',
@@ -571,7 +596,7 @@ app.put('/api/auth/users/:id/role', authenticate, authorize('admin'), (req, res)
 });
 
 // Delete user (admin only)
-app.delete('/api/auth/users/:id', authenticate, authorize('admin'), (req, res) => {
+app.delete('/api/auth/users/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
 
@@ -582,12 +607,12 @@ app.delete('/api/auth/users/:id', authenticate, authorize('admin'), (req, res) =
       });
     }
 
-    const user = userDb.getById(userId);
+    const user = await userDb.getById(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    userDb.delete(userId);
+    await userDb.delete(userId);
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('Delete user error:', error);
@@ -598,9 +623,9 @@ app.delete('/api/auth/users/:id', authenticate, authorize('admin'), (req, res) =
 // ===== OIDC Settings Management (Admin Only) =====
 
 // Get OIDC settings
-app.get('/api/admin/oidc-settings', authenticate, authorize('admin'), (req, res) => {
+app.get('/api/admin/oidc-settings', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const settings = oidcSettingsDb.get();
+    const settings = await oidcSettingsDb.get();
     // Don't send client_secret to frontend for security
     const { client_secret, ...safeSettings } = settings || {};
     res.json({
@@ -628,13 +653,13 @@ app.put('/api/admin/oidc-settings', authenticate, authorize('admin'), async (req
     }
 
     // Get existing settings to preserve client_secret if not provided
-    const existingSettings = oidcSettingsDb.get();
+    const existingSettings = await oidcSettingsDb.get();
     if (!settings.client_secret && existingSettings?.client_secret) {
       settings.client_secret = existingSettings.client_secret;
     }
 
     // Update settings
-    oidcSettingsDb.update(settings, req.user.email);
+    await oidcSettingsDb.update(settings, req.user.email);
 
     // Reinitialize OIDC client with new settings
     if (settings.enabled) {
@@ -642,7 +667,7 @@ app.put('/api/admin/oidc-settings', authenticate, authorize('admin'), async (req
     }
 
     // Log the change
-    auditDb.log(
+    await auditDb.log(
       'update',
       'oidc_settings',
       1,
@@ -658,15 +683,82 @@ app.put('/api/admin/oidc-settings', authenticate, authorize('admin'), async (req
   }
 });
 
+// Database engine settings (admin only)
+const formatDatabaseSettings = () => {
+  const settings = databaseSettings.get();
+  return {
+    engine: settings.engine,
+    postgresUrl: settings.postgresUrl,
+    managedByEnv: settings.managedByEnv,
+    effectiveEngine: databaseEngine,
+    restartRequired: true
+  };
+};
+
+app.get('/api/admin/database', authenticate, authorize('admin'), (req, res) => {
+  try {
+    res.json(formatDatabaseSettings());
+  } catch (error) {
+    console.error('Get database settings error:', error);
+    res.status(500).json({ error: 'Failed to load database settings' });
+  }
+});
+
+app.put('/api/admin/database', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const current = databaseSettings.get();
+
+    if (current.managedByEnv) {
+      return res.status(400).json({ error: 'Database settings are managed by environment variables' });
+    }
+
+    const { engine, postgresUrl } = req.body;
+    const updated = await databaseSettings.update({ engine, postgresUrl });
+
+    res.json({
+      ...updated,
+      effectiveEngine: updated.engine,
+      restartRequired: true
+    });
+  } catch (error) {
+    console.error('Update database settings error:', error);
+    res.status(500).json({ error: error.message || 'Failed to update database settings' });
+  }
+});
+
+app.post('/api/admin/database/import-sqlite', authenticate, authorize('admin'), upload.single('sqliteFile'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Upload a SQLite assets.db file to import' });
+  }
+
+  if (databaseEngine !== 'postgres') {
+    await unlink(req.file.path).catch(() => {});
+    return res.status(400).json({ error: 'Switch to PostgreSQL before importing SQLite data' });
+  }
+
+  try {
+    const results = await importSqliteDatabase(req.file.path);
+    res.json({
+      message: 'SQLite data imported into PostgreSQL successfully',
+      imported: results
+    });
+  } catch (error) {
+    console.error('SQLite import failed:', error);
+    res.status(500).json({ error: error.message || 'Failed to import SQLite data' });
+  } finally {
+    await unlink(req.file.path).catch(() => {});
+  }
+});
+
 // ===== OIDC Authentication Endpoints =====
 
 // Store for state tokens (in production, use Redis or similar)
 const stateStore = new Map();
 
 // Get OIDC configuration (for frontend)
-app.get('/api/auth/oidc/config', (req, res) => {
+app.get('/api/auth/oidc/config', async (req, res) => {
   try {
-    const settings = oidcSettingsDb.get();
+    const settings = await oidcSettingsDb.get();
     res.json({
       enabled: settings?.enabled === 1 && isOIDCEnabled()
     });
@@ -750,20 +842,20 @@ app.get('/api/auth/oidc/callback', async (req, res) => {
     const userData = extractUserData(allClaims);
 
     // Find or create user (JIT provisioning)
-    let user = userDb.getByOIDCSub(userData.oidcSub);
+    let user = await userDb.getByOIDCSub(userData.oidcSub);
 
     if (!user) {
       // Check if user with same email exists
-      user = userDb.getByEmail(userData.email);
+      user = await userDb.getByEmail(userData.email);
 
       if (user) {
         // Link existing user to OIDC
         console.log(`Linking existing user ${userData.email} to OIDC subject ${userData.oidcSub}`);
-        userDb.linkOIDC(user.id, userData.oidcSub);
+        await userDb.linkOIDC(user.id, userData.oidcSub);
       } else {
         // Create new user (JIT provisioning)
         console.log(`Creating new user via OIDC: ${userData.email} with role ${userData.role}`);
-        const result = userDb.createFromOIDC({
+        const result = await userDb.createFromOIDC({
           email: userData.email,
           name: userData.fullName,
           first_name: userData.firstName,
@@ -772,10 +864,10 @@ app.get('/api/auth/oidc/callback', async (req, res) => {
           oidcSub: userData.oidcSub
         });
 
-        user = userDb.getById(result.lastInsertRowid);
+        user = await userDb.getById(result.id);
 
         // Log user creation
-        auditDb.log(
+        await auditDb.log(
           'create',
           'user',
           user.id,
@@ -787,7 +879,7 @@ app.get('/api/auth/oidc/callback', async (req, res) => {
     }
 
     // Update last login
-    userDb.updateLastLogin(user.id);
+    await userDb.updateLastLogin(user.id);
 
     // Generate JWT token
     const token = generateToken(user);
@@ -811,10 +903,10 @@ app.get('/api/auth/oidc/callback', async (req, res) => {
 });
 
 // Get all assets (with role-based filtering)
-app.get('/api/assets', authenticate, (req, res) => {
+app.get('/api/assets', authenticate, async (req, res) => {
   try {
-    const allAssets = assetDb.getAll();
-    const user = userDb.getById(req.user.id);
+    const allAssets = await assetDb.getAll();
+    const user = await userDb.getById(req.user.id);
 
     // Role-based filtering
     let filteredAssets;
@@ -842,9 +934,9 @@ app.get('/api/assets', authenticate, (req, res) => {
 });
 
 // Get single asset by ID
-app.get('/api/assets/:id', (req, res) => {
+app.get('/api/assets/:id', async (req, res) => {
   try {
-    const asset = assetDb.getById(req.params.id);
+    const asset = await assetDb.getById(req.params.id);
     if (!asset) {
       return res.status(404).json({ error: 'Asset not found' });
     }
@@ -856,7 +948,7 @@ app.get('/api/assets/:id', (req, res) => {
 });
 
 // Search assets
-app.get('/api/assets/search', (req, res) => {
+app.get('/api/assets/search', async (req, res) => {
   try {
     const filters = {
       employee_name: req.query.employee,
@@ -865,7 +957,7 @@ app.get('/api/assets/search', (req, res) => {
       status: req.query.status
     };
 
-    const assets = assetDb.search(filters);
+    const assets = await assetDb.search(filters);
     res.json(assets);
   } catch (error) {
     console.error('Error searching assets:', error);
@@ -873,8 +965,108 @@ app.get('/api/assets/search', (req, res) => {
   }
 });
 
+// Bulk import assets via CSV
+app.post('/api/assets/import', authenticate, upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'CSV file is required' });
+  }
+
+  try {
+    const records = await parseCSVFile(req.file.path);
+    const requiredFields = [
+      'employee_name',
+      'employee_email',
+      'manager_name',
+      'manager_email',
+      'client_name',
+      'laptop_serial_number',
+      'laptop_asset_tag'
+    ];
+    const validStatuses = ['active', 'returned', 'lost', 'damaged', 'retired'];
+
+    let imported = 0;
+    const errors = [];
+
+    for (let index = 0; index < records.length; index++) {
+      const row = records[index];
+      const normalizedRow = Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [key.trim(), (value || '').trim()])
+      );
+
+      const missingFields = requiredFields.filter((field) => !normalizedRow[field]);
+      if (missingFields.length > 0) {
+        errors.push(`Row ${index + 2}: Missing required fields: ${missingFields.join(', ')}`);
+        continue;
+      }
+
+      const status = normalizedRow.status ? normalizedRow.status.toLowerCase() : 'active';
+      if (normalizedRow.status && !validStatuses.includes(status)) {
+        errors.push(`Row ${index + 2}: Invalid status '${normalizedRow.status}'. Valid statuses: ${validStatuses.join(', ')}`);
+        continue;
+      }
+
+      const assetData = {
+        employee_name: normalizedRow.employee_name,
+        employee_email: normalizedRow.employee_email,
+        manager_name: normalizedRow.manager_name,
+        manager_email: normalizedRow.manager_email,
+        client_name: normalizedRow.client_name,
+        laptop_make: normalizedRow.laptop_make || '',
+        laptop_model: normalizedRow.laptop_model || '',
+        laptop_serial_number: normalizedRow.laptop_serial_number,
+        laptop_asset_tag: normalizedRow.laptop_asset_tag,
+        status,
+        notes: normalizedRow.notes || ''
+      };
+
+      try {
+        const result = await assetDb.create(assetData);
+        const newAsset = await assetDb.getById(result.id);
+
+        await auditDb.log(
+          'CREATE',
+          'asset',
+          newAsset.id,
+          `${assetData.laptop_serial_number} - ${assetData.employee_name}`,
+          {
+            employee_name: assetData.employee_name,
+            employee_email: assetData.employee_email,
+            client_name: assetData.client_name,
+            laptop_serial_number: assetData.laptop_serial_number,
+            laptop_asset_tag: assetData.laptop_asset_tag,
+            imported: true
+          },
+          assetData.employee_email
+        );
+
+        imported += 1;
+      } catch (error) {
+        const duplicateError = error.message.includes('UNIQUE constraint failed');
+        const postgresDuplicate = error.message.includes('duplicate key value violates unique constraint');
+        if (duplicateError || postgresDuplicate) {
+          errors.push(`Row ${index + 2}: Asset with this serial number or asset tag already exists`);
+        } else {
+          errors.push(`Row ${index + 2}: ${error.message}`);
+        }
+      }
+    }
+
+    res.json({
+      message: `Imported ${imported} assets${errors.length ? ` with ${errors.length} issues` : ''}`,
+      imported,
+      failed: errors.length,
+      errors
+    });
+  } catch (error) {
+    console.error('Error importing assets:', error);
+    res.status(500).json({ error: 'Failed to import assets' });
+  } finally {
+    await unlink(req.file.path);
+  }
+});
+
 // Create new asset
-app.post('/api/assets', authenticate, (req, res) => {
+app.post('/api/assets', authenticate, async (req, res) => {
   try {
     const { employee_name, employee_email, manager_name, manager_email, client_name, laptop_serial_number, laptop_asset_tag, notes } = req.body;
 
@@ -886,11 +1078,11 @@ app.post('/api/assets', authenticate, (req, res) => {
       });
     }
 
-    const result = assetDb.create(req.body);
-    const newAsset = assetDb.getById(result.lastInsertRowid);
+    const result = await assetDb.create(req.body);
+    const newAsset = await assetDb.getById(result.id);
 
     // Log audit
-    auditDb.log(
+    await auditDb.log(
       'CREATE',
       'asset',
       newAsset.id,
@@ -923,7 +1115,7 @@ app.post('/api/assets', authenticate, (req, res) => {
 });
 
 // Update asset status
-app.patch('/api/assets/:id/status', (req, res) => {
+app.patch('/api/assets/:id/status', async (req, res) => {
   try {
     const { status, notes } = req.body;
 
@@ -939,17 +1131,17 @@ app.patch('/api/assets/:id/status', (req, res) => {
       });
     }
 
-    const asset = assetDb.getById(req.params.id);
+    const asset = await assetDb.getById(req.params.id);
     if (!asset) {
       return res.status(404).json({ error: 'Asset not found' });
     }
 
     const oldStatus = asset.status;
-    assetDb.updateStatus(req.params.id, status, notes);
-    const updatedAsset = assetDb.getById(req.params.id);
+    await assetDb.updateStatus(req.params.id, status, notes);
+    const updatedAsset = await assetDb.getById(req.params.id);
 
     // Log audit
-    auditDb.log(
+    await auditDb.log(
       'STATUS_CHANGE',
       'asset',
       asset.id,
@@ -973,9 +1165,9 @@ app.patch('/api/assets/:id/status', (req, res) => {
 });
 
 // Update entire asset
-app.put('/api/assets/:id', (req, res) => {
+app.put('/api/assets/:id', authenticate, async (req, res) => {
   try {
-    const asset = assetDb.getById(req.params.id);
+    const asset = await assetDb.getById(req.params.id);
     if (!asset) {
       return res.status(404).json({ error: 'Asset not found' });
     }
@@ -989,8 +1181,8 @@ app.put('/api/assets/:id', (req, res) => {
       });
     }
 
-    assetDb.update(req.params.id, req.body);
-    const updatedAsset = assetDb.getById(req.params.id);
+    await assetDb.update(req.params.id, req.body);
+    const updatedAsset = await assetDb.getById(req.params.id);
 
     res.json({
       message: 'Asset updated successfully',
@@ -1010,14 +1202,14 @@ app.put('/api/assets/:id', (req, res) => {
 });
 
 // Delete asset
-app.delete('/api/assets/:id', (req, res) => {
+app.delete('/api/assets/:id', authenticate, async (req, res) => {
   try {
-    const asset = assetDb.getById(req.params.id);
+    const asset = await assetDb.getById(req.params.id);
     if (!asset) {
       return res.status(404).json({ error: 'Asset not found' });
     }
 
-    assetDb.delete(req.params.id);
+    await assetDb.delete(req.params.id);
     res.json({ message: 'Asset deleted successfully' });
   } catch (error) {
     console.error('Error deleting asset:', error);
@@ -1028,9 +1220,9 @@ app.delete('/api/assets/:id', (req, res) => {
 // ===== Company Management Endpoints =====
 
 // Get all companies (admin only - full details)
-app.get('/api/companies', authenticate, authorize('admin'), (req, res) => {
+app.get('/api/companies', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const companies = companyDb.getAll();
+    const companies = await companyDb.getAll();
     res.json(companies);
   } catch (error) {
     console.error('Error fetching companies:', error);
@@ -1039,9 +1231,9 @@ app.get('/api/companies', authenticate, authorize('admin'), (req, res) => {
 });
 
 // Get company names for dropdown (all authenticated users)
-app.get('/api/companies/names', authenticate, (req, res) => {
+app.get('/api/companies/names', authenticate, async (req, res) => {
   try {
-    const companies = companyDb.getAll();
+    const companies = await companyDb.getAll();
     // Return only id and name for dropdown use
     const companyNames = companies.map(c => ({ id: c.id, name: c.name }));
     res.json(companyNames);
@@ -1051,10 +1243,70 @@ app.get('/api/companies/names', authenticate, (req, res) => {
   }
 });
 
-// Get single company by ID
-app.get('/api/companies/:id', (req, res) => {
+// Bulk import companies via CSV (admin only)
+app.post('/api/companies/import', authenticate, authorize('admin'), upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'CSV file is required' });
+  }
+
   try {
-    const company = companyDb.getById(req.params.id);
+    const records = await parseCSVFile(req.file.path);
+    let imported = 0;
+    const errors = [];
+
+    for (let index = 0; index < records.length; index++) {
+      const row = records[index];
+      const name = (row.name || '').trim();
+      const description = (row.description || '').trim();
+
+      if (!name) {
+        errors.push(`Row ${index + 2}: Company name is required`);
+        continue;
+      }
+
+      try {
+        const existing = await companyDb.getByName(name);
+        if (existing) {
+          errors.push(`Row ${index + 2}: A company with the name "${name}" already exists`);
+          continue;
+        }
+
+        const result = await companyDb.create({ name, description });
+        const newCompany = await companyDb.getById(result.id);
+
+        await auditDb.log(
+          'CREATE',
+          'company',
+          newCompany.id,
+          name,
+          { description: newCompany.description, imported: true },
+          req.user.email
+        );
+
+        imported += 1;
+      } catch (error) {
+        errors.push(`Row ${index + 2}: ${error.message}`);
+      }
+    }
+
+    res.json({
+      message: `Imported ${imported} companies${errors.length ? ` with ${errors.length} issues` : ''}`,
+      imported,
+      failed: errors.length,
+      errors
+    });
+  } catch (error) {
+    console.error('Error importing companies:', error);
+    res.status(500).json({ error: 'Failed to import companies' });
+  } finally {
+    await unlink(req.file.path);
+  }
+});
+
+// Get single company by ID
+app.get('/api/companies/:id', async (req, res) => {
+  try {
+    const company = await companyDb.getById(req.params.id);
     if (!company) {
       return res.status(404).json({ error: 'Company not found' });
     }
@@ -1066,7 +1318,7 @@ app.get('/api/companies/:id', (req, res) => {
 });
 
 // Create new company (admin only)
-app.post('/api/companies', authenticate, authorize('admin'), (req, res) => {
+app.post('/api/companies', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { name, description } = req.body;
 
@@ -1078,15 +1330,15 @@ app.post('/api/companies', authenticate, authorize('admin'), (req, res) => {
     }
 
     // Check if company already exists
-    const existing = companyDb.getByName(name);
+    const existing = await companyDb.getByName(name);
     if (existing) {
       return res.status(409).json({
         error: 'A company with this name already exists'
       });
     }
 
-    const result = companyDb.create(req.body);
-    const newCompany = companyDb.getById(result.lastInsertRowid);
+    const result = await companyDb.create(req.body);
+    const newCompany = await companyDb.getById(result.id);
 
     res.status(201).json({
       message: 'Company registered successfully',
@@ -1106,9 +1358,9 @@ app.post('/api/companies', authenticate, authorize('admin'), (req, res) => {
 });
 
 // Update company (admin only)
-app.put('/api/companies/:id', authenticate, authorize('admin'), (req, res) => {
+app.put('/api/companies/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const company = companyDb.getById(req.params.id);
+    const company = await companyDb.getById(req.params.id);
     if (!company) {
       return res.status(404).json({ error: 'Company not found' });
     }
@@ -1122,15 +1374,15 @@ app.put('/api/companies/:id', authenticate, authorize('admin'), (req, res) => {
     }
 
     // Check if another company has this name
-    const existing = companyDb.getByName(name);
+    const existing = await companyDb.getByName(name);
     if (existing && existing.id !== parseInt(req.params.id)) {
       return res.status(409).json({
         error: 'A company with this name already exists'
       });
     }
 
-    companyDb.update(req.params.id, req.body);
-    const updatedCompany = companyDb.getById(req.params.id);
+    await companyDb.update(req.params.id, req.body);
+    const updatedCompany = await companyDb.getById(req.params.id);
 
     res.json({
       message: 'Company updated successfully',
@@ -1150,21 +1402,21 @@ app.put('/api/companies/:id', authenticate, authorize('admin'), (req, res) => {
 });
 
 // Delete company (admin only)
-app.delete('/api/companies/:id', authenticate, authorize('admin'), (req, res) => {
+app.delete('/api/companies/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const company = companyDb.getById(req.params.id);
+    const company = await companyDb.getById(req.params.id);
     if (!company) {
       return res.status(404).json({ error: 'Company not found' });
     }
 
     // Check if company has assets
-    if (companyDb.hasAssets(company.name)) {
+    if (await companyDb.hasAssets(company.name)) {
       return res.status(409).json({
         error: 'Cannot delete company with existing assets. Please reassign or delete assets first.'
       });
     }
 
-    companyDb.delete(req.params.id);
+    await companyDb.delete(req.params.id);
     res.json({ message: 'Company deleted successfully' });
   } catch (error) {
     console.error('Error deleting company:', error);
@@ -1175,9 +1427,9 @@ app.delete('/api/companies/:id', authenticate, authorize('admin'), (req, res) =>
 // ===== Audit & Reporting Endpoints =====
 
 // Get all audit logs (with role-based filtering)
-app.get('/api/audit/logs', authenticate, (req, res) => {
+app.get('/api/audit/logs', authenticate, async (req, res) => {
   try {
-    const user = userDb.getById(req.user.id);
+    const user = await userDb.getById(req.user.id);
 
     const options = {
       entityType: req.query.entityType,
@@ -1189,7 +1441,7 @@ app.get('/api/audit/logs', authenticate, (req, res) => {
       limit: req.query.limit ? parseInt(req.query.limit) : undefined
     };
 
-    let logs = auditDb.getAll(options);
+    let logs = await auditDb.getAll(options);
 
     // Role-based filtering
     if (user.role === 'employee') {
@@ -1198,7 +1450,7 @@ app.get('/api/audit/logs', authenticate, (req, res) => {
     } else if (user.role === 'manager') {
       // Managers see their own logs + their employees' logs
       // Get all assets where user is manager to find their employees
-      const allAssets = assetDb.getAll();
+      const allAssets = await assetDb.getAll();
       const employeeEmails = new Set();
       employeeEmails.add(user.email); // Add manager's own email
 
@@ -1222,9 +1474,9 @@ app.get('/api/audit/logs', authenticate, (req, res) => {
 });
 
 // Get audit logs for specific entity
-app.get('/api/audit/entity/:type/:id', (req, res) => {
+app.get('/api/audit/entity/:type/:id', async (req, res) => {
   try {
-    const logs = auditDb.getByEntity(req.params.type, req.params.id);
+    const logs = await auditDb.getByEntity(req.params.type, req.params.id);
     res.json(logs);
   } catch (error) {
     console.error('Error fetching entity audit logs:', error);
@@ -1233,10 +1485,10 @@ app.get('/api/audit/entity/:type/:id', (req, res) => {
 });
 
 // Get recent audit logs
-app.get('/api/audit/recent', (req, res) => {
+app.get('/api/audit/recent', async (req, res) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit) : 100;
-    const logs = auditDb.getRecent(limit);
+    const logs = await auditDb.getRecent(limit);
     res.json(logs);
   } catch (error) {
     console.error('Error fetching recent audit logs:', error);
@@ -1245,9 +1497,9 @@ app.get('/api/audit/recent', (req, res) => {
 });
 
 // Get audit statistics
-app.get('/api/audit/stats', (req, res) => {
+app.get('/api/audit/stats', async (req, res) => {
   try {
-    const stats = auditDb.getStats(req.query.startDate, req.query.endDate);
+    const stats = await auditDb.getStats(req.query.startDate, req.query.endDate);
     res.json(stats);
   } catch (error) {
     console.error('Error fetching audit stats:', error);
@@ -1256,9 +1508,9 @@ app.get('/api/audit/stats', (req, res) => {
 });
 
 // Generate report (CSV export)
-app.get('/api/audit/export', authenticate, (req, res) => {
+app.get('/api/audit/export', authenticate, async (req, res) => {
   try {
-    const user = userDb.getById(req.user.id);
+    const user = await userDb.getById(req.user.id);
 
     const options = {
       entityType: req.query.entityType,
@@ -1268,7 +1520,7 @@ app.get('/api/audit/export', authenticate, (req, res) => {
       userEmail: req.query.userEmail
     };
 
-    let logs = auditDb.getAll(options);
+    let logs = await auditDb.getAll(options);
 
     // Role-based filtering
     if (user.role === 'employee') {
@@ -1277,7 +1529,7 @@ app.get('/api/audit/export', authenticate, (req, res) => {
     } else if (user.role === 'manager') {
       // Managers see their own logs + their employees' logs
       // Get all assets where user is manager to find their employees
-      const allAssets = assetDb.getAll();
+      const allAssets = await assetDb.getAll();
       const employeeEmails = new Set();
       employeeEmails.add(user.email); // Add manager's own email
 
@@ -1322,10 +1574,10 @@ app.get('/api/audit/export', authenticate, (req, res) => {
 });
 
 // Asset summary report (with role-based filtering)
-app.get('/api/reports/summary', authenticate, (req, res) => {
+app.get('/api/reports/summary', authenticate, async (req, res) => {
   try {
-    const user = userDb.getById(req.user.id);
-    const allAssets = assetDb.getAll();
+    const user = await userDb.getById(req.user.id);
+    const allAssets = await assetDb.getAll();
 
     // Filter assets based on role
     let assets;
@@ -1367,8 +1619,21 @@ app.get('/api/reports/summary', authenticate, (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Asset Registration API running on http://localhost:${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-});
+// Start server after database initialization
+const startServer = async () => {
+  try {
+    await assetDb.init();
+    await initializeOIDCFromSettings();
+    console.log(`Using ${databaseEngine.toUpperCase()} database backend`);
+
+    app.listen(PORT, () => {
+      console.log(`Asset Registration API running on http://localhost:${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/api/health`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();

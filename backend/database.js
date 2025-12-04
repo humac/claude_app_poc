@@ -306,9 +306,20 @@ const initDb = async () => {
   // This is needed for supporting unregistered employees
   try {
     if (isPostgres) {
-      // PostgreSQL: Alter columns to drop NOT NULL constraint
-      await dbRun('ALTER TABLE assets ALTER COLUMN manager_name DROP NOT NULL');
-      await dbRun('ALTER TABLE assets ALTER COLUMN manager_email DROP NOT NULL');
+      // PostgreSQL: Check if columns have NOT NULL constraint before trying to drop it
+      const checkConstraint = await dbAll(`
+        SELECT column_name, is_nullable
+        FROM information_schema.columns
+        WHERE table_name = 'assets'
+        AND column_name IN ('manager_name', 'manager_email')
+      `);
+
+      for (const col of checkConstraint) {
+        if (col.is_nullable === 'NO') {
+          await dbRun(`ALTER TABLE assets ALTER COLUMN ${col.column_name} DROP NOT NULL`);
+          console.log(`PostgreSQL: Dropped NOT NULL constraint from ${col.column_name}`);
+        }
+      }
     } else {
       // SQLite: Check if migration is needed by looking at table structure
       // SQLite requires recreating the table to change constraints
@@ -316,58 +327,83 @@ const initDb = async () => {
       const managerNameCol = columns.find(col => col.name === 'manager_name');
       const managerEmailCol = columns.find(col => col.name === 'manager_email');
 
+      console.log('Checking assets table schema:', {
+        manager_name_notnull: managerNameCol?.notnull,
+        manager_email_notnull: managerEmailCol?.notnull
+      });
+
       // Check if columns are NOT NULL (notnull === 1 means NOT NULL)
-      if (managerNameCol && managerNameCol.notnull === 1 || managerEmailCol && managerEmailCol.notnull === 1) {
+      if ((managerNameCol && managerNameCol.notnull === 1) || (managerEmailCol && managerEmailCol.notnull === 1)) {
+        console.log('Migration needed: manager fields have NOT NULL constraint, recreating table...');
+
         // Need to recreate the table with nullable columns
         await dbRun('BEGIN TRANSACTION');
 
-        // Create new table with nullable manager fields
-        await dbRun(`
-          CREATE TABLE assets_new (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_name TEXT NOT NULL,
-            employee_email TEXT NOT NULL,
-            manager_name TEXT,
-            manager_email TEXT,
-            client_name TEXT NOT NULL,
-            laptop_serial_number TEXT NOT NULL UNIQUE,
-            laptop_asset_tag TEXT NOT NULL UNIQUE,
-            laptop_make TEXT,
-            laptop_model TEXT,
-            status TEXT NOT NULL DEFAULT 'active',
-            registration_date TEXT NOT NULL,
-            last_updated TEXT NOT NULL,
-            notes TEXT
-          )
-        `);
+        try {
+          // Create new table with nullable manager fields
+          await dbRun(`
+            CREATE TABLE assets_new (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              employee_name TEXT NOT NULL,
+              employee_email TEXT NOT NULL,
+              manager_name TEXT,
+              manager_email TEXT,
+              client_name TEXT NOT NULL,
+              laptop_serial_number TEXT NOT NULL UNIQUE,
+              laptop_asset_tag TEXT NOT NULL UNIQUE,
+              laptop_make TEXT,
+              laptop_model TEXT,
+              status TEXT NOT NULL DEFAULT 'active',
+              registration_date TEXT NOT NULL,
+              last_updated TEXT NOT NULL,
+              notes TEXT
+            )
+          `);
 
-        // Copy data from old table to new table
-        await dbRun(`
-          INSERT INTO assets_new
-          SELECT * FROM assets
-        `);
+          // Copy data from old table to new table
+          await dbRun(`
+            INSERT INTO assets_new
+            SELECT id, employee_name, employee_email, manager_name, manager_email,
+                   client_name, laptop_serial_number, laptop_asset_tag,
+                   laptop_make, laptop_model, status, registration_date, last_updated, notes
+            FROM assets
+          `);
 
-        // Drop old table
-        await dbRun('DROP TABLE assets');
+          // Drop old table
+          await dbRun('DROP TABLE assets');
 
-        // Rename new table
-        await dbRun('ALTER TABLE assets_new RENAME TO assets');
+          // Rename new table
+          await dbRun('ALTER TABLE assets_new RENAME TO assets');
 
-        // Recreate indexes
-        await dbRun('CREATE INDEX IF NOT EXISTS idx_employee_name ON assets(employee_name)');
-        await dbRun('CREATE INDEX IF NOT EXISTS idx_manager_name ON assets(manager_name)');
-        await dbRun('CREATE INDEX IF NOT EXISTS idx_client_name ON assets(client_name)');
-        await dbRun('CREATE INDEX IF NOT EXISTS idx_status ON assets(status)');
+          // Recreate indexes
+          await dbRun('CREATE INDEX IF NOT EXISTS idx_employee_name ON assets(employee_name)');
+          await dbRun('CREATE INDEX IF NOT EXISTS idx_manager_name ON assets(manager_name)');
+          await dbRun('CREATE INDEX IF NOT EXISTS idx_client_name ON assets(client_name)');
+          await dbRun('CREATE INDEX IF NOT EXISTS idx_status ON assets(status)');
 
-        await dbRun('COMMIT');
-        console.log('SQLite assets table migrated to support nullable manager fields');
+          await dbRun('COMMIT');
+          console.log('✓ SQLite assets table successfully migrated to support nullable manager fields');
+
+          // Verify migration succeeded
+          const newColumns = await dbAll("PRAGMA table_info(assets)");
+          const newManagerNameCol = newColumns.find(col => col.name === 'manager_name');
+          const newManagerEmailCol = newColumns.find(col => col.name === 'manager_email');
+          console.log('Migration verified:', {
+            manager_name_notnull: newManagerNameCol?.notnull,
+            manager_email_notnull: newManagerEmailCol?.notnull
+          });
+        } catch (innerErr) {
+          await dbRun('ROLLBACK').catch(() => {});
+          throw innerErr;
+        }
+      } else {
+        console.log('No migration needed: manager fields are already nullable');
       }
     }
   } catch (err) {
-    if (!isPostgres) {
-      await dbRun('ROLLBACK').catch(() => {});
-    }
-    console.log('Asset manager fields migration error (may already be nullable):', err.message);
+    console.error('Asset manager fields migration FAILED:', err.message);
+    console.error('Stack trace:', err.stack);
+    throw new Error(`Failed to migrate assets table: ${err.message}`);
   }
 
   // Insert default OIDC settings if not exists

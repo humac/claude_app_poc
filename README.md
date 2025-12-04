@@ -272,8 +272,6 @@ For production deployments with PostgreSQL and Portainer container management:
    POSTGRES_PORT=5432
    POSTGRES_SSL=false
 
-   # Portainer Settings (optional, use for initial admin password)
-   PORTAINER_ADMIN_PASSWORD=$$2y$$05$$...  # bcrypt hash
    ```
 4. **Deploy Stack** in Portainer or via Docker Compose:
    ```bash
@@ -284,13 +282,7 @@ For production deployments with PostgreSQL and Portainer container management:
    - Portainer UI: `https://localhost:9443` or `http://localhost:9000`
    - PostgreSQL: `localhost:5432`
 
-6. **First Time Setup:**
-   - Access Portainer at `http://localhost:9000`
-   - Create admin account (if PORTAINER_ADMIN_PASSWORD not set)
-   - Monitor containers and logs through Portainer UI
-
 **Note:** This setup includes:
-- Portainer CE for container management
 - PostgreSQL 16 (Alpine) for production database
 - Automatic health checks for all services
 - Persistent volumes for data

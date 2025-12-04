@@ -1133,7 +1133,7 @@ app.post('/api/auth/passkeys/verify-authentication', async (req, res) => {
       expectedChallenge: pending.challenge,
       expectedOrigin: getExpectedOrigin(req),
       expectedRPID: rpID,
-      authenticator: {
+      credential: {
         credentialID: isoBase64URL.toBuffer(dbPasskey.credential_id),
         credentialPublicKey: isoBase64URL.toBuffer(dbPasskey.public_key),
         counter: typeof dbPasskey.counter === 'number' && Number.isFinite(dbPasskey.counter)

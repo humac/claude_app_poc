@@ -135,8 +135,8 @@ const initDb = async () => {
       id SERIAL PRIMARY KEY,
       employee_name TEXT NOT NULL,
       employee_email TEXT NOT NULL,
-      manager_name TEXT NOT NULL,
-      manager_email TEXT NOT NULL,
+      manager_name TEXT,
+      manager_email TEXT,
       client_name TEXT NOT NULL,
       laptop_serial_number TEXT NOT NULL UNIQUE,
       laptop_asset_tag TEXT NOT NULL UNIQUE,
@@ -152,8 +152,8 @@ const initDb = async () => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       employee_name TEXT NOT NULL,
       employee_email TEXT NOT NULL,
-      manager_name TEXT NOT NULL,
-      manager_email TEXT NOT NULL,
+      manager_name TEXT,
+      manager_email TEXT,
       client_name TEXT NOT NULL,
       laptop_serial_number TEXT NOT NULL UNIQUE,
       laptop_asset_tag TEXT NOT NULL UNIQUE,
@@ -302,6 +302,74 @@ const initDb = async () => {
     console.log('Manager columns may already exist in users table:', err.message);
   }
 
+  // Migrate existing assets table to make manager fields nullable
+  // This is needed for supporting unregistered employees
+  try {
+    if (isPostgres) {
+      // PostgreSQL: Alter columns to drop NOT NULL constraint
+      await dbRun('ALTER TABLE assets ALTER COLUMN manager_name DROP NOT NULL');
+      await dbRun('ALTER TABLE assets ALTER COLUMN manager_email DROP NOT NULL');
+    } else {
+      // SQLite: Check if migration is needed by looking at table structure
+      // SQLite requires recreating the table to change constraints
+      const columns = await dbAll("PRAGMA table_info(assets)");
+      const managerNameCol = columns.find(col => col.name === 'manager_name');
+      const managerEmailCol = columns.find(col => col.name === 'manager_email');
+
+      // Check if columns are NOT NULL (notnull === 1 means NOT NULL)
+      if (managerNameCol && managerNameCol.notnull === 1 || managerEmailCol && managerEmailCol.notnull === 1) {
+        // Need to recreate the table with nullable columns
+        await dbRun('BEGIN TRANSACTION');
+
+        // Create new table with nullable manager fields
+        await dbRun(`
+          CREATE TABLE assets_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_name TEXT NOT NULL,
+            employee_email TEXT NOT NULL,
+            manager_name TEXT,
+            manager_email TEXT,
+            client_name TEXT NOT NULL,
+            laptop_serial_number TEXT NOT NULL UNIQUE,
+            laptop_asset_tag TEXT NOT NULL UNIQUE,
+            laptop_make TEXT,
+            laptop_model TEXT,
+            status TEXT NOT NULL DEFAULT 'active',
+            registration_date TEXT NOT NULL,
+            last_updated TEXT NOT NULL,
+            notes TEXT
+          )
+        `);
+
+        // Copy data from old table to new table
+        await dbRun(`
+          INSERT INTO assets_new
+          SELECT * FROM assets
+        `);
+
+        // Drop old table
+        await dbRun('DROP TABLE assets');
+
+        // Rename new table
+        await dbRun('ALTER TABLE assets_new RENAME TO assets');
+
+        // Recreate indexes
+        await dbRun('CREATE INDEX IF NOT EXISTS idx_employee_name ON assets(employee_name)');
+        await dbRun('CREATE INDEX IF NOT EXISTS idx_manager_name ON assets(manager_name)');
+        await dbRun('CREATE INDEX IF NOT EXISTS idx_client_name ON assets(client_name)');
+        await dbRun('CREATE INDEX IF NOT EXISTS idx_status ON assets(status)');
+
+        await dbRun('COMMIT');
+        console.log('SQLite assets table migrated to support nullable manager fields');
+      }
+    }
+  } catch (err) {
+    if (!isPostgres) {
+      await dbRun('ROLLBACK').catch(() => {});
+    }
+    console.log('Asset manager fields migration error (may already be nullable):', err.message);
+  }
+
   // Insert default OIDC settings if not exists
   const checkSettings = await dbGet('SELECT id FROM oidc_settings WHERE id = 1');
   if (!checkSettings) {
@@ -443,7 +511,31 @@ export const assetDb = {
       id
     ]);
   },
-  delete: async (id) => dbRun('DELETE FROM assets WHERE id = ?', [id])
+  delete: async (id) => dbRun('DELETE FROM assets WHERE id = ?', [id]),
+  getByEmployeeEmail: async (email) => {
+    const rows = await dbAll('SELECT * FROM assets WHERE employee_email = ?', [email]);
+    return rows.map((row) => ({
+      ...row,
+      registration_date: normalizeDates(row.registration_date),
+      last_updated: normalizeDates(row.last_updated)
+    }));
+  },
+  linkAssetsToUser: async (employeeEmail, managerName, managerEmail) => {
+    const now = new Date().toISOString();
+    return dbRun(`
+      UPDATE assets
+      SET manager_name = ?, manager_email = ?, last_updated = ?
+      WHERE employee_email = ?
+    `, [managerName, managerEmail, now, employeeEmail]);
+  },
+  updateManagerForEmployee: async (employeeEmail, managerName, managerEmail) => {
+    const now = new Date().toISOString();
+    return dbRun(`
+      UPDATE assets
+      SET manager_name = ?, manager_email = ?, last_updated = ?
+      WHERE employee_email = ?
+    `, [managerName, managerEmail, now, employeeEmail]);
+  }
 };
 
 export const companyDb = {

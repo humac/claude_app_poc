@@ -323,12 +323,33 @@ const initDb = async () => {
     )
   `;
 
+  const passkeySettingsTable = isPostgres ? `
+    CREATE TABLE IF NOT EXISTS passkey_settings (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      rp_id TEXT DEFAULT 'localhost',
+      rp_name TEXT DEFAULT 'KARS - KeyData Asset Registration System',
+      origin TEXT DEFAULT 'http://localhost:5173',
+      updated_at TIMESTAMP NOT NULL,
+      updated_by TEXT
+    )
+  ` : `
+    CREATE TABLE IF NOT EXISTS passkey_settings (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      rp_id TEXT DEFAULT 'localhost',
+      rp_name TEXT DEFAULT 'KARS - KeyData Asset Registration System',
+      origin TEXT DEFAULT 'http://localhost:5173',
+      updated_at TEXT NOT NULL,
+      updated_by TEXT
+    )
+  `;
+
   await dbRun(assetsTable);
   await dbRun(companiesTable);
   await dbRun(auditLogsTable);
   await dbRun(usersTable);
   await dbRun(oidcSettingsTable);
   await dbRun(brandingSettingsTable);
+  await dbRun(passkeySettingsTable);
   await dbRun(passkeysTable);
 
   // Migrate existing databases to add manager fields to users table
@@ -957,6 +978,58 @@ export const brandingSettingsDb = {
           updated_at = ?
       WHERE id = 1
     `, [now]);
+  }
+};
+
+export const passkeySettingsDb = {
+  get: async () => {
+    let settings = await dbGet('SELECT * FROM passkey_settings WHERE id = 1');
+
+    // If no settings exist, create default row
+    if (!settings) {
+      const now = new Date().toISOString();
+      await dbRun(`
+        INSERT INTO passkey_settings (id, rp_id, rp_name, origin, updated_at)
+        VALUES (1, 'localhost', 'KARS - KeyData Asset Registration System', 'http://localhost:5173', ?)
+      `, [now]);
+      settings = await dbGet('SELECT * FROM passkey_settings WHERE id = 1');
+    }
+
+    return settings;
+  },
+  update: async (settings, userEmail) => {
+    const now = new Date().toISOString();
+
+    // Ensure row exists first
+    const existing = await dbGet('SELECT * FROM passkey_settings WHERE id = 1');
+    if (!existing) {
+      await dbRun(`
+        INSERT INTO passkey_settings (id, rp_id, rp_name, origin, updated_at, updated_by)
+        VALUES (1, ?, ?, ?, ?, ?)
+      `, [
+        settings.rp_id || 'localhost',
+        settings.rp_name || 'KARS - KeyData Asset Registration System',
+        settings.origin || 'http://localhost:5173',
+        now,
+        userEmail
+      ]);
+    } else {
+      await dbRun(`
+        UPDATE passkey_settings
+        SET rp_id = ?,
+            rp_name = ?,
+            origin = ?,
+            updated_at = ?,
+            updated_by = ?
+        WHERE id = 1
+      `, [
+        settings.rp_id || 'localhost',
+        settings.rp_name || 'KARS - KeyData Asset Registration System',
+        settings.origin || 'http://localhost:5173',
+        now,
+        userEmail
+      ]);
+    }
   }
 };
 

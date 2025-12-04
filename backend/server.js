@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { assetDb, companyDb, auditDb, userDb, oidcSettingsDb, brandingSettingsDb, databaseSettings, databaseEngine, importSqliteDatabase, passkeyDb } from './database.js';
+import { assetDb, companyDb, auditDb, userDb, oidcSettingsDb, brandingSettingsDb, passkeySettingsDb, databaseSettings, databaseEngine, importSqliteDatabase, passkeyDb } from './database.js';
 import { authenticate, authorize, hashPassword, comparePassword, generateToken } from './auth.js';
 import { initializeOIDC, getAuthorizationUrl, handleCallback, getUserInfo, extractUserData, isOIDCEnabled } from './oidc.js';
 import { generateMFASecret, verifyTOTP, generateBackupCodes, formatBackupCode } from './mfa.js';
@@ -25,9 +25,41 @@ if (!globalThis.crypto) {
   globalThis.crypto = nodeWebcrypto;
 }
 
-const rpID = process.env.PASSKEY_RP_ID || 'localhost';
-const rpName = process.env.PASSKEY_RP_NAME || 'KARS - KeyData Asset Registration System';
-const defaultOrigin = process.env.PASSKEY_ORIGIN || 'http://localhost:5173';
+// Passkey configuration - will be loaded from database or environment variables
+let passkeyConfig = {
+  rpID: process.env.PASSKEY_RP_ID || 'localhost',
+  rpName: process.env.PASSKEY_RP_NAME || 'KARS - KeyData Asset Registration System',
+  defaultOrigin: process.env.PASSKEY_ORIGIN || 'http://localhost:5173'
+};
+
+// Helper function to get current passkey configuration
+const getPasskeyConfig = async () => {
+  // Environment variables take precedence
+  if (process.env.PASSKEY_RP_ID || process.env.PASSKEY_RP_NAME || process.env.PASSKEY_ORIGIN) {
+    return {
+      rpID: process.env.PASSKEY_RP_ID || 'localhost',
+      rpName: process.env.PASSKEY_RP_NAME || 'KARS - KeyData Asset Registration System',
+      defaultOrigin: process.env.PASSKEY_ORIGIN || 'http://localhost:5173'
+    };
+  }
+
+  // Otherwise, use database settings
+  try {
+    const dbSettings = await passkeySettingsDb.get();
+    if (dbSettings) {
+      return {
+        rpID: dbSettings.rp_id || 'localhost',
+        rpName: dbSettings.rp_name || 'KARS - KeyData Asset Registration System',
+        defaultOrigin: dbSettings.origin || 'http://localhost:5173'
+      };
+    }
+  } catch (err) {
+    console.error('Failed to load passkey settings from database:', err);
+  }
+
+  // Fallback to defaults
+  return passkeyConfig;
+};
 
 const parseCSVFile = async (filePath) => {
   const content = await readFile(filePath, 'utf8');
@@ -61,7 +93,7 @@ const pendingMFALogins = new Map();
 const pendingPasskeyRegistrations = new Map();
 const pendingPasskeyLogins = new Map();
 
-const getExpectedOrigin = (req) => process.env.PASSKEY_ORIGIN || req.get('origin') || defaultOrigin;
+const getExpectedOrigin = (req) => process.env.PASSKEY_ORIGIN || req.get('origin') || passkeyConfig.defaultOrigin;
 
 // Initialize OIDC from database settings (async)
 const initializeOIDCFromSettings = async () => {
@@ -821,6 +853,17 @@ app.get('/api/auth/passkeys', authenticate, async (req, res) => {
 
 app.post('/api/auth/passkeys/registration-options', authenticate, async (req, res) => {
   try {
+    const config = await getPasskeyConfig();
+    const origin = getExpectedOrigin(req);
+
+    console.log('[Passkey Registration] Configuration:', {
+      rpID: config.rpID,
+      rpName: config.rpName,
+      expectedOrigin: origin,
+      requestOrigin: req.get('origin'),
+      userEmail: req.user.email
+    });
+
     const userPasskeys = await passkeyDb.listByUser(req.user.id);
 
     // Filter out passkeys with invalid credential_id before converting
@@ -828,9 +871,11 @@ app.post('/api/auth/passkeys/registration-options', authenticate, async (req, re
       pk.credential_id && typeof pk.credential_id === 'string'
     );
 
+    console.log('[Passkey Registration] User has', validPasskeys.length, 'existing passkeys');
+
     const options = await generateRegistrationOptions({
-      rpName,
-      rpID,
+      rpName: config.rpName,
+      rpID: config.rpID,
       userName: req.user.email,
       userDisplayName: req.user.name || req.user.email,
       // simplewebauthn requires userID to be a BufferSource (not string)
@@ -841,21 +886,28 @@ app.post('/api/auth/passkeys/registration-options', authenticate, async (req, re
         userVerification: 'preferred'
       },
       excludeCredentials: validPasskeys.map((pk) => ({
-        id: isoBase64URL.toBuffer(pk.credential_id),
-        type: 'public-key'
+        id: pk.credential_id,
+        type: 'public-key',
+        transports: pk.transports ? JSON.parse(pk.transports) : undefined
       }))
     });
 
     pendingPasskeyRegistrations.set(req.user.id, options.challenge);
     res.json({ options });
   } catch (error) {
+    const config = await getPasskeyConfig();
     console.error('Failed to generate passkey registration options:', error);
+    console.error('[Passkey Registration] RP ID:', config.rpID);
+    console.error('[Passkey Registration] Expected Origin:', getExpectedOrigin(req));
+    console.error('[Passkey Registration] Request Origin:', req.get('origin'));
+    console.error('[Passkey Registration] Hint: Ensure PASSKEY_RP_ID matches your domain and you\'re accessing via the correct hostname (use localhost, not 127.0.0.1 for local development)');
     res.status(500).json({ error: 'Unable to start passkey registration' });
   }
 });
 
 app.post('/api/auth/passkeys/verify-registration', authenticate, async (req, res) => {
   try {
+    const config = await getPasskeyConfig();
     const { credential, name } = req.body;
     const expectedChallenge = pendingPasskeyRegistrations.get(req.user.id);
 
@@ -874,7 +926,7 @@ app.post('/api/auth/passkeys/verify-registration', authenticate, async (req, res
       response: credential,
       expectedChallenge,
       expectedOrigin: getExpectedOrigin(req),
-      expectedRPID: rpID
+      expectedRPID: config.rpID
     });
 
     console.log('[Passkey Registration] Verification result:', {
@@ -985,6 +1037,7 @@ app.post('/api/auth/passkeys/verify-registration', authenticate, async (req, res
 
 app.post('/api/auth/passkeys/auth-options', async (req, res) => {
   try {
+    const config = await getPasskeyConfig();
     const { email } = req.body;
 
     // Support both email-based and passwordless (discoverable credential) flows
@@ -1054,7 +1107,7 @@ app.post('/api/auth/passkeys/auth-options', async (req, res) => {
 
     // Generate authentication options
     const options = await generateAuthenticationOptions({
-      rpID,
+      rpID: config.rpID,
       userVerification: 'preferred',
       // If allowCredentials is undefined, this enables conditional mediation (passwordless)
       allowCredentials
@@ -1078,6 +1131,7 @@ app.post('/api/auth/passkeys/auth-options', async (req, res) => {
 
 app.post('/api/auth/passkeys/verify-authentication', async (req, res) => {
   try {
+    const config = await getPasskeyConfig();
     const { email, credential } = req.body;
 
     if (!credential) {
@@ -1132,7 +1186,7 @@ app.post('/api/auth/passkeys/verify-authentication', async (req, res) => {
       response: credential,
       expectedChallenge: pending.challenge,
       expectedOrigin: getExpectedOrigin(req),
-      expectedRPID: rpID,
+      expectedRPID: config.rpID,
       credential: {
         id: dbPasskey.credential_id,
         publicKey: isoBase64URL.toBuffer(dbPasskey.public_key),
@@ -1435,6 +1489,84 @@ app.delete('/api/admin/branding', authenticate, authorize('admin'), async (req, 
   } catch (error) {
     console.error('Delete branding settings error:', error);
     res.status(500).json({ error: 'Failed to remove logo' });
+  }
+});
+
+// Passkey settings routes (admin only)
+app.get('/api/admin/passkey-settings', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const dbSettings = await passkeySettingsDb.get();
+    const managedByEnv = Boolean(process.env.PASSKEY_RP_ID || process.env.PASSKEY_RP_NAME || process.env.PASSKEY_ORIGIN);
+
+    // Environment variables take precedence if set
+    const settings = {
+      rp_id: process.env.PASSKEY_RP_ID || dbSettings?.rp_id || 'localhost',
+      rp_name: process.env.PASSKEY_RP_NAME || dbSettings?.rp_name || 'KARS - KeyData Asset Registration System',
+      origin: process.env.PASSKEY_ORIGIN || dbSettings?.origin || 'http://localhost:5173',
+      managed_by_env: managedByEnv,
+      updated_at: dbSettings?.updated_at,
+      updated_by: dbSettings?.updated_by
+    };
+
+    res.json(settings);
+  } catch (error) {
+    console.error('Get passkey settings error:', error);
+    res.status(500).json({ error: 'Failed to get passkey settings' });
+  }
+});
+
+app.put('/api/admin/passkey-settings', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const managedByEnv = Boolean(process.env.PASSKEY_RP_ID || process.env.PASSKEY_RP_NAME || process.env.PASSKEY_ORIGIN);
+
+    if (managedByEnv) {
+      return res.status(400).json({
+        error: 'Passkey settings are managed by environment variables. Remove PASSKEY_RP_ID, PASSKEY_RP_NAME, and PASSKEY_ORIGIN from environment to use database configuration.'
+      });
+    }
+
+    const { rp_id, rp_name, origin } = req.body;
+
+    // Validation
+    if (!rp_id || !rp_name || !origin) {
+      return res.status(400).json({
+        error: 'RP ID, RP Name, and Origin are all required'
+      });
+    }
+
+    // Validate origin format
+    try {
+      new URL(origin);
+    } catch (err) {
+      return res.status(400).json({
+        error: 'Origin must be a valid URL (e.g., http://localhost:5173 or https://example.com)'
+      });
+    }
+
+    // Update settings
+    await passkeySettingsDb.update({
+      rp_id,
+      rp_name,
+      origin
+    }, req.user.email);
+
+    // Log the change
+    await auditDb.log(
+      'update',
+      'passkey_settings',
+      1,
+      'Passkey Configuration',
+      `Passkey settings updated (RP ID: ${rp_id})`,
+      req.user.email
+    );
+
+    res.json({
+      message: 'Passkey settings updated successfully. Restart required for changes to take effect.',
+      restart_required: true
+    });
+  } catch (error) {
+    console.error('Update passkey settings error:', error);
+    res.status(500).json({ error: 'Failed to update passkey settings' });
   }
 });
 

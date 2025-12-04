@@ -25,9 +25,14 @@ Get the KeyData Asset Registration System (KARS) running in 5 minutes!
 
 3. **Login**
    - You're automatically logged in after registration
-   - Future logins: Enter email and password
+   - Future logins: Enter email and password, or use a passkey
 
-4. **Your Role**
+4. **Secure Your Account (Recommended)**
+   - Go to **Profile** → **Security** tab
+   - **Enable MFA**: Set up two-factor authentication with your authenticator app
+   - **Add a Passkey**: Register a passkey for passwordless login with Touch ID, Face ID, or security key
+
+5. **Your Role**
    - First user becomes **Admin** automatically
    - Others default to **Employee**
    - Admins can promote users to Manager or Admin
@@ -83,18 +88,28 @@ Get the KeyData Asset Registration System (KARS) running in 5 minutes!
    - Save
    - Repeat for all client companies
 
-2. **Verify System**
+2. **Customize Branding** (optional)
+   - Go to **Admin Settings** → **Branding** tab
+   - Upload your company logo
+   - Logo appears on login page and navigation
+
+3. **Verify System**
    - Go to **Admin Settings**
    - Check **System Overview**
    - Confirm user count is correct
    - Review system information
 
-3. **Set Up Additional Admins** (optional)
+4. **Set Up Additional Admins** (optional)
    - Go to **Admin Settings** → **User Management**
    - Find user to promote
    - Change role dropdown to "Admin"
 
-4. **Configure Backup** (recommended)
+5. **Secure Your Account**
+   - Go to **Profile** → **Security** tab
+   - Enable MFA for your admin account
+   - Register a passkey for passwordless login
+
+6. **Configure Backup** (recommended)
    - See [Backup Guide](Backup-And-Restore)
    - Schedule automated backups
    - Test restore procedure
@@ -261,18 +276,24 @@ npm run dev
 - Use search/filters to find assets quickly
 - Export reports regularly for compliance
 - Update asset status promptly
+- **Enable MFA or add a passkey** for enhanced security
+- Upload a profile photo for easy identification
 
 💡 **For Admins:**
 - Set up automated backups immediately
 - Review audit logs monthly
 - Limit admin access to 2-3 users
 - Add all companies before inviting users
+- **Upload a custom logo** in Admin Settings → Branding
+- **Consider PostgreSQL** for production deployments
+- Encourage all users to enable MFA or passkeys
 
 💡 **For Developers:**
 - Check `.env.example` for all config options
 - Use Docker for consistent development
 - Run linters before committing
 - Test with different roles
+- Test passkey authentication on supported devices
 
 ---
 

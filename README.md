@@ -16,6 +16,11 @@ A comprehensive SOC2-compliant web application for tracking and managing client 
 
 ### 🔐 Authentication & Security
 - **JWT Authentication** - Secure token-based auth with 7-day expiration
+- **WebAuthn/Passkey Authentication** - Passwordless login with biometrics or hardware keys
+  - Register multiple passkeys per account
+  - Support for Touch ID, Face ID, Windows Hello, YubiKey
+  - Phishing-resistant authentication
+  - Manage passkeys from profile security settings
 - **Multi-Factor Authentication (MFA/2FA)** - TOTP-based authentication with backup codes
   - QR code enrollment with authenticator apps (Google, Microsoft, Authy)
   - 10 backup codes for account recovery
@@ -30,7 +35,7 @@ A comprehensive SOC2-compliant web application for tracking and managing client 
 - **Role-Based Access Control** - Three roles: Employee, Manager, Admin
 - **Automatic Manager Promotion** - Users listed as a manager are auto-promoted to manager with audit logging
 - **First Admin Setup** - Automatic admin promotion for first user
-- **Profile Management** - Update first/last name, password, MFA settings, and profile photos
+- **Profile Management** - Update first/last name, password, MFA settings, passkeys, and profile photos
 
 ### 📦 Asset Management
 - **Self-Service Registration** - Consultants register client laptops
@@ -58,7 +63,9 @@ A comprehensive SOC2-compliant web application for tracking and managing client 
 - **User Management** - View, edit roles, delete users
 - **System Overview** - User statistics and system info
 - **Application Settings** - Configuration and best practices
+- **Branding & Customization** - Custom logo upload for login page and navigation
 - **OIDC/SSO Configuration** - Database-backed SSO settings with admin UI
+- **Database Management** - Switch between SQLite and PostgreSQL, data migration tools
 - **Audit Access** - View all system activity
 
 ### 🚀 Deployment & DevOps
@@ -380,12 +387,41 @@ CREATE TABLE users (
   role TEXT NOT NULL DEFAULT 'employee',
   first_name TEXT,
   last_name TEXT,
+  profile_image TEXT,         -- Base64 data URL for profile photo
   created_at TEXT NOT NULL,
   last_login TEXT,
   oidc_sub TEXT,              -- OIDC subject identifier
   mfa_enabled INTEGER DEFAULT 0,
   mfa_secret TEXT,            -- TOTP secret
   mfa_backup_codes TEXT       -- JSON array of backup codes
+);
+```
+
+### Passkeys Table
+```sql
+CREATE TABLE passkeys (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  credential_id TEXT NOT NULL UNIQUE,
+  public_key TEXT NOT NULL,
+  counter INTEGER DEFAULT 0,
+  transports TEXT,            -- JSON array of transports
+  name TEXT,                  -- User-friendly passkey name
+  created_at TEXT NOT NULL,
+  last_used TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+### Branding Settings Table
+```sql
+CREATE TABLE branding_settings (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  logo_data TEXT,             -- Base64 encoded logo image
+  logo_filename TEXT,
+  logo_content_type TEXT,
+  updated_at TEXT NOT NULL,
+  updated_by TEXT
 );
 ```
 
@@ -433,6 +469,7 @@ CREATE TABLE oidc_settings (
 
 ✅ **Password Security** - bcrypt hashing (10 rounds)
 ✅ **JWT Tokens** - Secure authentication with 7-day expiration
+✅ **WebAuthn/Passkeys** - Phishing-resistant passwordless authentication
 ✅ **Multi-Factor Authentication** - TOTP-based 2FA with backup codes
 ✅ **OIDC/SSO Integration** - Enterprise identity provider support
 ✅ **Role-Based Access** - Granular permission control
@@ -466,6 +503,16 @@ POST   /api/auth/mfa/disable          Disable MFA (requires password)
 POST   /api/auth/mfa/verify-login     Verify MFA code during login
 ```
 
+### Passkey/WebAuthn Authentication
+```
+POST   /api/auth/passkeys/registration-options  Get passkey registration challenge
+POST   /api/auth/passkeys/verify-registration   Complete passkey registration
+POST   /api/auth/passkeys/auth-options          Get passkey authentication challenge
+POST   /api/auth/passkeys/verify-authentication Verify passkey during login
+GET    /api/auth/passkeys                       List user's passkeys
+DELETE /api/auth/passkeys/:id                   Remove a passkey
+```
+
 ### OIDC/SSO Authentication
 ```
 GET    /api/auth/oidc/config          Check if OIDC is enabled
@@ -497,6 +544,13 @@ GET    /api/audit/logs        Get audit logs (role-filtered)
 GET    /api/audit/export      Export logs to CSV
 GET    /api/audit/stats       Get statistics
 GET    /api/reports/summary   Get asset summary
+```
+
+### Branding (Admin Only)
+```
+GET    /api/branding          Get branding settings (public)
+PUT    /api/admin/branding    Update logo (admin only)
+DELETE /api/admin/branding    Remove logo (admin only)
 ```
 
 **Full API docs:** [API Reference](../../wiki/API-Reference)
@@ -682,12 +736,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Multi-Factor Authentication (MFA/2FA)
 - [x] OIDC/SSO Integration
 - [x] Database-Backed SSO Configuration
+- [x] WebAuthn/Passkey Support
+- [x] Profile Photos
+- [x] Custom Branding/Logo Upload
+- [x] PostgreSQL Database Support
 - [ ] Email Notifications
 - [ ] Advanced Reporting Dashboard
 - [ ] Mobile App
 - [ ] API Rate Limiting
 - [ ] Database Encryption at Rest
-- [ ] WebAuthn/Passkey Support
 
 ---
 

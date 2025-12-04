@@ -9,7 +9,7 @@ Complete REST API documentation for the KeyData Asset Registration System (KARS)
 
 ## Authentication
 
-All endpoints (except `/health`, `/auth/register`, and `/auth/login`) require authentication via JWT token.
+All endpoints (except `/health`, `/api/branding`, `/auth/register`, `/auth/login`, and passkey authentication endpoints) require authentication via JWT token.
 
 **Authorization Header:**
 ```http
@@ -149,7 +149,7 @@ Authorization: Bearer <token>
 
 ### Update Profile
 
-Update user's first and last name.
+Update user's profile including name and profile photo.
 
 ```http
 PUT /api/auth/profile
@@ -165,9 +165,15 @@ Content-Type: application/json
 ```json
 {
   "first_name": "Jane",
-  "last_name": "Smith"
+  "last_name": "Smith",
+  "profile_image": "data:image/png;base64,iVBORw0KGgoAAAANS..."
 }
 ```
+
+**Fields:**
+- `first_name` (required) - User's first name
+- `last_name` (required) - User's last name
+- `profile_image` (optional) - Base64 data URL for profile photo (max 5MB)
 
 **Response:** `200 OK`
 ```json
@@ -179,13 +185,16 @@ Content-Type: application/json
     "name": "Jane Smith",
     "role": "employee",
     "first_name": "Jane",
-    "last_name": "Smith"
+    "last_name": "Smith",
+    "profile_image": "data:image/png;base64,..."
   }
 }
 ```
 
 **Errors:**
 - `400` - Missing first_name or last_name
+- `400` - Profile image exceeds 5MB
+- `400` - Invalid image format (must be data URL)
 - `401` - Not authenticated
 
 ---
@@ -517,6 +526,238 @@ Content-Type: application/json
 **Errors:**
 - `400` - Missing required fields when enabled
 - `403` - Not an admin
+
+---
+
+## Passkey/WebAuthn Authentication
+
+### Get Passkey Registration Options
+
+Generate a challenge for registering a new passkey.
+
+```http
+POST /api/auth/passkeys/registration-options
+```
+
+**Headers:**
+```http
+Authorization: Bearer <token>
+```
+
+**Response:** `200 OK`
+```json
+{
+  "challenge": "randomBase64String...",
+  "rp": {
+    "name": "KARS",
+    "id": "kars.jvhlabs.com"
+  },
+  "user": {
+    "id": "base64UserId...",
+    "name": "user@example.com",
+    "displayName": "John Doe"
+  },
+  "pubKeyCredParams": [...],
+  "timeout": 60000,
+  "attestation": "none",
+  "authenticatorSelection": {
+    "residentKey": "preferred",
+    "userVerification": "preferred"
+  }
+}
+```
+
+---
+
+### Verify Passkey Registration
+
+Complete passkey registration with the authenticator response.
+
+```http
+POST /api/auth/passkeys/verify-registration
+```
+
+**Headers:**
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "credential": {
+    "id": "credentialIdBase64...",
+    "rawId": "rawIdBase64...",
+    "response": {
+      "clientDataJSON": "...",
+      "attestationObject": "..."
+    },
+    "type": "public-key",
+    "authenticatorAttachment": "platform"
+  },
+  "name": "MacBook Touch ID"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Passkey registered successfully",
+  "passkey": {
+    "id": 1,
+    "name": "MacBook Touch ID",
+    "created_at": "2024-01-15T10:00:00.000Z"
+  }
+}
+```
+
+**Errors:**
+- `400` - Invalid credential response
+- `401` - Not authenticated
+
+---
+
+### Get Passkey Authentication Options
+
+Generate a challenge for authenticating with a passkey.
+
+```http
+POST /api/auth/passkeys/auth-options
+```
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "challenge": "randomBase64String...",
+  "timeout": 60000,
+  "rpId": "kars.jvhlabs.com",
+  "allowCredentials": [
+    {
+      "id": "credentialIdBase64...",
+      "type": "public-key",
+      "transports": ["internal", "hybrid"]
+    }
+  ],
+  "userVerification": "preferred"
+}
+```
+
+**Errors:**
+- `400` - Email required
+- `404` - No passkeys found for user
+
+---
+
+### Verify Passkey Authentication
+
+Complete passkey login with the authenticator response.
+
+```http
+POST /api/auth/passkeys/verify-authentication
+```
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "credential": {
+    "id": "credentialIdBase64...",
+    "rawId": "rawIdBase64...",
+    "response": {
+      "clientDataJSON": "...",
+      "authenticatorData": "...",
+      "signature": "...",
+      "userHandle": "..."
+    },
+    "type": "public-key"
+  }
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "employee"
+  }
+}
+```
+
+**Errors:**
+- `400` - Invalid credential
+- `401` - Authentication failed
+
+---
+
+### List User Passkeys
+
+Get all passkeys registered for the current user.
+
+```http
+GET /api/auth/passkeys
+```
+
+**Headers:**
+```http
+Authorization: Bearer <token>
+```
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "id": 1,
+    "name": "MacBook Touch ID",
+    "created_at": "2024-01-15T10:00:00.000Z",
+    "last_used": "2024-01-20T14:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "YubiKey 5",
+    "created_at": "2024-01-16T09:00:00.000Z",
+    "last_used": null
+  }
+]
+```
+
+---
+
+### Delete Passkey
+
+Remove a passkey from the user's account.
+
+```http
+DELETE /api/auth/passkeys/:id
+```
+
+**Headers:**
+```http
+Authorization: Bearer <token>
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Passkey deleted successfully"
+}
+```
+
+**Errors:**
+- `404` - Passkey not found
+- `403` - Passkey belongs to another user
 
 ---
 
@@ -1011,6 +1252,102 @@ GET /api/reports/summary
   }
 }
 ```
+
+---
+
+## Branding Endpoints
+
+### Get Branding Settings
+
+Get current branding configuration (public, no auth required).
+
+```http
+GET /api/branding
+```
+
+**Response:** `200 OK`
+```json
+{
+  "logo": "data:image/png;base64,iVBORw0KGgoAAAANS...",
+  "logo_filename": "company-logo.png",
+  "logo_content_type": "image/png"
+}
+```
+
+**Response (no logo set):** `200 OK`
+```json
+{
+  "logo": null,
+  "logo_filename": null,
+  "logo_content_type": null
+}
+```
+
+---
+
+### Update Branding (Admin)
+
+Upload or update the application logo.
+
+```http
+PUT /api/admin/branding
+```
+
+**Permissions:** Admin only
+
+**Headers:**
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "logo_data": "data:image/png;base64,iVBORw0KGgoAAAANS...",
+  "logo_filename": "company-logo.png",
+  "logo_content_type": "image/png"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Branding updated successfully"
+}
+```
+
+**Errors:**
+- `400` - Invalid image format
+- `400` - Image too large (max 5MB)
+- `403` - Not an admin
+
+---
+
+### Remove Branding (Admin)
+
+Remove the custom logo and restore defaults.
+
+```http
+DELETE /api/admin/branding
+```
+
+**Permissions:** Admin only
+
+**Headers:**
+```http
+Authorization: Bearer <token>
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Branding removed successfully"
+}
+```
+
+**Errors:**
+- `403` - Not an admin
 
 ---
 

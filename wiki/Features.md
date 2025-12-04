@@ -62,6 +62,21 @@ Complete feature overview of the KeyData Asset Registration System (KARS).
   2. Code verification
   3. Backup code storage
 
+**Passkey/WebAuthn Authentication**
+- Passwordless login with biometrics or hardware security keys:
+  - Touch ID, Face ID (Apple devices)
+  - Windows Hello (Windows devices)
+  - YubiKey and other FIDO2 security keys
+  - Android fingerprint/face unlock
+- Phishing-resistant authentication
+- Register multiple passkeys per account
+- Manage passkeys from profile security settings:
+  - View all registered passkeys
+  - See creation date and last used time
+  - Delete passkeys with confirmation
+- Fallback to password if passkey unavailable
+- Works alongside MFA for defense-in-depth
+
 **OIDC/SSO Authentication**
 - External identity provider integration:
   - Auth0
@@ -84,14 +99,21 @@ Complete feature overview of the KeyData Asset Registration System (KARS).
 **Profile Management**
 - Update first name and last name
 - View current role and email
-- Upload and manage a personal profile photo for the header avatar
+- **Profile Photo Upload**:
+  - Upload personal profile photo (up to 5MB)
+  - Photo displayed in navigation header
+  - Automatic resizing and optimization
+  - Fallback to initials avatar if no photo
 - Change password with current password verification
 - Color-coded role badge display
-- MFA enrollment status display
+- Security settings tab with:
+  - MFA enrollment status and controls
+  - Passkey management (add, view, delete)
+  - Password change functionality
 - Enable/disable two-factor authentication
 - Real-time profile updates (no page reload)
 - Profile data validation
-- Three-card layout: Profile Info, Password Change, MFA Settings
+- Tabbed layout: Account Info, Update Info, Security
 
 ### Role-Based Access Control (RBAC)
 
@@ -233,10 +255,32 @@ Complete feature overview of the KeyData Asset Registration System (KARS).
 - Test SSO login from login page
 - Track configuration changes in audit logs
 
+**Branding & Customization**
+- Custom logo upload for application branding
+- Logo displayed on:
+  - Login page
+  - Navigation header
+- Supported formats: PNG, JPG, SVG, GIF
+- Size validation and optimization
+- Remove logo to restore defaults
+- Changes take effect immediately
+- All branding changes logged in audit trail
+
+**Database Management**
+- Switch between database engines:
+  - SQLite (default, file-based)
+  - PostgreSQL (production-ready)
+- SQLite to PostgreSQL migration utility
+- Connection string configuration
+- SSL/TLS support for PostgreSQL
+- Environment variable overrides available
+- Database health monitoring
+
 ## 🔐 Security Features
 
 **Authentication Security**
 - JWT token authentication
+- WebAuthn/Passkey authentication (phishing-resistant)
 - Multi-factor authentication (TOTP-based)
 - OIDC/SSO integration with PKCE flow
 - Secure password hashing (bcrypt, 10 rounds)
@@ -247,6 +291,7 @@ Complete feature overview of the KeyData Asset Registration System (KARS).
 - MFA session timeout (5 minutes)
 - State token CSRF protection for OAuth
 - Backup code one-time consumption
+- Passkey counter validation to prevent replay attacks
 
 **Authorization**
 - Role-based access control
@@ -446,7 +491,6 @@ While not currently implemented, the architecture supports:
 - Mobile app (React Native)
 - API rate limiting and throttling
 - WebSocket real-time updates
-- WebAuthn/Passkey support
 - Database encryption at rest
 - Asset barcode scanning
 - Scheduled reports

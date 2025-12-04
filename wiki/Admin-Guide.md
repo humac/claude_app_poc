@@ -8,10 +8,12 @@ Complete guide for system administrators.
 2. [First Admin Setup](#first-admin-setup)
 3. [User Management](#user-management)
 4. [Company Management](#company-management)
-5. [System Monitoring](#system-monitoring)
-6. [Audit & Compliance](#audit--compliance)
-7. [Security Best Practices](#security-best-practices)
-8. [Backup & Maintenance](#backup--maintenance)
+5. [Branding & Customization](#branding--customization)
+6. [Database Management](#database-management)
+7. [System Monitoring](#system-monitoring)
+8. [Audit & Compliance](#audit--compliance)
+9. [Security Best Practices](#security-best-practices)
+10. [Backup & Maintenance](#backup--maintenance)
 
 ## Admin Overview
 
@@ -228,6 +230,101 @@ All users (including employees and managers) can see company names in the dropdo
 - Edit existing companies
 - Delete companies
 
+## Branding & Customization
+
+Access: **Admin Settings** → **Branding**
+
+### Custom Logo
+
+Upload a custom logo to personalize the application for your organization.
+
+**To upload a logo:**
+1. Go to **Admin Settings** → **Branding** tab
+2. Click **Upload Logo** or drag and drop an image
+3. Preview the logo before saving
+4. Click **Save** to apply
+
+**Logo specifications:**
+- Supported formats: PNG, JPG, SVG, GIF
+- Recommended size: 200x50 pixels (width x height)
+- Maximum file size: 5MB
+- Logo appears on login page and navigation header
+
+**To remove logo:**
+1. Go to **Admin Settings** → **Branding** tab
+2. Click **Remove Logo**
+3. Application reverts to default KARS branding
+
+**Best practices:**
+- Use transparent PNG for best results
+- Keep logo simple for header visibility
+- Test on both light and dark backgrounds
+- All branding changes are logged in audit trail
+
+## Database Management
+
+Access: **Admin Settings** → **Database**
+
+### Database Engines
+
+KARS supports two database engines:
+
+**SQLite (Default)**
+- File-based database, no separate server needed
+- Great for development and small deployments
+- Single file stored in `/app/data/assets.db`
+- Automatic backups via Docker volumes
+
+**PostgreSQL (Production)**
+- Enterprise-grade database server
+- Recommended for production deployments
+- Supports clustering and replication
+- Better performance at scale
+
+### Switching to PostgreSQL
+
+**Option 1: Environment Variables**
+```bash
+DB_CLIENT=postgres
+POSTGRES_URL=postgresql://user:pass@host:5432/kars
+POSTGRES_SSL=true
+```
+
+**Option 2: Admin UI**
+1. Go to **Admin Settings** → **Database**
+2. Select **PostgreSQL** as the database engine
+3. Enter connection details:
+   - Host, Port, Database name
+   - Username, Password
+   - SSL enabled/disabled
+4. Click **Test Connection**
+5. Click **Save** (requires restart)
+
+### SQLite to PostgreSQL Migration
+
+**Prerequisites:**
+- PostgreSQL database provisioned
+- User with full table permissions
+- Network access from application
+
+**Migration steps:**
+1. **Backup SQLite first** - Copy `backend/data/assets.db`
+2. **Configure PostgreSQL connection** in Admin Settings
+3. **Use pgloader** for data migration:
+   ```bash
+   docker run --rm -v $(pwd)/backend/data:/data dimitri/pgloader:latest \
+     pgloader /data/assets.db postgresql://user:pass@host:5432/kars
+   ```
+4. **Verify data** - Check row counts match
+5. **Restart application** to use PostgreSQL
+
+### Database Settings Display
+
+When database settings are configured via environment variables:
+- Fields show as read-only in Admin UI
+- Indicates "Set via environment variable"
+- Restart required after changes
+
 ## System Monitoring
 
 ### System Overview Dashboard
@@ -397,15 +494,41 @@ Access: **Audit & Reporting** → **Summary Report**
 
 **Recommendations:**
 - Enforce strong passwords (current minimum: 6 characters)
-- Consider implementing:
-  - Password complexity requirements
-  - Regular password rotation
-  - Multi-factor authentication (future enhancement)
+- Encourage users to enable MFA for additional security
+- Promote passkey enrollment for phishing-resistant authentication
 
 **Current implementation:**
 - bcrypt hashing (10 rounds)
 - Passwords never stored in plain text
 - Password confirmation on registration
+- Multi-factor authentication (TOTP-based)
+- WebAuthn/Passkey support for passwordless login
+
+### Authentication Security
+
+**Available authentication methods:**
+
+**1. Password + MFA (Traditional)**
+- Email and password login
+- Optional TOTP-based second factor
+- Backup codes for account recovery
+
+**2. Passkeys (Passwordless)**
+- Biometric authentication (Touch ID, Face ID, Windows Hello)
+- Hardware security keys (YubiKey)
+- Phishing-resistant (bound to domain)
+- No password to steal or forget
+
+**3. OIDC/SSO (Enterprise)**
+- Centralized identity management
+- Integration with Auth0, Azure AD, Okta
+- Role mapping from claims
+
+**Security recommendations:**
+- Encourage passkey enrollment for all users
+- Require MFA for admin and manager roles
+- Consider SSO for enterprise deployments
+- Review authentication logs regularly
 
 ### JWT Secret Management
 

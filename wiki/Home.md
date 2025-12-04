@@ -90,6 +90,9 @@ This system enables consulting firms to maintain compliance with SOC2 requiremen
 ## 🔐 Security
 
 - **JWT Authentication** - Secure token-based authentication
+- **WebAuthn/Passkeys** - Passwordless login with biometrics
+- **Multi-Factor Authentication** - TOTP-based 2FA with backup codes
+- **OIDC/SSO Integration** - Enterprise identity provider support
 - **Password Hashing** - bcrypt with 10 rounds
 - **Role-Based Access** - Granular permission control
 - **Audit Trails** - Complete activity logging
@@ -98,14 +101,19 @@ This system enables consulting firms to maintain compliance with SOC2 requiremen
 ## 📊 Key Features
 
 ✅ **Asset Management** - Track laptops assigned to consultants
-✅ **User Authentication** - Secure login with JWT tokens
+✅ **User Authentication** - Secure login with JWT tokens, passkeys, or SSO
+✅ **WebAuthn/Passkeys** - Passwordless authentication with biometrics
+✅ **Multi-Factor Authentication** - TOTP-based 2FA for added security
+✅ **OIDC/SSO Integration** - Enterprise identity providers (Auth0, Azure AD, Okta)
 ✅ **Role-Based Access** - Three roles with different permissions
 ✅ **Company Management** - Organize assets by client companies
 ✅ **Audit Logging** - Complete compliance trail
 ✅ **Reporting & Export** - CSV exports and summary reports
-✅ **Profile Management** - User profile with first/last name
+✅ **Profile Management** - User profile with photo upload support
+✅ **Custom Branding** - Upload custom logo for login page and navigation
 ✅ **Automatic Manager Promotion** - Auto-upgrade managers when employees list them during registration/profile updates
 ✅ **Admin Settings** - Complete system management interface
+✅ **PostgreSQL Support** - Production-ready database with migration tools
 
 ## 🎭 User Roles
 
@@ -120,15 +128,18 @@ This system enables consulting firms to maintain compliance with SOC2 requiremen
 **Frontend:**
 - React 18
 - Vite
+- Material-UI (MUI) v5
 - Context API
 - Fetch API
 
 **Backend:**
 - Node.js
 - Express.js
-- SQLite (better-sqlite3)
+- SQLite (better-sqlite3) or PostgreSQL
 - JWT (jsonwebtoken)
 - bcrypt
+- speakeasy (TOTP for MFA)
+- @simplewebauthn/server (Passkeys)
 
 **Deployment:**
 - Docker & Docker Compose

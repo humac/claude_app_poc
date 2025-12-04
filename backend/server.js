@@ -157,6 +157,37 @@ app.post('/api/auth/register', async (req, res) => {
       newUser.email
     );
 
+    // Link any existing assets to this user's manager information
+    try {
+      const linkedAssets = await assetDb.linkAssetsToUser(
+        newUser.email,
+        newUser.manager_name,
+        newUser.manager_email
+      );
+
+      if (linkedAssets.changes > 0) {
+        console.log(`Linked ${linkedAssets.changes} assets to user ${newUser.email}`);
+
+        // Log audit for asset linking
+        await auditDb.log(
+          'update',
+          'asset',
+          null,
+          `Assets linked to ${newUser.email}`,
+          {
+            employee_email: newUser.email,
+            manager_name: newUser.manager_name,
+            manager_email: newUser.manager_email,
+            linked_count: linkedAssets.changes
+          },
+          newUser.email
+        );
+      }
+    } catch (linkError) {
+      console.error('Error linking assets during registration:', linkError);
+      // Don't fail registration if asset linking fails
+    }
+
     // Return user info (without password hash)
     res.status(201).json({
       message: 'User registered successfully',
@@ -324,6 +355,42 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
       },
       user.email
     );
+
+    // Update manager info on all assets for this employee if manager changed
+    const managerChanged = oldUser.manager_name !== manager_name || oldUser.manager_email !== manager_email;
+    if (managerChanged) {
+      try {
+        const updatedAssets = await assetDb.updateManagerForEmployee(
+          user.email,
+          manager_name,
+          manager_email
+        );
+
+        if (updatedAssets.changes > 0) {
+          console.log(`Updated manager info for ${updatedAssets.changes} assets for employee ${user.email}`);
+
+          // Log audit for asset manager sync
+          await auditDb.log(
+            'update',
+            'asset',
+            null,
+            `Manager synced for ${user.email}`,
+            {
+              employee_email: user.email,
+              old_manager_name: oldUser.manager_name,
+              old_manager_email: oldUser.manager_email,
+              new_manager_name: manager_name,
+              new_manager_email: manager_email,
+              updated_count: updatedAssets.changes
+            },
+            user.email
+          );
+        }
+      } catch (syncError) {
+        console.error('Error syncing manager info to assets:', syncError);
+        // Don't fail profile update if asset sync fails
+      }
+    }
 
     res.json({
       message: 'Profile updated successfully',
@@ -1106,18 +1173,18 @@ app.post('/api/assets/import', authenticate, upload.single('file'), async (req, 
         continue;
       }
 
-      // Get manager data from employee's user record
+      // Get manager data from employee's user record if they exist
       const employeeUser = await userDb.getByEmail(normalizedRow.employee_email);
-      let manager_name = '';
-      let manager_email = '';
+      let manager_name = null;
+      let manager_email = null;
 
       if (employeeUser && employeeUser.manager_name && employeeUser.manager_email) {
+        // User exists with manager info - use it
         manager_name = employeeUser.manager_name;
         manager_email = employeeUser.manager_email;
-      } else {
-        errors.push(`Row ${index + 2}: Employee user not found or manager information not set for ${normalizedRow.employee_email}`);
-        continue;
       }
+      // If user doesn't exist or has no manager info, allow asset creation with null manager fields
+      // These will be populated when the employee registers
 
       const assetData = {
         employee_name: normalizedRow.employee_name,
@@ -1192,20 +1259,18 @@ app.post('/api/assets', authenticate, async (req, res) => {
       });
     }
 
-    // Get manager data from employee's user record
+    // Get manager data from employee's user record if they exist
     const employeeUser = await userDb.getByEmail(employee_email);
-    let manager_name = '';
-    let manager_email = '';
+    let manager_name = null;
+    let manager_email = null;
 
     if (employeeUser && employeeUser.manager_name && employeeUser.manager_email) {
+      // User exists with manager info - use it
       manager_name = employeeUser.manager_name;
       manager_email = employeeUser.manager_email;
-    } else {
-      // If user doesn't exist or doesn't have manager info, require it in the request
-      return res.status(400).json({
-        error: 'Employee user not found or manager information not set. Please ensure the employee is registered with manager information.'
-      });
     }
+    // If user doesn't exist or has no manager info, allow asset creation with null manager fields
+    // These will be populated when the employee registers
 
     const result = await assetDb.create({
       ...req.body,
@@ -1354,16 +1419,44 @@ app.put('/api/assets/:id', authenticate, async (req, res) => {
   }
 });
 
-// Delete asset
-app.delete('/api/assets/:id', authenticate, async (req, res) => {
+// Delete asset (admin only)
+app.delete('/api/assets/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
     const asset = await assetDb.getById(req.params.id);
     if (!asset) {
       return res.status(404).json({ error: 'Asset not found' });
     }
 
+    // Log audit before deletion
+    await auditDb.log(
+      'DELETE',
+      'asset',
+      asset.id,
+      `${asset.laptop_serial_number} - ${asset.employee_name}`,
+      {
+        employee_name: asset.employee_name,
+        employee_email: asset.employee_email,
+        manager_name: asset.manager_name,
+        manager_email: asset.manager_email,
+        client_name: asset.client_name,
+        laptop_serial_number: asset.laptop_serial_number,
+        laptop_asset_tag: asset.laptop_asset_tag,
+        status: asset.status,
+        deleted_by: req.user.email
+      },
+      req.user.email
+    );
+
     await assetDb.delete(req.params.id);
-    res.json({ message: 'Asset deleted successfully' });
+
+    res.json({
+      message: 'Asset deleted successfully',
+      deletedAsset: {
+        id: asset.id,
+        laptop_serial_number: asset.laptop_serial_number,
+        employee_name: asset.employee_name
+      }
+    });
   } catch (error) {
     console.error('Error deleting asset:', error);
     res.status(500).json({ error: 'Failed to delete asset' });

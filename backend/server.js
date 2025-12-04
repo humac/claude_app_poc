@@ -841,8 +841,9 @@ app.post('/api/auth/passkeys/registration-options', authenticate, async (req, re
         userVerification: 'preferred'
       },
       excludeCredentials: validPasskeys.map((pk) => ({
-        id: isoBase64URL.toBuffer(pk.credential_id),
-        type: 'public-key'
+        id: pk.credential_id,
+        type: 'public-key',
+        transports: pk.transports ? JSON.parse(pk.transports) : undefined
       }))
     });
 

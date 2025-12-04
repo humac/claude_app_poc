@@ -1136,7 +1136,9 @@ app.post('/api/auth/passkeys/verify-authentication', async (req, res) => {
       authenticator: {
         credentialID: isoBase64URL.toBuffer(dbPasskey.credential_id),
         credentialPublicKey: isoBase64URL.toBuffer(dbPasskey.public_key),
-        counter: dbPasskey.counter,
+        counter: typeof dbPasskey.counter === 'number' && Number.isFinite(dbPasskey.counter)
+          ? dbPasskey.counter
+          : 0,
         transports: dbPasskey.transports ? JSON.parse(dbPasskey.transports) : []
       }
     });

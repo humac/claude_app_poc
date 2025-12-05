@@ -1517,15 +1517,6 @@ app.put('/api/admin/oidc-settings', authenticate, authorize('admin'), async (req
 app.get('/api/branding', async (req, res) => {
   try {
     const settings = await brandingSettingsDb.get();
-    if (settings && settings.logo_data) {
-      console.log('[Branding] Returning logo data:', {
-        filename: settings.logo_filename,
-        content_type: settings.logo_content_type,
-        data_length: settings.logo_data.length
-      });
-    } else {
-      console.log('[Branding] No logo data available');
-    }
     res.json(settings || {});
   } catch (error) {
     console.error('Get branding settings error:', error);

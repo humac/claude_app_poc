@@ -1,279 +1,88 @@
 # Quick Start Guide
 
-Get the KeyData Asset Registration System (KARS) running in 5 minutes!
+Get the KeyData Asset Registration System (KARS) running in minutes. Pick the section that matches your role.
 
 ## For Users
 
 ### First Time Setup
+1. **Access the Application**  
+   Go to your deployment URL (e.g., `https://kars.jvhlabs.com`).
+2. **Register Your Account**  
+   - Provide first/last name, email, manager name, and manager email.  
+   - The first account created becomes **Admin** automatically (or the email configured in `ADMIN_EMAIL`).
+3. **Login & Secure Your Account**  
+   - Sign in with your email/password.  
+   - Optional: Enable **MFA** from Profile → Security.  
+   - Optional: Register a **passkey** (Touch ID/Face ID/Windows Hello/YubiKey) for passwordless sign-in.
+4. **Register Your First Asset**  
+   Asset Management → **+ New Asset** → fill in details (employee/manager info, company, serial, asset tag, notes) → **Register Asset**.
 
-1. **Access the Application**
-   - Navigate to: `https://kars.jvhlabs.com`
-   - Or your deployed URL
-
-2. **Register Your Account**
-   - Click "Register" (or "Sign up here")
-   - Fill in the form:
-     - First Name
-     - Last Name
-     - Email Address
-     - Manager Name (required)
-     - Manager Email (required)
-     - Password (minimum 6 characters)
-     - Confirm Password
-   - Click "Create Account"
-   - Managers you list are automatically promoted to the **Manager** role (unless already Manager/Admin)
-
-3. **Login**
-   - You're automatically logged in after registration
-   - Future logins: Enter email and password
-
-4. **Your Role**
-   - First user becomes **Admin** automatically
-   - Others default to **Employee**
-   - Admins can promote users to Manager or Admin
-
-### Register Your First Asset
-
-1. **Go to Asset Management Tab** (default view)
-
-2. **Click "+ New Asset"** button (top right)
-
-3. **Fill in the Asset Form:**
-   - Employee Name: Your name
-   - Employee Email: Your email
-   - Manager Name: Your manager's name
-   - Manager Email: Manager's email
-   - Client Company: Select from dropdown
-   - Laptop Serial Number: Found on laptop
-   - Laptop Asset Tag: Company asset tag
-   - Notes: Optional details
-
-4. **Click "Register Asset"**
-
-5. **View Your Asset** in the table below
-
-✅ **Done!** Your asset is now tracked.
+### Daily Use
+- Update asset status (Active, Returned, Lost, Damaged, Retired) when equipment changes hands.
+- Use table filters to find assets by employee, manager, company, or status.
 
 ---
 
 ## For Administrators
 
-### Initial Admin Setup
-
-**Method 1: Be the First User** (Easiest)
-1. Deploy the application
-2. Register first - you're automatically admin!
-
-**Method 2: Use Environment Variable**
-1. Set `ADMIN_EMAIL=your@email.com` in `.env`
-2. Register with that email
-3. You're assigned admin role
-
-**Method 3: Promoted by Another Admin**
-1. Register normally (employee role)
-2. Ask admin to promote you
-3. Admin Settings → User Management → Change your role
-
-### First Admin Tasks
-
-1. **Add Companies** (before users can register assets)
-   - Go to **Company Management** tab
-   - Click "+ Add Company"
-   - Enter company name and description
-   - Save
-   - Repeat for all client companies
-
-2. **Verify System**
-   - Go to **Admin Settings**
-   - Check **System Overview**
-   - Confirm user count is correct
-   - Review system information
-
-3. **Set Up Additional Admins** (optional)
-   - Go to **Admin Settings** → **User Management**
-   - Find user to promote
-   - Change role dropdown to "Admin"
-
-4. **Configure Backup** (recommended)
-   - See [Backup Guide](Backup-And-Restore)
-   - Schedule automated backups
-   - Test restore procedure
+### First Admin Checklist
+1. **Add Companies** – Company Management → **+ Add Company** (required before users can register assets).  
+2. **Confirm Roles** – Admin Settings → User Management → adjust Employee/Manager/Admin roles.  
+3. **Configure Security** – Profile → enable MFA; Admin Settings → Passkey Settings to set RP ID/name/origin if using a custom domain.
+4. **Optional SSO** – Admin Settings → SSO/OIDC: add issuer URL, client credentials, scopes, and role mapping.  
+5. **Branding** – Admin Settings → Branding: upload a logo or reset to defaults.  
+6. **Database Engine** – Admin Settings → Database: stay on SQLite or enter a PostgreSQL URL and import existing SQLite data.
+7. **Bulk Imports** – Use CSV importers in Asset Management and Company Management to seed existing data.
+8. **Audit & Reporting** – Audit & Reporting → export CSV logs and review status summaries.
 
 ---
 
 ## For Developers
 
-### Local Development Setup
-
-**Prerequisites:**
-- Node.js 18+ installed
-- Git installed
-
-**Quick Start:**
-
+### Local Development
 ```bash
-# 1. Clone repository
-git clone https://github.com/your-username/claude_app_poc.git
+# Clone repository
+git clone https://github.com/humac/claude_app_poc.git
 cd claude_app_poc
 
-# 2. Setup backend
+# Backend
 cd backend
 npm install
 cp .env.example .env
-# Edit .env and set JWT_SECRET
-npm run dev
+# Set JWT_SECRET and adjust PASSKEY_* or OIDC_* values if needed
+npm run dev   # API on http://localhost:3001
 
-# 3. In new terminal, setup frontend
+# Frontend (new terminal)
 cd frontend
 npm install
-npm run dev
-
-# 4. Access application
-# Frontend: http://localhost:5173
-# Backend: http://localhost:3001
+npm run dev   # UI on http://localhost:5173
 ```
 
-**First User is Admin:**
-- Register at http://localhost:5173
-- First user automatically gets admin role
-- Start testing!
+- Passkeys require the browser origin to match `PASSKEY_ORIGIN` (default `http://localhost:5173`).
+- Use the **API Reference** page for endpoints and payloads.
+- First registered account is promoted to admin; `ADMIN_EMAIL` in `.env` can preselect an admin.
 
 ---
 
 ## For DevOps
 
-### Production Deployment (Portainer)
-
-**5-Minute Deploy:**
-
-1. **Create Portainer Stack**
-   ```yaml
-   # Copy docker-compose.portainer.yml content
-   # Name: asset-registration
-   ```
-
-2. **Set Environment Variables**
-   ```env
-   GITHUB_REPOSITORY=your-username/claude_app_poc
-   APP_PORT=8080
-   JWT_SECRET=your-super-secret-jwt-key-here
-   ADMIN_EMAIL=admin@yourdomain.com
-   ```
-
-3. **Deploy Stack**
-   - Click "Deploy the stack"
-   - Wait for containers to start
-
-4. **Setup Auto-Deploy**
-   - Create webhook in Portainer stack
-   - Add `PORTAINER_WEBHOOK_URL` secret to GitHub
-   - Push to main → automatic deployment!
-
-5. **Setup Cloudflare Tunnel**
-   ```bash
-   # In Cloudflare Dashboard:
-   # Zero Trust → Tunnels → Create tunnel
-   # Add to stack as cloudflared service
-   # Configure public hostname: assets.jvhlabs.com
-   ```
-
-6. **Access App**
-   - Visit: https://assets.jvhlabs.com
-   - Register first admin
-   - Start using!
-
-**Full Instructions:** See [Deployment Guide](Deployment-Guide)
+1. **Deploy with Portainer** – Create a stack using `docker-compose.portainer.yml` (see [Deployment Guide](Deployment-Guide#portainer-deployment)).
+2. **Set Environment Variables** – `JWT_SECRET`, `ADMIN_EMAIL`, `APP_PORT`, optional `POSTGRES_URL`, and OIDC/passkey values.
+3. **Enable CI/CD** – Configure GitHub Actions secrets and Portainer webhook for auto-deploys.
+4. **Cloudflare Tunnel (optional)** – Expose the app securely with TLS via the provided `cloudflare-tunnel.yml` example.
+5. **Monitoring** – Containers include health checks; verify via Portainer and `/api/health`.
 
 ---
 
 ## Common First Tasks
-
-### As an Employee
-
-✅ **Register your laptop**
-1. Asset Management → + New Asset
-2. Fill in details
-3. Register
-
-✅ **Update status when returning**
-1. Find your asset in table
-2. Click "Update Status"
-3. Select "Returned"
-4. Add notes
-5. Save
-
-✅ **View your assets**
-- Asset Management tab shows only your assets
-- Use search to filter
-
-### As a Manager
-
-✅ **View team assets**
-- Asset Management shows your assets + team assets
-- Search by employee name to find specific person
-
-✅ **Check team reports**
-- Audit & Reporting → Summary Report
-- See team asset breakdown
-- Export for reporting
-
-### As an Admin
-
-✅ **Add companies**
-- Company Management → + Add Company
-- Enter all client companies
-- Users can now register assets
-
-✅ **Manage users**
-- Admin Settings → User Management
-- Change roles as needed
-- Remove inactive users
-
-✅ **Review audit logs**
-- Audit & Reporting → Audit Logs
-- Filter by date, user, action
-- Export for compliance
+- **Employees** – Register assets and keep statuses current.
+- **Managers** – Review team assets and export filtered audit logs for your reports.
+- **Admins** – Seed companies, set up SSO/passkeys, and schedule database backups (see repository README for backup commands).
 
 ---
 
 ## Next Steps
-
-### Learn More
-- **[Features](Features)** - See all capabilities
-- **[User Guide](User-Guide-Employees)** - Detailed instructions
-- **[Admin Guide](Admin-Guide)** - Complete admin docs
-
-### Deploy to Production
-- **[Deployment Guide](Deployment-Guide)** - Full deployment instructions
-- **[Security](Security)** - Best practices
-- **[Backup](Backup-And-Restore)** - Protect your data
-
-### Get Help
-- **[Troubleshooting](Troubleshooting)** - Common issues
-- **[FAQ](FAQ)** - Frequently asked questions
-- **GitHub Issues** - Report bugs
-
----
-
-## Tips & Tricks
-
-💡 **For Everyone:**
-- Use search/filters to find assets quickly
-- Export reports regularly for compliance
-- Update asset status promptly
-
-💡 **For Admins:**
-- Set up automated backups immediately
-- Review audit logs monthly
-- Limit admin access to 2-3 users
-- Add all companies before inviting users
-
-💡 **For Developers:**
-- Check `.env.example` for all config options
-- Use Docker for consistent development
-- Run linters before committing
-- Test with different roles
-
----
-
-**Ready to dive deeper?** Explore the [Features](Features) page or jump to the [Admin Guide](Admin-Guide)!
+- Explore the full [Features](Features) list.
+- Deep dive into administration via the [Admin Guide](Admin-Guide).
+- Integrate with external systems using the [API Reference](API-Reference).
+- Ready for production? Follow the [Deployment Guide](Deployment-Guide).

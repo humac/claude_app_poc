@@ -23,6 +23,10 @@ Complete feature overview of the KeyData Asset Registration System (KARS).
 - Clear filter button to reset all filters
 - Asset count display
 - Sortable table view with pagination
+- **Bulk Import**
+  - CSV import with validation feedback for admins and managers
+  - Displays per-row success/errors after upload
+  - Refreshes asset table after import completes
 
 **Asset Status Management**
 - Update asset status: Active, Returned, Lost, Damaged, Retired
@@ -168,6 +172,7 @@ Complete feature overview of the KeyData Asset Registration System (KARS).
 - Modal-based interface for focused data entry
 - Clean card-based layout
 - Automatic dropdown population for asset registration
+- Bulk company import from CSV with row-level status reporting
 
 **All User Access:**
 - View company names in dropdown during asset registration
@@ -250,6 +255,12 @@ Complete feature overview of the KeyData Asset Registration System (KARS).
   - Password policy enforcement
   - Audit log monitoring
   - System update reminders
+- Branding controls:
+  - Upload or reset a custom logo and app name
+  - Preview logo before saving
+- Database controls:
+  - Switch between SQLite and PostgreSQL from the UI
+  - Import existing SQLite data into PostgreSQL when migrating
 
 **OIDC/SSO Configuration**
 - Enable/disable SSO authentication
@@ -433,6 +444,7 @@ Complete feature overview of the KeyData Asset Registration System (KARS).
 - Environment-based or config-based database selection
 - PostgreSQL connection pooling
 - SSL support for PostgreSQL connections
+- SQLite-to-PostgreSQL import helper available from the admin console
 
 **Data Persistence**
 - Docker volume mounting

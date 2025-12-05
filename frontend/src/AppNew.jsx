@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,8 @@ import {
   Menu,
   X,
   Loader2,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
 import CompanyManagementNew from '@/components/CompanyManagementNew';
@@ -36,8 +38,42 @@ import OIDCCallback from '@/components/OIDCCallback';
 function AppNew() {
   const { user, logout, loading, isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [brandingLogo, setBrandingLogo] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'light';
+    return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  });
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadBranding = async () => {
+      try {
+        const response = await fetch('/api/branding');
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.logo_data) {
+          setBrandingLogo(data.logo_data);
+        }
+      } catch (error) {
+        console.error('Failed to load branding logo:', error);
+      }
+    };
+
+    loadBranding();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // Handle OIDC callback route (no authentication required)
   if (location.pathname === '/auth/callback') {
@@ -75,6 +111,10 @@ function AppNew() {
     return location.pathname === path;
   };
 
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   const handleNavigation = (path) => {
     navigate(path);
     setMobileMenuOpen(false);
@@ -93,10 +133,20 @@ function AppNew() {
           {/* Logo and Nav */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-                <Laptop className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="font-semibold text-lg hidden sm:block">KARS</span>
+              {brandingLogo ? (
+                <img
+                  src={brandingLogo}
+                  alt="Company logo"
+                  className="h-9 w-auto max-h-10 object-contain"
+                />
+              ) : (
+                <>
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
+                    <Laptop className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <span className="font-semibold text-lg hidden sm:block">KARS</span>
+                </>
+              )}
             </div>
 
             {/* Desktop Navigation */}
@@ -125,6 +175,19 @@ function AppNew() {
             <Badge variant="secondary" className="uppercase text-xs">
               {user?.role}
             </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={toggleTheme}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+              <span className="sr-only">Toggle theme</span>
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -171,26 +234,48 @@ function AppNew() {
         </div>
 
         {/* Mobile Menu */}
-            {mobileMenuOpen && (
-              <div className="md:hidden border-t bg-background">
-                <div className="container mx-auto py-4 space-y-4">
-                  {/* User Info */}
-                  <div className="flex items-center gap-3 pb-4 border-b">
-                    <Avatar className="h-10 w-10">
-                      {user?.profile_image && (
-                        <AvatarImage src={user.profile_image} alt="Profile" />
-                      )}
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user?.first_name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-background">
+            <div className="container mx-auto py-4 space-y-4">
+              {/* User Info */}
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <Avatar className="h-10 w-10">
+                  {user?.profile_image && (
+                    <AvatarImage src={user.profile_image} alt="Profile" />
+                  )}
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {user?.first_name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
                   <p className="font-medium">{user?.first_name} {user?.last_name}</p>
                   <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
                 <Badge variant="secondary" className="uppercase text-xs">
                   {user?.role}
                 </Badge>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Appearance</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={toggleTheme}
+                >
+                  {theme === 'dark' ? (
+                    <>
+                      <Sun className="h-4 w-4" />
+                      Light
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="h-4 w-4" />
+                      Dark
+                    </>
+                  )}
+                </Button>
               </div>
 
               {/* Navigation */}

@@ -2300,6 +2300,82 @@ app.delete('/api/assets/bulk/delete', authenticate, authorize('admin'), async (r
   }
 });
 
+// Bulk assign manager to assets (admin only)
+app.patch('/api/assets/bulk/manager', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { ids, manager_name, manager_email } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Asset IDs array is required' });
+    }
+
+    if (!manager_name || !manager_email) {
+      return res.status(400).json({ error: 'Manager name and email are required' });
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(manager_email)) {
+      return res.status(400).json({ error: 'Invalid manager email format' });
+    }
+
+    const results = { updated: [], failed: [] };
+
+    for (const id of ids) {
+      try {
+        const asset = await assetDb.getById(id);
+        if (!asset) {
+          results.failed.push({ id, reason: 'Asset not found' });
+          continue;
+        }
+
+        const oldManagerName = asset.manager_name;
+        const oldManagerEmail = asset.manager_email;
+
+        // Update the asset with new manager info
+        await assetDb.update(id, {
+          ...asset,
+          manager_name,
+          manager_email
+        });
+
+        // Log audit
+        await auditDb.log(
+          'BULK_MANAGER_ASSIGN',
+          'asset',
+          asset.id,
+          `${asset.laptop_serial_number} - ${asset.employee_name}`,
+          {
+            old_manager_name: oldManagerName,
+            old_manager_email: oldManagerEmail,
+            new_manager_name: manager_name,
+            new_manager_email: manager_email,
+            bulk_operation: true
+          },
+          req.user.email
+        );
+
+        results.updated.push({
+          id,
+          serial: asset.laptop_serial_number,
+          employee: asset.employee_name
+        });
+      } catch (err) {
+        results.failed.push({ id, reason: err.message });
+      }
+    }
+
+    res.json({
+      message: `Updated manager for ${results.updated.length} of ${ids.length} assets`,
+      updated: results.updated,
+      failed: results.failed
+    });
+  } catch (error) {
+    console.error('Error bulk assigning manager:', error);
+    res.status(500).json({ error: 'Failed to bulk assign manager' });
+  }
+});
+
 // Update asset status
 app.patch('/api/assets/:id/status', async (req, res) => {
   try {

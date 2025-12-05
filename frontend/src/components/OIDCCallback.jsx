@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Box, CircularProgress, Typography, Alert, Card, CardContent } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,8 +9,15 @@ const OIDCCallback = () => {
   const { setAuthData } = useAuth();
   const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(true);
+  const processedRef = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple calls (React Strict Mode, re-renders, etc.)
+    if (processedRef.current) {
+      return;
+    }
+    processedRef.current = true;
+
     const handleCallback = async () => {
       try {
         const code = searchParams.get('code');

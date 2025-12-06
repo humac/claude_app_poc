@@ -4,7 +4,7 @@ This repository contains the KARS (KeyData Asset Registration System) applicatio
 
 ## Project Overview
 - **Backend (`backend/`)**: Node.js (ES modules) + Express API with authentication (JWT, passkeys, OIDC) and persistence via SQLite/PostgreSQL adapters in `database.js`.
-- **Frontend (`frontend/`)**: React 18 with Vite, Material UI, Radix UI primitives, Tailwind utilities, and custom UI components under `src/components`.
+- **Frontend (`frontend/`)**: React 18 with Vite, Tailwind CSS, and shadcn/ui components built on Radix primitives under `src/components`.
 - **Docs & Ops**: Docker-based dev/prod setups (`docker-compose*.yml`), wiki docs, and various quick-start guides.
 
 ## General Conventions
@@ -12,7 +12,7 @@ This repository contains the KARS (KeyData Asset Registration System) applicatio
 - Keep imports at top level (no try/catch around imports).
 - Use `async/await` consistently; return structured JSON responses from the API and include informative error messages without leaking secrets.
 - Update validation/audit logic when adding or changing data flows; maintain consistent logging/auditing in `backend/`.
-- Keep styling/theming consistent on the frontend (use existing MUI theme utilities, Tailwind classes, and shared UI primitives where possible).
+- Keep styling/theming consistent on the frontend (use established Tailwind patterns and shared shadcn/ui primitives where possible).
 
 ## Testing & Quality
 - Run and update relevant tests:

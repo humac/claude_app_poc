@@ -264,6 +264,44 @@ Access your application at: `https://assets.jvhlabs.com`
 
 ## Troubleshooting
 
+### SPA Routes & Browser Refresh
+
+If your frontend is a single-page application (SPA) and users can navigate to client-side routes such as `/assets/`, a direct browser refresh on such a route can return a `403`/`404` from the server when there is no `index.html` in that directory. To avoid this, ensure your server returns the SPA entrypoint for unknown paths so the client router can resolve the route.
+
+Recommended `nginx` configuration (the project includes `frontend/nginx.conf`):
+
+```nginx
+   # SPA fallback: serve index.html for 404/403 so client-side routes load on refresh
+   error_page 404 403 = /index.html;
+
+   # Generic SPA root handler
+   location / {
+      try_files $uri $uri/ /index.html;
+   }
+```
+
+Why this helps:
+- If a directory like `/assets/` exists but has no `index.html`, Nginx would normally return `403` and the SPA would not load. The `error_page` directive forces Nginx to internally serve `/index.html` instead, allowing the SPA to handle routing.
+
+Alternatives:
+- Add an `index.html` in the directory you want to serve (not recommended for SPA routes).
+- Enable directory listings with `autoindex on;` (only if you intentionally want directory listing pages).
+
+Deploy & test steps (from repo root):
+
+```powershell
+# Rebuild and start frontend (Docker Compose)
+docker compose up -d --build frontend
+
+# Follow frontend logs
+docker compose logs -f asset-frontend
+
+# Verify directory route returns the SPA index (should be HTML, not a 403)
+curl -v http://localhost/assets/ | head -n 20
+```
+
+If you use a reverse proxy or Cloudflare in front of Nginx, ensure it doesn't rewrite or block `/assets/` requests.
+
 ### Containers Not Starting
 
 **Check logs:**

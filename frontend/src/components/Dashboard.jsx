@@ -848,33 +848,40 @@ const Dashboard = () => {
         </div>
       )}
 
-        {/* Data Table */}
-        <div className="rounded-xl bg-card/60 p-4 shadow-sm">
-          {filteredAssets.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Laptop className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No assets found matching your criteria.</p>
-            </div>
-          ) : (
-            <>
-              {isMobile ? (
-                /* Mobile Card View */
-                <div className="space-y-3">
-                  {paginatedAssets.map((asset) => (
-                    <div
-                      key={asset.id}
-                      className={cn(
-                        "border rounded-lg p-4 transition-colors",
-                        selectedIds.has(asset.id) &&
-                          "bg-primary/5 border-primary/50 shadow-[0_0_0_1px_hsl(var(--primary))]"
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedIds.has(asset.id)}
-                          onCheckedChange={() => toggleSelect(asset.id)}
-                          className="mt-1"
-                        />
+      {/* Data Table */}
+      <div className="rounded-xl bg-card/60 p-4 shadow-sm">
+        {filteredAssets.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <Laptop className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No assets found matching your criteria.</p>
+          </div>
+        ) : isMobile ? (
+          /* Mobile Card View */
+          <div className="space-y-3">
+            {paginatedAssets.map((asset) => (
+              <div
+                key={asset.id}
+                className={cn(
+                  "border rounded-lg p-4 transition-colors",
+                  selectedIds.has(asset.id) && "bg-primary/5 border-primary/50 shadow-[0_0_0_1px_hsl(var(--primary))]"
+                )}
+              >
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedIds.has(asset.id)}
+                      onCheckedChange={() => toggleSelect(asset.id)}
+                      className="mt-1"
+                    />
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-medium truncate">{asset.employee_name}</h4>
+                        {getStatusBadge(asset.status)}
+                      </div>
+
+                      <p className="text-sm text-muted-foreground truncate">
+                        {asset.employee_email}
+                      </p>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
@@ -934,87 +941,102 @@ const Dashboard = () => {
                     </div>
                   ))}
                 </div>
-              ) : (
-                /* Desktop Table View */
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="w-12">
-                        <Checkbox
-                          checked={isAllSelected ? true : isSomeSelected ? "indeterminate" : false}
-                          onCheckedChange={toggleSelectAll}
-                        />
-                      </TableHead>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>Employee Email</TableHead>
-                      <TableHead>Manager Email</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Serial Number</TableHead>
-                      <TableHead>Asset Tag</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedAssets.map((asset) => (
-                      <TableRow
-                        key={asset.id}
-                        data-state={selectedIds.has(asset.id) ? "selected" : undefined}
-                        className={cn(
-                          selectedIds.has(asset.id) && "bg-primary/5 border-primary/40"
+              ))}
+            </div>
+          ) : (
+            /* Desktop Table View */
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected ? true : isSomeSelected ? "indeterminate" : false}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Employee Email</TableHead>
+                  <TableHead>Manager Email</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Serial Number</TableHead>
+                  <TableHead>Asset Tag</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedAssets.map((asset) => (
+                  <TableRow
+                    key={asset.id}
+                    data-state={selectedIds.has(asset.id) ? "selected" : undefined}
+                    className={cn(
+                      selectedIds.has(asset.id) && "bg-primary/5 border-primary/40"
+                    )}
+                  >
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(asset.id)}
+                        onCheckedChange={() => toggleSelect(asset.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{asset.employee_name}</div>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">{asset.employee_email}</TableCell>
+                    <TableCell className="font-mono text-sm">{asset.manager_email || '—'}</TableCell>
+                    <TableCell>{asset.company_name}</TableCell>
+                    <TableCell className="font-mono text-sm">{asset.laptop_serial_number}</TableCell>
+                    <TableCell className="font-mono text-sm">{asset.laptop_asset_tag}</TableCell>
+                    <TableCell>{getStatusBadge(asset.status)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openAssetDetails(asset)}
+                          title="More Info"
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleStatusUpdate(asset)}
+                          title="Update Status"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        {user?.role === 'admin' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(asset)}
+                            title="Delete Asset"
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         )}
-                      >
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedIds.has(asset.id)}
-                            onCheckedChange={() => toggleSelect(asset.id)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">{asset.employee_name}</div>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">{asset.employee_email}</TableCell>
-                        <TableCell className="font-mono text-sm">{asset.manager_email || '—'}</TableCell>
-                        <TableCell>{asset.company_name}</TableCell>
-                        <TableCell className="font-mono text-sm">{asset.laptop_serial_number}</TableCell>
-                        <TableCell className="font-mono text-sm">{asset.laptop_asset_tag}</TableCell>
-                        <TableCell>{getStatusBadge(asset.status)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openAssetDetails(asset)}
-                              title="More Info"
-                            >
-                              <Info className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleStatusUpdate(asset)}
-                              title="Update Status"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            {user?.role === 'admin' && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDelete(asset)}
-                                title="Delete Asset"
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+
+          {filteredAssets.length > 0 && (
+            <TablePaginationControls
+              className="mt-4"
+              page={assetPage}
+              pageSize={assetPageSize}
+              totalItems={filteredAssets.length}
+              onPageChange={setAssetPage}
+              onPageSizeChange={setAssetPageSize}
+            />
+          )}
+        </div>
+      </div>
 
               <TablePaginationControls
                 className="mt-4"

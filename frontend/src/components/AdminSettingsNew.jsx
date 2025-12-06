@@ -560,6 +560,16 @@ const AdminSettingsNew = () => {
                       />
                     )}
                   </div>
+                    {filteredUsers.length > 0 ? (
+                      <TablePaginationControls
+                        className="mt-4"
+                        page={usersPage}
+                        pageSize={usersPageSize}
+                        totalItems={filteredUsers.length}
+                        onPageChange={setUsersPage}
+                        onPageSizeChange={setUsersPageSize}
+                      />
+                    ) : null}
                 </div>
               )}
               <Card className="bg-muted/50">

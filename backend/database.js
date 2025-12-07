@@ -52,6 +52,59 @@ const configuredPostgresUrl = configFile.postgresUrl || '';
 const wantsPostgres = (envEngine || configuredEngine) === 'postgres';
 const postgresUrl = envPostgresUrl || configuredPostgresUrl || '';
 
+/**
+ * Build PostgreSQL SSL configuration from environment variables
+ * @returns {undefined|object} SSL configuration object or undefined if SSL not enabled
+ */
+const buildSslConfig = () => {
+  if (process.env.POSTGRES_SSL !== 'true') {
+    return undefined;
+  }
+
+  // Default to secure SSL with certificate validation
+  const sslConfig = {
+    rejectUnauthorized: process.env.POSTGRES_SSL_REJECT_UNAUTHORIZED !== 'false'
+  };
+
+  // Support custom CA certificate for production use
+  if (process.env.POSTGRES_SSL_CA) {
+    const caPath = process.env.POSTGRES_SSL_CA;
+    // Basic path validation - ensure it's an absolute path
+    if (!caPath.startsWith('/') && !caPath.match(/^[A-Z]:\\/i)) {
+      console.warn('POSTGRES_SSL_CA must be an absolute path, skipping');
+    } else {
+      try {
+        sslConfig.ca = readFileSync(caPath, 'utf-8');
+      } catch (err) {
+        console.warn('Failed to read POSTGRES_SSL_CA certificate file:', err.message);
+      }
+    }
+  }
+
+  // Support client certificate authentication
+  if (process.env.POSTGRES_SSL_CERT && process.env.POSTGRES_SSL_KEY) {
+    const certPath = process.env.POSTGRES_SSL_CERT;
+    const keyPath = process.env.POSTGRES_SSL_KEY;
+    
+    // Basic path validation - ensure they are absolute paths
+    const certValid = certPath.startsWith('/') || certPath.match(/^[A-Z]:\\/i);
+    const keyValid = keyPath.startsWith('/') || keyPath.match(/^[A-Z]:\\/i);
+    
+    if (!certValid || !keyValid) {
+      console.warn('POSTGRES_SSL_CERT and POSTGRES_SSL_KEY must be absolute paths, skipping');
+    } else {
+      try {
+        sslConfig.cert = readFileSync(certPath, 'utf-8');
+        sslConfig.key = readFileSync(keyPath, 'utf-8');
+      } catch (err) {
+        console.warn('Failed to read POSTGRES_SSL_CERT/KEY files:', err.message);
+      }
+    }
+  }
+
+  return sslConfig;
+};
+
 let sqliteDb = null;
 let pgPool = null;
 let selectedEngine = 'sqlite';
@@ -59,37 +112,9 @@ let selectedPostgresUrl = '';
 
 if (wantsPostgres && postgresUrl) {
   try {
-    // Configure SSL settings for PostgreSQL connections
-    let sslConfig = undefined;
-    if (process.env.POSTGRES_SSL === 'true') {
-      // Default to secure SSL with certificate validation
-      sslConfig = {
-        rejectUnauthorized: process.env.POSTGRES_SSL_REJECT_UNAUTHORIZED !== 'false'
-      };
-      
-      // Support custom CA certificate for production use
-      if (process.env.POSTGRES_SSL_CA) {
-        try {
-          sslConfig.ca = readFileSync(process.env.POSTGRES_SSL_CA, 'utf-8');
-        } catch (err) {
-          console.warn('Failed to read POSTGRES_SSL_CA certificate file:', err.message);
-        }
-      }
-      
-      // Support client certificate authentication
-      if (process.env.POSTGRES_SSL_CERT && process.env.POSTGRES_SSL_KEY) {
-        try {
-          sslConfig.cert = readFileSync(process.env.POSTGRES_SSL_CERT, 'utf-8');
-          sslConfig.key = readFileSync(process.env.POSTGRES_SSL_KEY, 'utf-8');
-        } catch (err) {
-          console.warn('Failed to read POSTGRES_SSL_CERT/KEY files:', err.message);
-        }
-      }
-    }
-    
     pgPool = new Pool({
       connectionString: postgresUrl,
-      ssl: sslConfig
+      ssl: buildSslConfig()
     });
     selectedEngine = 'postgres';
     selectedPostgresUrl = postgresUrl;
@@ -1235,37 +1260,9 @@ export const passkeySettingsDb = {
 };
 
 const testPostgresConnection = async (connectionString) => {
-  // Configure SSL settings for PostgreSQL connections
-  let sslConfig = undefined;
-  if (process.env.POSTGRES_SSL === 'true') {
-    // Default to secure SSL with certificate validation
-    sslConfig = {
-      rejectUnauthorized: process.env.POSTGRES_SSL_REJECT_UNAUTHORIZED !== 'false'
-    };
-    
-    // Support custom CA certificate for production use
-    if (process.env.POSTGRES_SSL_CA) {
-      try {
-        sslConfig.ca = readFileSync(process.env.POSTGRES_SSL_CA, 'utf-8');
-      } catch (err) {
-        console.warn('Failed to read POSTGRES_SSL_CA certificate file:', err.message);
-      }
-    }
-    
-    // Support client certificate authentication
-    if (process.env.POSTGRES_SSL_CERT && process.env.POSTGRES_SSL_KEY) {
-      try {
-        sslConfig.cert = readFileSync(process.env.POSTGRES_SSL_CERT, 'utf-8');
-        sslConfig.key = readFileSync(process.env.POSTGRES_SSL_KEY, 'utf-8');
-      } catch (err) {
-        console.warn('Failed to read POSTGRES_SSL_CERT/KEY files:', err.message);
-      }
-    }
-  }
-  
   const pool = new Pool({
     connectionString,
-    ssl: sslConfig
+    ssl: buildSslConfig()
   });
 
   try {

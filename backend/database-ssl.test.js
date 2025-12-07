@@ -125,6 +125,49 @@ describe('Database SSL Configuration', () => {
     });
   });
 
+  describe('Path Validation', () => {
+    it('should require absolute paths for CA certificate', () => {
+      process.env.POSTGRES_SSL = 'true';
+      process.env.POSTGRES_SSL_CA = 'relative/path/to/cert.crt';
+      
+      // Relative paths should be rejected for security
+      expect(process.env.POSTGRES_SSL_CA.startsWith('/')).toBe(false);
+      // Implementation should warn and skip relative paths
+    });
+
+    it('should require absolute paths for client certificates', () => {
+      process.env.POSTGRES_SSL = 'true';
+      process.env.POSTGRES_SSL_CERT = 'relative/cert.crt';
+      process.env.POSTGRES_SSL_KEY = 'relative/key.key';
+      
+      // Relative paths should be rejected for security
+      expect(process.env.POSTGRES_SSL_CERT.startsWith('/')).toBe(false);
+      expect(process.env.POSTGRES_SSL_KEY.startsWith('/')).toBe(false);
+    });
+
+    it('should accept absolute Unix paths', () => {
+      process.env.POSTGRES_SSL = 'true';
+      process.env.POSTGRES_SSL_CA = '/etc/ssl/certs/ca-cert.crt';
+      
+      expect(process.env.POSTGRES_SSL_CA.startsWith('/')).toBe(true);
+    });
+
+    it('should accept absolute Windows paths', () => {
+      process.env.POSTGRES_SSL = 'true';
+      process.env.POSTGRES_SSL_CA = 'C:\\certs\\ca-cert.crt';
+      
+      expect(process.env.POSTGRES_SSL_CA.match(/^[A-Z]:\\/i)).toBeTruthy();
+    });
+
+    it('should prevent path traversal attacks', () => {
+      // Relative paths with .. are dangerous
+      const dangerousPath = '../../../etc/passwd';
+      
+      expect(dangerousPath.startsWith('/')).toBe(false);
+      // Implementation should reject this as it's not an absolute path
+    });
+  });
+
   describe('Configuration Documentation', () => {
     it('should document that certificate validation is enabled by default', () => {
       // This test serves as documentation

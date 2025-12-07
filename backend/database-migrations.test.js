@@ -7,72 +7,73 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
  * - Duplicate column errors should be ignored (defensive programming)
  * - All other errors should be thrown to prevent silent failures
  */
+
+/**
+ * Helper function to detect duplicate column errors
+ * This matches the logic in database.js for consistency
+ */
+function isDuplicateColumnError(err) {
+  return (
+    err.message?.toLowerCase().includes('duplicate column') ||
+    err.message?.toLowerCase().includes('already exists') ||
+    err.code === '42701'
+  );
+}
+
 describe('Database Migration Error Handling', () => {
   describe('Error Message Detection', () => {
     it('should identify SQLite duplicate column errors', () => {
       const duplicateError = new Error('duplicate column name: test_column');
       duplicateError.code = 'SQLITE_ERROR';
       
-      const isDuplicateColumn = 
-        duplicateError.message.toLowerCase().includes('duplicate column') ||
-        duplicateError.message.toLowerCase().includes('already exists');
-      
-      expect(isDuplicateColumn).toBe(true);
+      expect(isDuplicateColumnError(duplicateError)).toBe(true);
     });
 
     it('should identify PostgreSQL duplicate column errors', () => {
       const pgError = new Error('column "test_column" of relation "test_table" already exists');
       pgError.code = '42701';
       
-      const isDuplicateColumn = 
-        pgError.message.toLowerCase().includes('already exists') ||
-        pgError.code === '42701';
-      
-      expect(isDuplicateColumn).toBe(true);
+      expect(isDuplicateColumnError(pgError)).toBe(true);
     });
 
     it('should not misidentify missing table errors', () => {
       const missingTableError = new Error('no such table: test_table');
       missingTableError.code = 'SQLITE_ERROR';
       
-      const isDuplicateColumn = 
-        missingTableError.message.toLowerCase().includes('duplicate column') ||
-        missingTableError.message.toLowerCase().includes('already exists');
-      
-      expect(isDuplicateColumn).toBe(false);
+      expect(isDuplicateColumnError(missingTableError)).toBe(false);
     });
 
     it('should not misidentify connection errors', () => {
       const connectionError = new Error('connection refused');
       
-      const isDuplicateColumn = 
-        connectionError.message.toLowerCase().includes('duplicate column') ||
-        connectionError.message.toLowerCase().includes('already exists');
-      
-      expect(isDuplicateColumn).toBe(false);
+      expect(isDuplicateColumnError(connectionError)).toBe(false);
     });
 
     it('should not misidentify syntax errors', () => {
       const syntaxError = new Error('syntax error near "INVALID"');
       syntaxError.code = 'SQLITE_ERROR';
       
-      const isDuplicateColumn = 
-        syntaxError.message.toLowerCase().includes('duplicate column') ||
-        syntaxError.message.toLowerCase().includes('already exists');
-      
-      expect(isDuplicateColumn).toBe(false);
+      expect(isDuplicateColumnError(syntaxError)).toBe(false);
     });
 
     it('should not misidentify permission errors', () => {
       const permissionError = new Error('permission denied for table test_table');
       permissionError.code = '42501';
       
-      const isDuplicateColumn = 
-        permissionError.message.toLowerCase().includes('duplicate column') ||
-        permissionError.message.toLowerCase().includes('already exists') ||
-        permissionError.code === '42701';
+      expect(isDuplicateColumnError(permissionError)).toBe(false);
+    });
+
+    it('should handle errors without message property gracefully', () => {
+      const errorWithoutMessage = { code: 'SOME_ERROR' };
       
-      expect(isDuplicateColumn).toBe(false);
+      expect(isDuplicateColumnError(errorWithoutMessage)).toBe(false);
+    });
+
+    it('should handle PostgreSQL duplicate column error by code alone', () => {
+      const pgError = new Error(''); // empty message
+      pgError.code = '42701';
+      
+      expect(isDuplicateColumnError(pgError)).toBe(true);
     });
   });
 
@@ -105,10 +106,8 @@ describe('Database Migration Error Handling', () => {
       ];
       
       errors.forEach(({ message, shouldCatch }) => {
-        const isDuplicate = 
-          message.toLowerCase().includes('duplicate column') ||
-          message.toLowerCase().includes('already exists');
-        expect(isDuplicate).toBe(shouldCatch);
+        const err = new Error(message);
+        expect(isDuplicateColumnError(err)).toBe(shouldCatch);
       });
     });
   });

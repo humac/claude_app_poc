@@ -500,8 +500,8 @@ const initDb = async () => {
     // PostgreSQL: error code 42701 or message contains "already exists"
     // SQLite: message contains "duplicate column"
     const isDuplicateColumn = 
-      err.message.toLowerCase().includes('duplicate column') ||
-      err.message.toLowerCase().includes('already exists') ||
+      err.message?.toLowerCase().includes('duplicate column') ||
+      err.message?.toLowerCase().includes('already exists') ||
       err.code === '42701';
     
     if (isDuplicateColumn) {

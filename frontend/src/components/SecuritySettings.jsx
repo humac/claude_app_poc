@@ -240,7 +240,7 @@ const SecuritySettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <OIDCSettingsNew />
+          <OIDCSettings />
         </CardContent>
       </Card>
     </div>

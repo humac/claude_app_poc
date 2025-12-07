@@ -10,7 +10,7 @@ KARS (KeyData Asset Registration System) is a SOC2-compliant asset tracking web 
 
 ### Backend (`/backend`)
 
-**⚠️ CRITICAL: Use Node 18** (`>=18 <19`) - required for native modules (better-sqlite3). Node 20 works but shows warnings. Use `nvm use 18` if errors.
+**⚠️ CRITICAL: Node 18 preferred** (`>=18 <19` in package.json) for native modules (better-sqlite3). Node 20 works but shows warnings. CI uses Node 20 successfully. Use Node 18 if you encounter build errors.
 
 ```bash
 npm ci                # Install (ALWAYS use ci, not install)
@@ -99,7 +99,7 @@ cd frontend && npm run dev    # Terminal 2
 
 ### GitHub Workflows (`.github/workflows/`)
 
-**unit-tests.yml** - Triggers: Push/PR to main/develop/claude/** | Runs: `npm ci && npm test` in both modules (Node 20) | **MUST pass**
+**unit-tests.yml** - Triggers: Push/PR to main/develop/claude/** | Runs: `npm ci && npm test` in both modules (uses Node 20, works despite backend preferring 18) | **MUST pass**
 
 **verify-files.yml** - Triggers: Push/PR to main/develop | Validates critical files complete (server.js ≥2400 lines, database.js ≥1200 lines)
 

@@ -18,19 +18,21 @@ describe('OIDC Module - PKCE Verifier Store Timeout Management', () => {
   let timeoutIds = [];
   let clearedTimeouts = [];
   let timeoutCallbacks = new Map();
+  let nextTimeoutId = 1;
 
   beforeEach(() => {
     jest.clearAllMocks();
     timeoutIds = [];
     clearedTimeouts = [];
     timeoutCallbacks.clear();
+    nextTimeoutId = 1;
 
     // Mock setTimeout and clearTimeout to track calls
     originalSetTimeout = global.setTimeout;
     originalClearTimeout = global.clearTimeout;
 
     global.setTimeout = jest.fn((callback, delay) => {
-      const id = Math.random(); // Use number for easier tracking
+      const id = nextTimeoutId++;
       timeoutIds.push({ id, callback, delay });
       timeoutCallbacks.set(id, callback);
       return id;

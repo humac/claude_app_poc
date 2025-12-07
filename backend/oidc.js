@@ -21,6 +21,9 @@ let config = null;
 let codeVerifierStore = new Map(); // Store PKCE code verifiers temporarily
 let timeoutStore = new Map(); // Store timeout IDs to prevent memory leaks
 
+// Timeout duration for PKCE code verifiers (10 minutes)
+const PKCE_VERIFIER_TIMEOUT_MS = 10 * 60 * 1000;
+
 /**
  * Initialize OIDC client with settings from database
  */
@@ -92,11 +95,11 @@ async function getAuthorizationUrl(state) {
   // Store code verifier for later use in callback
   codeVerifierStore.set(state, code_verifier);
 
-  // Clean up old verifiers (older than 10 minutes)
+  // Clean up old verifiers after timeout period
   const timeoutId = setTimeout(() => {
     codeVerifierStore.delete(state);
     timeoutStore.delete(state);
-  }, 10 * 60 * 1000);
+  }, PKCE_VERIFIER_TIMEOUT_MS);
   
   // Store timeout ID to allow cleanup
   timeoutStore.set(state, timeoutId);

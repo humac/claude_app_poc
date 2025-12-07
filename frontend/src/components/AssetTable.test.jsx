@@ -86,7 +86,7 @@ describe('AssetTable Component', () => {
       />
     );
 
-    expect(screen.getByText('No assets found')).toBeInTheDocument();
+    expect(screen.getByText('No assets found. Get started by registering your first asset!')).toBeInTheDocument();
   });
 
   it('allows admin users to edit assets', async () => {

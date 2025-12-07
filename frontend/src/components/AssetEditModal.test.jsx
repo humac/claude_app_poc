@@ -276,6 +276,7 @@ describe('AssetEditModal Component', () => {
     await user.click(saveButton);
 
     await waitFor(() => {
+      // Verify fetch was called
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/assets/1',
         expect.objectContaining({
@@ -283,14 +284,21 @@ describe('AssetEditModal Component', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
           }),
-          body: JSON.stringify({
-            status: 'active',
-            manager_name: 'New Manager',
-            manager_email: 'new@example.com',
-            notes: 'Updated notes',
-          }),
         })
       );
+
+      // Verify the payload contains the updated editable fields
+      const fetchCall = global.fetch.mock.calls[0];
+      const payload = JSON.parse(fetchCall[1].body);
+      expect(payload.status).toBe('active');
+      expect(payload.manager_name).toBe('New Manager');
+      expect(payload.manager_email).toBe('new@example.com');
+      expect(payload.notes).toBe('Updated notes');
+      
+      // Verify it also includes the original asset data (for backend validation)
+      expect(payload.employee_name).toBe('John Doe');
+      expect(payload.company_name).toBe('Acme Corp');
+      
       expect(mockOnSaved).toHaveBeenCalledWith(mockResponse.asset);
     });
   });

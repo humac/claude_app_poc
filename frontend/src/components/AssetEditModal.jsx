@@ -80,8 +80,10 @@ export default function AssetEditModal({ asset, currentUser, onClose, onSaved })
 
     setSaving(true);
     try {
-      // Only send the 4 editable fields
+      // Merge editable fields with existing asset data to satisfy backend validation
+      // The backend requires all fields, but we only want to update these 4
       const payload = {
+        ...asset, // Include all existing fields
         status: form.status,
         manager_name: form.manager_name,
         manager_email: form.manager_email,

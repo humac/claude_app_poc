@@ -253,15 +253,6 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
     );
   };
 
-  if (assets.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <Laptop className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p>No assets found</p>
-      </div>
-    );
-  }
-
   const canRegister = () => {
     if (currentUser?.roles?.includes('admin')) return true;
     if (currentUser?.roles?.includes('editor')) return true;
@@ -388,7 +379,7 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
         {filteredAssets.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Laptop className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No assets match your search or filters</p>
+            <p>{assets.length === 0 ? 'No assets found. Get started by registering your first asset!' : 'No assets match your search or filters'}</p>
           </div>
         ) : (
           <>

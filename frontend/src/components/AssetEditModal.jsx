@@ -24,10 +24,10 @@ import { Loader2, AlertCircle } from 'lucide-react';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
-  { value: 'in_use', label: 'In Use' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'retired', label: 'Retired' },
+  { value: 'returned', label: 'Returned' },
   { value: 'lost', label: 'Lost' },
+  { value: 'damaged', label: 'Damaged' },
+  { value: 'retired', label: 'Retired' },
 ];
 
 // Email validation regex

@@ -25,6 +25,6 @@ jobs:
       - name: Sync wiki
         uses: Andrew-Chen-Wang/github-wiki-action@v4
         with:
-          path: wiki
           # Note: If your docs are in a different directory (e.g., 'docs/'),
-          # update the path parameter above accordingly
+          # update the path parameter below accordingly
+          path: wiki

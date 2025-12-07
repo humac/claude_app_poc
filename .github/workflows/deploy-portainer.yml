@@ -85,7 +85,8 @@ jobs:
   deploy-to-portainer:
     needs: build-and-push
     runs-on: ubuntu-latest
-    # Deploy to staging environment - add protection rules in repository settings
+    # Deploy to staging environment
+    # Add protection rules in Settings > Environments > staging
     environment: staging
 
     steps:

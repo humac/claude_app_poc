@@ -3014,7 +3014,10 @@ app.get('/api/reports/summary', authenticate, async (req, res) => {
       summary.by_company[asset.company_name] = (summary.by_company[asset.company_name] || 0) + 1;
 
       // Manager breakdown
-      summary.by_manager[asset.manager_name] = (summary.by_manager[asset.manager_name] || 0) + 1;
+      const managerFullName = asset.manager_first_name && asset.manager_last_name 
+        ? `${asset.manager_first_name} ${asset.manager_last_name}` 
+        : 'No Manager';
+      summary.by_manager[managerFullName] = (summary.by_manager[managerFullName] || 0) + 1;
     });
 
     res.json(summary);

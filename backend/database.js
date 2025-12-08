@@ -1326,10 +1326,40 @@ export const userDb = {
     const id = isPostgres ? result.rows?.[0]?.id : result.lastInsertRowid;
     return { id };
   },
-  getByEmail: async (email) => dbGet('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [email]),
-  getById: async (id) => dbGet('SELECT * FROM users WHERE id = ?', [id]),
-  getAll: async () => dbAll('SELECT * FROM users ORDER BY created_at DESC'),
-  getByManagerEmail: async (managerEmail) => dbAll('SELECT * FROM users WHERE manager_email = ?', [managerEmail]),
+  getByEmail: async (email) => {
+    const row = await dbGet('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [email]);
+    if (!row) return null;
+    return {
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_login: normalizeDates(row.last_login)
+    };
+  },
+  getById: async (id) => {
+    const row = await dbGet('SELECT * FROM users WHERE id = ?', [id]);
+    if (!row) return null;
+    return {
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_login: normalizeDates(row.last_login)
+    };
+  },
+  getAll: async () => {
+    const rows = await dbAll('SELECT * FROM users ORDER BY created_at DESC');
+    return rows.map((row) => ({
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_login: normalizeDates(row.last_login)
+    }));
+  },
+  getByManagerEmail: async (managerEmail) => {
+    const rows = await dbAll('SELECT * FROM users WHERE manager_email = ?', [managerEmail]);
+    return rows.map((row) => ({
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_login: normalizeDates(row.last_login)
+    }));
+  },
   updateRole: async (id, role) => dbRun('UPDATE users SET role = ? WHERE id = ?', [role, id]),
   updateLastLogin: async (id) => {
     const now = new Date().toISOString();
@@ -1350,7 +1380,15 @@ export const userDb = {
     id
   ]),
   updatePassword: async (id, passwordHash) => dbRun('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, id]),
-  getByOIDCSub: async (oidcSub) => dbGet('SELECT * FROM users WHERE oidc_sub = ?', [oidcSub]),
+  getByOIDCSub: async (oidcSub) => {
+    const row = await dbGet('SELECT * FROM users WHERE oidc_sub = ?', [oidcSub]);
+    if (!row) return null;
+    return {
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_login: normalizeDates(row.last_login)
+    };
+  },
   createFromOIDC: async (userData) => {
     const now = new Date().toISOString();
     const insertQuery = `
@@ -1421,14 +1459,42 @@ export const userDb = {
     // or storing emails in lowercase for optimal index usage
     const placeholders = normalizedEmails.map(() => '?').join(',');
     const query = `SELECT * FROM users WHERE LOWER(email) IN (${placeholders})`;
-    return dbAll(query, normalizedEmails);
+    const rows = await dbAll(query, normalizedEmails);
+    return rows.map((row) => ({
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_login: normalizeDates(row.last_login)
+    }));
   }
 };
 
 export const passkeyDb = {
-  listByUser: async (userId) => dbAll('SELECT * FROM passkeys WHERE user_id = ? ORDER BY created_at DESC', [userId]),
-  getByCredentialId: async (credentialId) => dbGet('SELECT * FROM passkeys WHERE credential_id = ?', [credentialId]),
-  getById: async (id) => dbGet('SELECT * FROM passkeys WHERE id = ?', [id]),
+  listByUser: async (userId) => {
+    const rows = await dbAll('SELECT * FROM passkeys WHERE user_id = ? ORDER BY created_at DESC', [userId]);
+    return rows.map((row) => ({
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_used_at: normalizeDates(row.last_used_at)
+    }));
+  },
+  getByCredentialId: async (credentialId) => {
+    const row = await dbGet('SELECT * FROM passkeys WHERE credential_id = ?', [credentialId]);
+    if (!row) return null;
+    return {
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_used_at: normalizeDates(row.last_used_at)
+    };
+  },
+  getById: async (id) => {
+    const row = await dbGet('SELECT * FROM passkeys WHERE id = ?', [id]);
+    if (!row) return null;
+    return {
+      ...row,
+      created_at: normalizeDates(row.created_at),
+      last_used_at: normalizeDates(row.last_used_at)
+    };
+  },
   create: async ({ userId, name, credentialId, publicKey, counter, transports }) => {
     const now = new Date().toISOString();
     const insertQuery = `
@@ -1455,7 +1521,14 @@ export const passkeyDb = {
 };
 
 export const oidcSettingsDb = {
-  get: async () => dbGet('SELECT * FROM oidc_settings WHERE id = 1'),
+  get: async () => {
+    const row = await dbGet('SELECT * FROM oidc_settings WHERE id = 1');
+    if (!row) return null;
+    return {
+      ...row,
+      updated_at: normalizeDates(row.updated_at)
+    };
+  },
   update: async (settings, userEmail) => {
     const now = new Date().toISOString();
     return dbRun(`

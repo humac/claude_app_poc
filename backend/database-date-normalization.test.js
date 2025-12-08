@@ -48,7 +48,7 @@ describe('Date Normalization', () => {
       return (date = null) => {
         if (!date) return null;
         
-        // If date is already a string in ISO format, validate and return it
+        // If date is already a string in ISO format, validate and ensure UTC format
         if (typeof date === 'string') {
           // Ensure it's a valid ISO string and convert to UTC if needed
           const parsed = new Date(date);
@@ -58,7 +58,7 @@ describe('Date Normalization', () => {
           return parsed.toISOString();
         }
         
-        // If date is a Date object (from Postgres), convert to ISO string
+        // If date is a Date object (from PostgreSQL), convert to ISO string
         if (date instanceof Date) {
           if (isNaN(date.getTime())) {
             throw new Error('Invalid Date object');

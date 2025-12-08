@@ -282,7 +282,7 @@ const ProfileNew = () => {
                   <span className="text-sm text-muted-foreground">Manager</span>
                   <span className="font-medium text-sm">{user?.manager_name || 'Not set'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-md border bg-card md:col-span-2 lg:col-span-2">
+                <div className="flex items-center justify-between p-3 rounded-md border bg-card lg:col-span-2">
                   <span className="text-sm text-muted-foreground">Manager Email</span>
                   <span className="font-medium text-sm">{user?.manager_email || 'Not set'}</span>
                 </div>
@@ -370,7 +370,7 @@ const ProfileNew = () => {
                 </div>
                 <div className="p-3 space-y-2">
                   <div className="flex gap-2 flex-wrap">
-                    <Input placeholder="Passkey name (e.g., MacBook Touch ID)" value={newPasskeyName} onChange={(e) => setNewPasskeyName(e.target.value)} className="max-w-xs flex-1 min-w-[200px]" />
+                    <Input placeholder="Passkey name (e.g., MacBook Touch ID)" value={newPasskeyName} onChange={(e) => setNewPasskeyName(e.target.value)} className="flex-1 min-w-[200px]" />
                     <Button size="sm" onClick={handlePasskeyRegistration} disabled={passkeyLoading}>{passkeyLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}<Key className="h-4 w-4 mr-2" />Create Passkey</Button>
                   </div>
                   {passkeys.length === 0 ? (

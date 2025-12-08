@@ -858,9 +858,38 @@ const initDb = async () => {
   console.log(`Database initialized using ${isPostgres ? 'PostgreSQL' : 'SQLite'}`);
 };
 
+/**
+ * Normalize dates to ensure consistent UTC handling across SQLite and PostgreSQL
+ * 
+ * Both SQLite (which stores dates as TEXT) and PostgreSQL (which returns Date objects)
+ * are normalized to ISO 8601 UTC strings to ensure timezone consistency in multi-region
+ * deployments and when transforming between database engines.
+ * 
+ * @param {string|Date|null} date - The date to normalize
+ * @returns {string|null} ISO 8601 UTC string (e.g., '2024-01-15T10:30:00.000Z') or null
+ */
 const normalizeDates = (date = null) => {
   if (!date) return null;
-  return isPostgres ? new Date(date) : date;
+  
+  // If date is already a string in ISO format, validate and ensure it's UTC
+  if (typeof date === 'string') {
+    const parsed = new Date(date);
+    if (isNaN(parsed.getTime())) {
+      throw new Error(`Invalid date string: ${date}`);
+    }
+    return parsed.toISOString();
+  }
+  
+  // If date is a Date object (from PostgreSQL), convert to ISO string
+  if (date instanceof Date) {
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid Date object');
+    }
+    return date.toISOString();
+  }
+  
+  // Unexpected type
+  throw new Error(`Unexpected date type: ${typeof date}`);
 };
 
 export const assetDb = {

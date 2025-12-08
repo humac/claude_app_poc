@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect, useMemo } from 'react';
+import { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 const UsersContext = createContext(null);
@@ -55,7 +55,7 @@ export const UsersProvider = ({ children }) => {
   }, [users]);
 
   // Helper function to get full name
-  const getFullName = (userId) => {
+  const getFullName = useCallback((userId) => {
     if (!userId) return null;
     const user = usersById[userId];
     if (!user) return null;
@@ -64,17 +64,17 @@ export const UsersProvider = ({ children }) => {
     const lastName = user.last_name || '';
     const fullName = `${firstName} ${lastName}`.trim();
     return fullName || null;
-  };
+  }, [usersById]);
 
   // Helper function to get email
-  const getEmail = (userId) => {
+  const getEmail = useCallback((userId) => {
     if (!userId) return null;
     const user = usersById[userId];
     return user?.email || null;
-  };
+  }, [usersById]);
 
   // Refresh function for manual updates
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     if (!isAuthenticated) return;
 
     try {
@@ -97,7 +97,7 @@ export const UsersProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, getAuthHeaders]);
 
   const value = {
     users,

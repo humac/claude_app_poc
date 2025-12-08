@@ -135,7 +135,10 @@ export const syncCompaniesToKARS = async (accessToken, companyDb, auditDb, userE
 
         if (existingCompany) {
           // Update existing company if data has changed
-          if (existingCompany.name !== name || existingCompany.description !== description) {
+          // Normalize descriptions to handle null/undefined vs empty string
+          const existingDesc = existingCompany.description || '';
+          const newDesc = description || '';
+          if (existingCompany.name !== name || existingDesc !== newDesc) {
             await companyDb.updateByHubSpotId(hubspotId, { name, description });
             result.companiesUpdated++;
             

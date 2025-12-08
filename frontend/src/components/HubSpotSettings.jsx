@@ -113,7 +113,7 @@ const HubSpotSettings = () => {
         throw new Error(data.error || 'Failed to save settings');
       }
 
-      toast({ title: "Success", description: 'HubSpot settings saved successfully!', variant: "success" });
+      toast({ title: "Success", description: 'HubSpot settings saved successfully!' });
       setHasAccessToken(!!settings.access_token || hasAccessToken);
       // Clear the access token field after saving
       setSettings(prev => ({ ...prev, access_token: '' }));
@@ -140,8 +140,7 @@ const HubSpotSettings = () => {
 
       toast({ 
         title: "Success", 
-        description: data.message || 'Successfully connected to HubSpot!', 
-        variant: "success" 
+        description: data.message || 'Successfully connected to HubSpot!'
       });
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -166,8 +165,7 @@ const HubSpotSettings = () => {
 
       toast({ 
         title: "Success", 
-        description: `Synced ${data.companiesFound} companies: ${data.companiesCreated} created, ${data.companiesUpdated} updated`,
-        variant: "success"
+        description: `Synced ${data.companiesFound} companies: ${data.companiesCreated} created, ${data.companiesUpdated} updated`
       });
 
       // Refresh settings and history

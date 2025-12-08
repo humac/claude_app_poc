@@ -980,10 +980,8 @@ const initDb = async () => {
         console.log('SQLite: Added hubspot_synced_at column to companies table');
       }
 
-      // Add unique index for hubspot_id if column was just created
-      if (!hasHubspotId) {
-        await dbRun('CREATE UNIQUE INDEX IF NOT EXISTS idx_companies_hubspot_id ON companies(hubspot_id) WHERE hubspot_id IS NOT NULL');
-      }
+      // Add unique index for hubspot_id (always create if not exists)
+      await dbRun('CREATE UNIQUE INDEX IF NOT EXISTS idx_companies_hubspot_id ON companies(hubspot_id) WHERE hubspot_id IS NOT NULL');
     }
   } catch (err) {
     const isDuplicateColumn = 

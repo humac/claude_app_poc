@@ -56,8 +56,9 @@ describe('Asset Authorization and Manager Sync', () => {
       manager_last_name: 'Manager',
       manager_email: 'manager@test.com',
       company_name: 'Test Company',
-      laptop_serial_number: 'SN12345',
-      laptop_asset_tag: 'TAG12345',
+      asset_type: 'laptop',
+      serial_number: 'SN12345',
+      asset_tag: 'TAG12345',
       status: 'active'
     });
 

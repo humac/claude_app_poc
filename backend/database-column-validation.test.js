@@ -71,7 +71,8 @@ describe('SQL Column Name Validation', () => {
       it('should accept column names with underscores', () => {
         expect(isValidColumnName('employee_name')).toBe(true);
         expect(isValidColumnName('company_name')).toBe(true);
-        expect(isValidColumnName('laptop_serial_number')).toBe(true);
+        expect(isValidColumnName('serial_number')).toBe(true);
+        expect(isValidColumnName('asset_type')).toBe(true);
         expect(isValidColumnName('_private')).toBe(true);
       });
 
@@ -194,7 +195,7 @@ describe('SQL Column Name Validation', () => {
       });
 
       it('should handle column names with underscores', () => {
-        expect(buildSafeColumnExpression('laptop_serial_number')).toBe('laptop_serial_number');
+        expect(buildSafeColumnExpression('serial_number')).toBe('serial_number');
       });
     });
 
@@ -322,7 +323,7 @@ describe('Schema Evolution Scenarios', () => {
       expect(companyExpr).toBe('client_name AS company_name');
     });
 
-    it('should handle optional columns (laptop_make, laptop_model, notes)', () => {
+    it('should handle optional columns (make, model, notes)', () => {
       // Create minimal schema without optional columns
       db.exec(`
         CREATE TABLE assets_minimal (
@@ -339,21 +340,21 @@ describe('Schema Evolution Scenarios', () => {
         expect(isValidColumnName(col.name)).toBe(true);
       });
 
-      const hasLaptopMake = columns.some(col => col.name === 'laptop_make');
-      const hasLaptopModel = columns.some(col => col.name === 'laptop_model');
+      const hasMake = columns.some(col => col.name === 'make');
+      const hasModel = columns.some(col => col.name === 'model');
       const hasNotes = columns.some(col => col.name === 'notes');
 
-      expect(hasLaptopMake).toBe(false);
-      expect(hasLaptopModel).toBe(false);
+      expect(hasMake).toBe(false);
+      expect(hasModel).toBe(false);
       expect(hasNotes).toBe(false);
 
       // Build safe expressions - these should default to empty strings
-      const laptopMakeExpr = hasLaptopMake ? buildSafeColumnExpression('laptop_make') : "''";
-      const laptopModelExpr = hasLaptopModel ? buildSafeColumnExpression('laptop_model') : "''";
+      const makeExpr = hasMake ? buildSafeColumnExpression('make') : "''";
+      const modelExpr = hasModel ? buildSafeColumnExpression('model') : "''";
       const notesExpr = hasNotes ? buildSafeColumnExpression('notes') : "''";
 
-      expect(laptopMakeExpr).toBe("''");
-      expect(laptopModelExpr).toBe("''");
+      expect(makeExpr).toBe("''");
+      expect(modelExpr).toBe("''");
       expect(notesExpr).toBe("''");
     });
 
@@ -364,8 +365,9 @@ describe('Schema Evolution Scenarios', () => {
           id INTEGER PRIMARY KEY,
           employee_name TEXT,
           company_name TEXT,
-          laptop_make TEXT,
-          laptop_model TEXT,
+          asset_type TEXT,
+          make TEXT,
+          model TEXT,
           notes TEXT
         )
       `);
@@ -378,24 +380,28 @@ describe('Schema Evolution Scenarios', () => {
       });
 
       const hasCompanyName = columns.some(col => col.name === 'company_name');
-      const hasLaptopMake = columns.some(col => col.name === 'laptop_make');
-      const hasLaptopModel = columns.some(col => col.name === 'laptop_model');
+      const hasAssetType = columns.some(col => col.name === 'asset_type');
+      const hasMake = columns.some(col => col.name === 'make');
+      const hasModel = columns.some(col => col.name === 'model');
       const hasNotes = columns.some(col => col.name === 'notes');
 
       expect(hasCompanyName).toBe(true);
-      expect(hasLaptopMake).toBe(true);
-      expect(hasLaptopModel).toBe(true);
+      expect(hasAssetType).toBe(true);
+      expect(hasMake).toBe(true);
+      expect(hasModel).toBe(true);
       expect(hasNotes).toBe(true);
 
       // Build safe expressions - all should reference actual columns
       const companyExpr = buildSafeColumnExpression('company_name', 'company_name');
-      const laptopMakeExpr = buildSafeColumnExpression('laptop_make');
-      const laptopModelExpr = buildSafeColumnExpression('laptop_model');
+      const assetTypeExpr = buildSafeColumnExpression('asset_type');
+      const makeExpr = buildSafeColumnExpression('make');
+      const modelExpr = buildSafeColumnExpression('model');
       const notesExpr = buildSafeColumnExpression('notes');
 
       expect(companyExpr).toBe('company_name AS company_name');
-      expect(laptopMakeExpr).toBe('laptop_make');
-      expect(laptopModelExpr).toBe('laptop_model');
+      expect(assetTypeExpr).toBe('asset_type');
+      expect(makeExpr).toBe('make');
+      expect(modelExpr).toBe('model');
       expect(notesExpr).toBe('notes');
     });
   });

@@ -1194,7 +1194,10 @@ export const companyDb = {
     const row = await dbGet('SELECT * FROM companies WHERE id = ?', [id]);
     return row ? { ...row, created_date: normalizeDates(row.created_date) } : null;
   },
-  getByName: async (name) => dbGet('SELECT * FROM companies WHERE name = ?', [name]),
+  getByName: async (name) => {
+    const row = await dbGet('SELECT * FROM companies WHERE name = ?', [name]);
+    return row ? { ...row, created_date: normalizeDates(row.created_date) } : null;
+  },
   update: async (id, company) => dbRun(`
     UPDATE companies
     SET name = ?, description = ?

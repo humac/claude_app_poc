@@ -108,7 +108,7 @@ describe('AssetTable Component', () => {
     expect(screen.getAllByText('John Doe')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Jane Smith')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Dell XPS 15')[0]).toBeInTheDocument();
-    expect(screen.getAllByText('Apple MacBook Pro')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Apple iPhone 15')[0]).toBeInTheDocument();
   });
 
   it('shows "No assets found" when assets array is empty', () => {

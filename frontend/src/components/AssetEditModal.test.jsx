@@ -84,7 +84,9 @@ describe('AssetEditModal Component', () => {
     expect(screen.getByText('AT001')).toBeInTheDocument();
     expect(screen.getByText('Serial Number:')).toBeInTheDocument();
     expect(screen.getByText('SN12345')).toBeInTheDocument();
-    expect(screen.getByText('Type:')).toBeInTheDocument();
+    expect(screen.getByText('Asset Type:')).toBeInTheDocument();
+    expect(screen.getByText('laptop')).toBeInTheDocument();
+    expect(screen.getByText('Make/Model:')).toBeInTheDocument();
     expect(screen.getByText('Dell XPS 15')).toBeInTheDocument();
     expect(screen.getByText('Company:')).toBeInTheDocument();
     expect(screen.getByText('Acme Corp')).toBeInTheDocument();

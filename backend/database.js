@@ -1424,7 +1424,8 @@ export const assetDb = {
     // Split manager name into first and last name
     // Store denormalized fields for unregistered managers
     // JOINs will override these values when user records exist
-    const nameParts = (managerName || '').trim().split(/\s+/);
+    const trimmedName = (managerName || '').trim();
+    const nameParts = trimmedName ? trimmedName.split(/\s+/) : [];
     const managerFirstName = nameParts[0] || '';
     const managerLastName = nameParts.slice(1).join(' ') || '';
     

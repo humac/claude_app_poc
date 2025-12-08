@@ -170,6 +170,43 @@ describe('Unregistered Manager Name Display', () => {
       // Clean up
       await assetDb.delete(assetId);
     });
+
+    it('should handle empty or whitespace-only manager names', async () => {
+      // Create another asset
+      const assetResult = await assetDb.create({
+        employee_first_name: 'Test',
+        employee_last_name: 'Employee',
+        employee_email: 'employee-unregistered-test@test.com',
+        manager_first_name: 'Old',
+        manager_last_name: 'Manager',
+        manager_email: 'old.manager@test.com',
+        company_name: 'Test Company',
+        laptop_serial_number: 'UNREG-SN-007',
+        laptop_asset_tag: 'UNREG-TAG-007',
+        status: 'active'
+      });
+
+      const assetId = assetResult.id;
+
+      // Update with empty manager name
+      await assetDb.updateManagerForEmployee(
+        'employee-unregistered-test@test.com',
+        '   ',
+        'empty.name@test.com'
+      );
+
+      // Fetch the asset
+      const asset = await assetDb.getById(assetId);
+
+      // Manager names should be empty strings, not contain whitespace
+      expect(asset.manager_first_name).toBe('');
+      expect(asset.manager_last_name).toBe('');
+      expect(asset.manager_email).toBe('empty.name@test.com');
+      expect(asset.manager_id).toBeNull();
+
+      // Clean up
+      await assetDb.delete(assetId);
+    });
   });
 
   describe('linkAssetsToUser with Unregistered Manager', () => {

@@ -10,7 +10,7 @@ A comprehensive SOC2-compliant web application for tracking and managing client 
 
 📖 **Documentation:** [View Wiki](../../wiki)
 
-🔄 **Schema Update:** [Migration Guide](SCHEMA-MIGRATION.md) - Important: Asset name fields now separated into first/last names
+🔄 **Schema Update:** [Migration Guide](SCHEMA-MIGRATION.md) - Important: Now supports multiple asset types (laptops, mobile phones). Breaking change - requires fresh database.
 
 ---
 
@@ -46,11 +46,14 @@ A comprehensive SOC2-compliant web application for tracking and managing client 
 - **Branding Controls** - Admins can upload a custom logo and branding name from the UI
 
 ### 📦 Asset Management
-- **Self-Service Registration** - Consultants register client laptops with separated name fields for better data quality
+- **Multi-Type Asset Support** - Track laptops, mobile phones, and other assets
+  - Asset type selector (laptop, mobile phone)
+  - Generic fields: make, model, serial number, asset tag
+- **Self-Service Registration** - Consultants register client assets with separated name fields for better data quality
   - Employee first/last name, email (prepopulated and readonly for employees)
   - Manager first/last name, email (prepopulated from employee profile for employees)
   - Company dropdown (populated from system companies)
-  - Laptop details, serial number, asset tag, status, notes
+  - Asset details, serial number, asset tag, status, notes
 - **Status Tracking** - Active, Returned, Lost, Damaged, Retired
 - **Advanced Search** - Filter by employee, manager, client, status
 - **Role-Based Visibility & Authorization**:

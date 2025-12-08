@@ -34,7 +34,8 @@ describe('AssetTable Component', () => {
   const sampleAssets = [
     {
       id: 1,
-      employee_name: 'John Doe',
+      employee_first_name: 'John',
+      employee_last_name: 'Doe',
       laptop_make: 'Dell',
       laptop_model: 'XPS 15',
       employee_email: 'john@example.com',
@@ -42,7 +43,8 @@ describe('AssetTable Component', () => {
     },
     {
       id: 2,
-      employee_name: 'Jane Smith',
+      employee_first_name: 'Jane',
+      employee_last_name: 'Smith',
       laptop_make: 'Apple',
       laptop_model: 'MacBook Pro',
       employee_email: 'jane@example.com',

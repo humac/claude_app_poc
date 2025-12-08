@@ -147,7 +147,7 @@ describe('Performance Optimizations', () => {
 
     test('bulkUpdateManager should update multiple assets in one query', async () => {
       const startTime = Date.now();
-      const result = await assetDb.bulkUpdateManager(assetIds, 'New Manager', 'newmgr@example.com');
+      const result = await assetDb.bulkUpdateManager(assetIds, 'New', 'Manager', 'newmgr@example.com');
       const duration = Date.now() - startTime;
 
       expect(result.changes).toBeGreaterThan(0);

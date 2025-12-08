@@ -459,10 +459,10 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
                   </TableHead>
                   <TableHead>Employee Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead className="hidden lg:table-cell">Manager Name</TableHead>
-                  <TableHead className="hidden lg:table-cell">Manager Email</TableHead>
-                  <TableHead className="hidden xl:table-cell">Company</TableHead>
-                  <TableHead className="hidden xl:table-cell">Laptop</TableHead>
+                  <TableHead className="hidden xl:table-cell">Manager Name</TableHead>
+                  <TableHead className="hidden xl:table-cell">Manager Email</TableHead>
+                  <TableHead className="hidden lg:table-cell">Company</TableHead>
+                  <TableHead className="hidden lg:table-cell">Laptop</TableHead>
                   <TableHead className="hidden 2xl:table-cell">Serial Number</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -483,10 +483,10 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
                     </TableCell>
                     <TableCell className="font-medium">{asset.employee_first_name && asset.employee_last_name ? `${asset.employee_first_name} ${asset.employee_last_name}` : 'N/A'}</TableCell>
                     <TableCell className="text-muted-foreground">{asset.employee_email || 'N/A'}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{asset.manager_first_name && asset.manager_last_name ? `${asset.manager_first_name} ${asset.manager_last_name}` : '-'}</TableCell>
-                    <TableCell className="hidden lg:table-cell text-muted-foreground">{asset.manager_email || '-'}</TableCell>
-                    <TableCell className="hidden xl:table-cell">{asset.company_name || '-'}</TableCell>
-                    <TableCell className="hidden xl:table-cell">
+                    <TableCell className="hidden xl:table-cell">{asset.manager_first_name && asset.manager_last_name ? `${asset.manager_first_name} ${asset.manager_last_name}` : '-'}</TableCell>
+                    <TableCell className="hidden xl:table-cell text-muted-foreground">{asset.manager_email || '-'}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{asset.company_name || '-'}</TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       {asset.laptop_make && asset.laptop_model ? `${asset.laptop_make} ${asset.laptop_model}` : '-'}
                     </TableCell>
                     <TableCell className="hidden 2xl:table-cell font-mono text-sm">{asset.laptop_serial_number || '-'}</TableCell>

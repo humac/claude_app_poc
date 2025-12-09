@@ -95,8 +95,9 @@ describe('Performance Optimizations', () => {
           manager_last_name: 'Test',
           manager_email: 'manager@example.com',
           company_name: 'Test Company',
-          laptop_serial_number: `SN${Date.now()}${i}`,
-          laptop_asset_tag: `TAG${Date.now()}${i}`,
+          asset_type: 'laptop',
+          serial_number: `SN${Date.now()}${i}`,
+          asset_tag: `TAG${Date.now()}${i}`,
           status: 'active',
           notes: ''
         });
@@ -188,8 +189,9 @@ describe('Performance Optimizations', () => {
           manager_last_name: 'Manager',
           manager_email: managerEmail,
           company_name: 'Test Company',
-          laptop_serial_number: `PERF${Date.now()}${i}`,
-          laptop_asset_tag: `PTAG${Date.now()}${i}`,
+          asset_type: 'laptop',
+          serial_number: `PERF${Date.now()}${i}`,
+          asset_tag: `PTAG${Date.now()}${i}`,
           status: 'active',
           notes: ''
         });

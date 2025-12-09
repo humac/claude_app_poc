@@ -35,10 +35,11 @@ describe('AssetEditModal Component', () => {
     employee_last_name: 'Doe',
     employee_email: 'john@example.com',
     company_name: 'Acme Corp',
-    laptop_make: 'Dell',
-    laptop_model: 'XPS 15',
-    laptop_serial_number: 'SN12345',
-    laptop_asset_tag: 'AT001',
+    asset_type: 'laptop',
+    make: 'Dell',
+    model: 'XPS 15',
+    serial_number: 'SN12345',
+    asset_tag: 'AT001',
     status: 'active',
     notes: 'Test notes',
     manager_first_name: 'Jane',
@@ -83,7 +84,9 @@ describe('AssetEditModal Component', () => {
     expect(screen.getByText('AT001')).toBeInTheDocument();
     expect(screen.getByText('Serial Number:')).toBeInTheDocument();
     expect(screen.getByText('SN12345')).toBeInTheDocument();
-    expect(screen.getByText('Type:')).toBeInTheDocument();
+    expect(screen.getByText('Asset Type:')).toBeInTheDocument();
+    expect(screen.getByText('laptop')).toBeInTheDocument();
+    expect(screen.getByText('Make/Model:')).toBeInTheDocument();
     expect(screen.getByText('Dell XPS 15')).toBeInTheDocument();
     expect(screen.getByText('Company:')).toBeInTheDocument();
     expect(screen.getByText('Acme Corp')).toBeInTheDocument();

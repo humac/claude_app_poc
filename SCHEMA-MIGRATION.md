@@ -2,7 +2,95 @@
 
 ## Overview
 
-The KARS application has been updated to use separated first and last name fields for better data quality and improved user experience. This document outlines the changes and migration considerations.
+This document outlines database schema changes and migration considerations for the KARS application. The most recent update adds support for multiple asset types beyond just laptops.
+
+## Latest Changes: Multi-Type Asset Support (December 2024)
+
+### Breaking Change: Generic Asset Fields
+
+The KARS application has been updated to support multiple asset types (laptops and mobile phones) by replacing laptop-specific fields with generic asset fields.
+
+**⚠️ IMPORTANT: This is a breaking change. You must delete your existing database and start fresh.**
+
+### Assets Table Schema Changes
+
+**Old Schema (Laptop-Only):**
+- `laptop_make` (TEXT) - Laptop manufacturer
+- `laptop_model` (TEXT) - Laptop model
+- `laptop_serial_number` (TEXT NOT NULL UNIQUE) - Laptop serial number
+- `laptop_asset_tag` (TEXT NOT NULL UNIQUE) - Laptop asset tag
+
+**New Schema (Multi-Type):**
+- `asset_type` (TEXT NOT NULL) - Type of asset: 'laptop' or 'mobile_phone'
+- `make` (TEXT) - Generic manufacturer/make
+- `model` (TEXT) - Generic model
+- `serial_number` (TEXT NOT NULL UNIQUE) - Generic serial number
+- `asset_tag` (TEXT NOT NULL UNIQUE) - Generic asset tag
+
+### Index Changes
+
+**Renamed Indexes:**
+- `idx_laptop_serial_number` → `idx_serial_number`
+- `idx_laptop_asset_tag` → `idx_asset_tag`
+
+### API Changes
+
+All asset-related API endpoints now require the `asset_type` field and use generic field names:
+
+**POST /api/assets**
+- Required: `asset_type` ('laptop' or 'mobile_phone'), `serial_number`, `asset_tag`
+- Optional: `make`, `model`
+
+**PUT /api/assets/:id**
+- Same field requirements as POST
+
+**POST /api/assets/import**
+- CSV must include: `asset_type`, `serial_number`, `asset_tag`
+- CSV may include: `make`, `model`
+
+### CSV Template Changes
+
+The CSV import template has been updated:
+
+**Old Header:**
+```csv
+employee_first_name,employee_last_name,employee_email,...,laptop_make,laptop_model,laptop_serial_number,laptop_asset_tag,...
+```
+
+**New Header:**
+```csv
+employee_first_name,employee_last_name,employee_email,...,asset_type,make,model,serial_number,asset_tag,...
+```
+
+### UI Changes
+
+1. **Asset Registration Form**: Now includes an asset type dropdown with options: Laptop, Mobile Phone
+2. **Asset Table**: Added "Type" column, renamed "Laptop" column to "Make/Model"
+3. **Asset Edit Modal**: Displays asset type and generic make/model information
+4. **Bulk Import**: Updated required fields documentation
+
+### Benefits of Multi-Type Support
+
+1. **Flexibility**: Track different types of assets (laptops, mobile phones, and potentially others in the future)
+2. **Consistency**: Generic field names work for all asset types
+3. **Scalability**: Easy to add new asset types in the future
+4. **Better Organization**: Filter and sort by asset type
+
+### Migration Instructions
+
+Since this is a breaking change:
+
+1. **Stop the KARS application**
+2. **Delete the existing database file** (typically `backend/data/*.db` for SQLite)
+3. **Update to the latest code**
+4. **Restart the application** - new schema will be created automatically
+5. **Re-import your data** using the new CSV format with `asset_type` field
+
+---
+
+## Previous Changes: Separated Name Fields (Earlier 2024)
+
+The KARS application was previously updated to use separated first and last name fields for better data quality and improved user experience.
 
 ## What Changed
 

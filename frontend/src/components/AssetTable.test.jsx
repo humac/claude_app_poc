@@ -59,8 +59,11 @@ describe('AssetTable Component', () => {
       id: 1,
       employee_first_name: 'John',
       employee_last_name: 'Doe',
-      laptop_make: 'Dell',
-      laptop_model: 'XPS 15',
+      asset_type: 'laptop',
+      make: 'Dell',
+      model: 'XPS 15',
+      serial_number: 'SN123',
+      asset_tag: 'AT001',
       employee_email: 'john@example.com',
       manager_first_name: 'Bob',
       manager_last_name: 'Manager',
@@ -71,8 +74,11 @@ describe('AssetTable Component', () => {
       id: 2,
       employee_first_name: 'Jane',
       employee_last_name: 'Smith',
-      laptop_make: 'Apple',
-      laptop_model: 'MacBook Pro',
+      asset_type: 'mobile_phone',
+      make: 'Apple',
+      model: 'iPhone 15',
+      serial_number: 'SN456',
+      asset_tag: 'AT002',
       employee_email: 'jane@example.com',
       manager_first_name: 'Alice',
       manager_last_name: 'Boss',
@@ -102,7 +108,7 @@ describe('AssetTable Component', () => {
     expect(screen.getAllByText('John Doe')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Jane Smith')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Dell XPS 15')[0]).toBeInTheDocument();
-    expect(screen.getAllByText('Apple MacBook Pro')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Apple iPhone 15')[0]).toBeInTheDocument();
   });
 
   it('shows "No assets found" when assets array is empty', () => {

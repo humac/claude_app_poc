@@ -41,8 +41,9 @@ describe('Unregistered Manager Name Display', () => {
         manager_last_name: 'Doe',
         manager_email: 'jane.doe.unregistered@test.com',
         company_name: 'Test Company',
-        laptop_serial_number: 'UNREG-SN-001',
-        laptop_asset_tag: 'UNREG-TAG-001',
+        asset_type: 'laptop',
+        serial_number: 'UNREG-SN-001',
+        asset_tag: 'UNREG-TAG-001',
         status: 'active'
       });
 
@@ -80,8 +81,9 @@ describe('Unregistered Manager Name Display', () => {
         manager_last_name: 'Doe',
         manager_email: 'jane.doe.unregistered@test.com',
         company_name: 'Test Company',
-        laptop_serial_number: 'UNREG-SN-001',
-        laptop_asset_tag: 'UNREG-TAG-001',
+        asset_type: 'laptop',
+        serial_number: 'UNREG-SN-001',
+        asset_tag: 'UNREG-TAG-001',
         status: 'active'
       });
 
@@ -107,8 +109,9 @@ describe('Unregistered Manager Name Display', () => {
         manager_last_name: 'Manager',
         manager_email: 'old.manager@test.com',
         company_name: 'Test Company',
-        laptop_serial_number: 'UNREG-SN-002',
-        laptop_asset_tag: 'UNREG-TAG-002',
+        asset_type: 'laptop',
+        serial_number: 'UNREG-SN-002',
+        asset_tag: 'UNREG-TAG-002',
         status: 'active'
       });
 
@@ -144,8 +147,9 @@ describe('Unregistered Manager Name Display', () => {
         manager_last_name: 'Manager',
         manager_email: 'old.manager@test.com',
         company_name: 'Test Company',
-        laptop_serial_number: 'UNREG-SN-003',
-        laptop_asset_tag: 'UNREG-TAG-003',
+        asset_type: 'laptop',
+        serial_number: 'UNREG-SN-003',
+        asset_tag: 'UNREG-TAG-003',
         status: 'active'
       });
 
@@ -181,8 +185,9 @@ describe('Unregistered Manager Name Display', () => {
         manager_last_name: 'Manager',
         manager_email: 'old.manager@test.com',
         company_name: 'Test Company',
-        laptop_serial_number: 'UNREG-SN-007',
-        laptop_asset_tag: 'UNREG-TAG-007',
+        asset_type: 'laptop',
+        serial_number: 'UNREG-SN-007',
+        asset_tag: 'UNREG-TAG-007',
         status: 'active'
       });
 
@@ -220,8 +225,9 @@ describe('Unregistered Manager Name Display', () => {
         manager_last_name: '',
         manager_email: '',
         company_name: 'Test Company',
-        laptop_serial_number: 'UNREG-SN-004',
-        laptop_asset_tag: 'UNREG-TAG-004',
+        asset_type: 'laptop',
+        serial_number: 'UNREG-SN-004',
+        asset_tag: 'UNREG-TAG-004',
         status: 'active'
       });
 
@@ -260,8 +266,9 @@ describe('Unregistered Manager Name Display', () => {
         manager_last_name: '',
         manager_email: '',
         company_name: 'Test Company',
-        laptop_serial_number: 'UNREG-SN-005',
-        laptop_asset_tag: 'UNREG-TAG-005',
+        asset_type: 'laptop',
+        serial_number: 'UNREG-SN-005',
+        asset_tag: 'UNREG-TAG-005',
         status: 'active'
       });
 
@@ -273,8 +280,9 @@ describe('Unregistered Manager Name Display', () => {
         manager_last_name: '',
         manager_email: '',
         company_name: 'Test Company',
-        laptop_serial_number: 'UNREG-SN-006',
-        laptop_asset_tag: 'UNREG-TAG-006',
+        asset_type: 'laptop',
+        serial_number: 'UNREG-SN-006',
+        asset_tag: 'UNREG-TAG-006',
         status: 'active'
       });
 

@@ -589,12 +589,12 @@ const initDb = async () => {
   await dbRun(companiesTable);       // 2. Create companies (no dependencies)
   await dbRun(assetsTable);          // 3. Create assets (depends on users via owner_id and manager_id)
   await dbRun(auditLogsTable);       // 4. Create audit_logs (no dependencies)
-  await dbRun(oidcSettingsTable);    // 5. Settings tables
-  await dbRun(brandingSettingsTable);
-  await dbRun(passkeySettingsTable);
-  await dbRun(passkeysTable);        // 6. Passkeys (depends on users)
-  await dbRun(hubspotSettingsTable);
-  await dbRun(hubspotSyncLogTable);
+  await dbRun(oidcSettingsTable);    // 5. Create OIDC settings table
+  await dbRun(brandingSettingsTable); // 6. Create branding settings table
+  await dbRun(passkeySettingsTable); // 7. Create passkey settings table
+  await dbRun(passkeysTable);        // 8. Create passkeys (depends on users)
+  await dbRun(hubspotSettingsTable); // 9. Create HubSpot settings table
+  await dbRun(hubspotSyncLogTable);  // 10. Create HubSpot sync log table
 
   // Insert default OIDC settings if not exists
   const checkSettings = await dbGet('SELECT id FROM oidc_settings WHERE id = 1');

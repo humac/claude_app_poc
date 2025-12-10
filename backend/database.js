@@ -137,6 +137,12 @@ const isValidColumnName = (columnName) => {
  */
 const ENCRYPTION_KEY = (() => {
   const secret = process.env.JWT_SECRET || 'dev-fallback-key-not-for-production';
+  
+  // Warn if using fallback in production
+  if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+    console.warn('WARNING: JWT_SECRET not set in production. Using fallback encryption key. This is insecure for production use.');
+  }
+  
   // Derive a 32-byte key from the secret using SHA-256
   return createHash('sha256').update(secret).digest();
 })();

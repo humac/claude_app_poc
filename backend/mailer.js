@@ -23,10 +23,13 @@ const createTransporter = async () => {
   // Get the decrypted password
   const password = await notificationSettingsDb.getSmtpPassword();
 
+  const port = settings.smtp_port || 587;
   const transportConfig = {
     host: settings.smtp_host,
-    port: settings.smtp_port || 587,
-    secure: settings.smtp_use_tls === 1, // true for 465, false for other ports
+    port: port,
+    secure: port === 465, // true for SSL (port 465), false for TLS/STARTTLS (port 587)
+    // For port 587, use STARTTLS which upgrades an insecure connection
+    requireTLS: settings.smtp_use_tls === 1 && port !== 465, // Enable TLS for non-SSL ports
   };
 
   // Only add auth if username is present

@@ -81,6 +81,9 @@ app.post('/api/auth/complete-profile', authenticate, async (req, res) => {
           `Manager synced for ${updatedUser.email}`,
           {
             employee_email: updatedUser.email,
+            old_manager_first_name: null,
+            old_manager_last_name: null,
+            old_manager_email: null,
             new_manager_first_name: manager_first_name,
             new_manager_last_name: manager_last_name,
             new_manager_email: manager_email,

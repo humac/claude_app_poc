@@ -1314,15 +1314,9 @@ export const assetDb = {
     `;
     let params = [];
 
-    if (user.role === 'admin') {
-      // Admin sees all
+    if (user.role === 'admin' || user.role === 'manager') {
+      // Admin and Manager see all assets
       baseQuery += ' ORDER BY assets.registration_date DESC';
-    } else if (user.role === 'manager') {
-      // Manager sees own + direct reports (check both ID and email fields)
-      baseQuery += ` WHERE (assets.owner_id = ? OR LOWER(assets.employee_email) = LOWER(?))
-                     OR (assets.manager_id = ? OR LOWER(assets.manager_email) = LOWER(?))
-                     ORDER BY assets.registration_date DESC`;
-      params = [user.id, user.email, user.id, user.email];
     } else {
       // Employee sees only own (check both owner_id and employee_email)
       baseQuery += ` WHERE assets.owner_id = ? OR LOWER(assets.employee_email) = LOWER(?)

@@ -1294,7 +1294,7 @@ export const assetDb = {
   getScopedForUser: async (user) => {
     // Return assets scoped based on user role
     // Admin: all assets
-    // Manager: own assets + direct reports' assets
+    // Manager: own assets + all employee-owned assets
     // Employee: only own assets
 
     let baseQuery = `
@@ -1320,13 +1320,11 @@ export const assetDb = {
     } else if (user.role === 'manager') {
       // Manager sees:
       // 1. Their own assets (where they are the owner/employee)
-      // 2. Assets they manage (where they are assigned as manager)
-      // 3. All employee-owned assets (for organizational visibility)
+      // 2. All employee-owned assets (for organizational visibility)
       baseQuery += ` WHERE (assets.owner_id = ? OR LOWER(assets.employee_email) = LOWER(?))
-                     OR (assets.manager_id = ? OR LOWER(assets.manager_email) = LOWER(?))
                      OR (owner.role = 'employee')
                      ORDER BY assets.registration_date DESC`;
-      params = [user.id, user.email, user.id, user.email];
+      params = [user.id, user.email];
     } else {
       // Employee sees only own (check both owner_id and employee_email)
       baseQuery += ` WHERE assets.owner_id = ? OR LOWER(assets.employee_email) = LOWER(?)

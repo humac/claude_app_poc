@@ -1294,7 +1294,7 @@ export const assetDb = {
   getScopedForUser: async (user) => {
     // Return assets scoped based on user role
     // Admin: all assets
-    // Manager: own assets + direct reports' assets
+    // Manager: own assets + all employee-owned assets
     // Employee: only own assets
 
     let baseQuery = `

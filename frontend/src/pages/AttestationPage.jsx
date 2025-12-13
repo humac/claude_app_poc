@@ -94,12 +94,12 @@ export default function AttestationPage() {
 
   const loadUsers = async () => {
     try {
-      const res = await fetch('/api/users', {
+      const res = await fetch('/api/auth/users', {
         headers: { ...getAuthHeaders() }
       });
       if (!res.ok) throw new Error('Failed to load users');
       const data = await res.json();
-      setAvailableUsers(data.users || []);
+      setAvailableUsers(data || []);
     } catch (err) {
       console.error(err);
       toast({

@@ -388,7 +388,16 @@ const LoginNew = ({ onSwitchToRegister }) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = '/forgot-password'}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
                 <Input
                   id="password"
                   name="password"

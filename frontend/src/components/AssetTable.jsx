@@ -338,8 +338,16 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
     }
   };
 
+  const hasActiveFilters = () => {
+    return searchTerm !== '' || 
+           statusFilter !== 'all' || 
+           companyFilter !== 'all' || 
+           employeeFilter !== 'all' || 
+           managerFilter !== 'all';
+  };
+
   const handleExportSelected = () => {
-    const selectedAssets = assets.filter(a => selectedIds.has(a.id));
+    const selectedAssets = filteredAssets.filter(a => selectedIds.has(a.id));
     exportAssetsToCSV(selectedAssets, 'selected');
   };
 
@@ -506,7 +514,7 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
               <div className="text-sm text-muted-foreground">
                 Showing {filteredAssets.length} of {assets.length} assets
               </div>
-              {filteredAssets.length > 0 && filteredAssets.length < assets.length && (
+              {filteredAssets.length > 0 && hasActiveFilters() && (
                 <Button 
                   variant="outline" 
                   size="sm"

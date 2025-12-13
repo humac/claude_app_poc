@@ -155,9 +155,15 @@ export default function AttestationPage() {
     
     if (campaign?.target_type === 'selected' && campaign?.target_user_ids) {
       try {
-        const targetCount = JSON.parse(campaign.target_user_ids).length;
-        confirmMessage += `Emails will be sent to ${targetCount} selected employee${targetCount !== 1 ? 's' : ''}.`;
-      } catch {
+        // Validate target_user_ids is a string before parsing
+        if (typeof campaign.target_user_ids === 'string') {
+          const targetCount = JSON.parse(campaign.target_user_ids).length;
+          confirmMessage += `Emails will be sent to ${targetCount} selected employee${targetCount !== 1 ? 's' : ''}.`;
+        } else {
+          confirmMessage += 'Emails will be sent to selected employees.';
+        }
+      } catch (error) {
+        console.error('Error parsing target_user_ids:', error);
         confirmMessage += 'Emails will be sent to selected employees.';
       }
     } else {
@@ -590,7 +596,7 @@ export default function AttestationPage() {
                             >
                               <Checkbox
                                 checked={formData.target_user_ids.includes(u.id)}
-                                onCheckedChange={() => {}}
+                                readOnly
                               />
                               <div className="flex-1">
                                 <div className="font-medium text-sm">{u.name}</div>

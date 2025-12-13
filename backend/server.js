@@ -519,11 +519,11 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     // Create new reset token
     await passwordResetTokenDb.create(user.id, resetToken, expiresAt);
     
-    // Build reset URL - use branding app_url with fallbacks
-    const branding = await brandingSettingsDb.get();
+    // Build reset URL - use app_url with fallbacks
+    const { getAppUrl } = await import('./services/smtpMailer.js');
     const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
     const requestOrigin = req.get('origin');
-    let baseUrl = branding?.app_url || process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
+    let baseUrl = await getAppUrl();
     
     // If request origin is in allowed list, use it (takes precedence for security)
     if (requestOrigin && allowedOrigins.includes(requestOrigin)) {

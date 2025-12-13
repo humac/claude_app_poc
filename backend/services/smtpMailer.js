@@ -8,6 +8,15 @@ import { decryptValue } from '../utils/encryption.js';
  */
 
 /**
+ * Gets the app URL with fallback chain: branding.app_url -> FRONTEND_URL -> BASE_URL -> localhost
+ * @returns {Promise<string>} The app URL to use for email links
+ */
+export const getAppUrl = async () => {
+  const branding = await brandingSettingsDb.get();
+  return branding?.app_url || process.env.FRONTEND_URL || process.env.BASE_URL || 'http://localhost:3000';
+};
+
+/**
  * Creates a nodemailer transport based on current SMTP settings
  * @returns {Promise<Object>} Nodemailer transport object
  * @throws {Error} If settings are invalid or not configured
@@ -322,9 +331,9 @@ export const sendAttestationLaunchEmail = async (recipient, campaign, attestatio
     const branding = await brandingSettingsDb.get();
     const siteName = branding?.site_name || 'KARS';
     
-    // Construct attestation URL using fallback priority: provided URL -> branding app_url -> FRONTEND_URL -> localhost
+    // Construct attestation URL using fallback priority: provided URL -> app_url
     if (!attestationUrl) {
-      const baseUrl = branding?.app_url || process.env.FRONTEND_URL || 'http://localhost:3000';
+      const baseUrl = await getAppUrl();
       attestationUrl = `${baseUrl}/my-attestations`;
     }
     
@@ -389,9 +398,9 @@ export const sendAttestationReminderEmail = async (recipient, campaign, attestat
     const branding = await brandingSettingsDb.get();
     const siteName = branding?.site_name || 'KARS';
     
-    // Construct attestation URL using fallback priority: provided URL -> branding app_url -> FRONTEND_URL -> localhost
+    // Construct attestation URL using fallback priority: provided URL -> app_url
     if (!attestationUrl) {
-      const baseUrl = branding?.app_url || process.env.FRONTEND_URL || 'http://localhost:3000';
+      const baseUrl = await getAppUrl();
       attestationUrl = `${baseUrl}/my-attestations`;
     }
     

@@ -26,7 +26,7 @@ This document provides AI assistants with comprehensive guidance for working wit
 ## Project Overview
 
 ### Purpose
-SOC2-compliant web application for tracking and managing client assets assigned to consultants with full authentication, role-based access control, and automated deployment.
+Web application that supports organizational SOC2 compliance by tracking client assets assigned to consultants with full authentication, role-based access control, and automated deployment.
 
 ### Tech Stack
 
@@ -169,7 +169,7 @@ npm run dev  # Starts on http://localhost:3001
 # 3. Frontend setup (new terminal)
 cd ../frontend
 npm install
-npm run dev  # Starts on http://localhost:3000
+npm run dev  # Starts on http://localhost:5173
 # Note: Vite proxies /api to backend:3001
 ```
 

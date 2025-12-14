@@ -303,10 +303,7 @@ const EmailTemplates = () => {
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
-                setSelectedTemplate(selectedTemplate);
-                setResetDialogOpen(true);
-              }}
+              onClick={() => setResetDialogOpen(true)}
               disabled={saving}
             >
               <RotateCcw className="h-4 w-4 mr-2" />

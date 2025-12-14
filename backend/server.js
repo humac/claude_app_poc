@@ -2661,9 +2661,7 @@ app.post('/api/admin/email-templates/:key/reset', authenticate, authorize('admin
       return res.status(404).json({ error: 'Template not found' });
     }
     
-    // For now, we'll just mark it as not custom
-    // In a production scenario, you'd want to restore the actual default values
-    // This is a simplified implementation
+    // Reset template to default values
     await emailTemplateDb.reset(key);
     
     // Log the action
@@ -2676,7 +2674,7 @@ app.post('/api/admin/email-templates/:key/reset', authenticate, authorize('admin
       req.user.email
     );
     
-    res.json({ success: true, message: 'Email template reset to default (marked as not custom)' });
+    res.json({ success: true, message: 'Email template reset to default values' });
   } catch (error) {
     console.error('Reset email template error:', error);
     res.status(500).json({ error: 'Failed to reset email template' });

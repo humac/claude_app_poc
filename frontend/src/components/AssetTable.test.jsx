@@ -90,7 +90,7 @@ describe('AssetTable Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     global.confirm.mockReturnValue(true);
-    // Mock the companies fetch endpoint
+    // Mock the API endpoints
     global.fetch.mockImplementation((url) => {
       if (url === '/api/companies/names') {
         return Promise.resolve({
@@ -98,6 +98,16 @@ describe('AssetTable Component', () => {
           json: async () => [
             { id: 1, name: 'Acme Corp' },
             { id: 2, name: 'TechStart Inc' }
+          ]
+        });
+      }
+      if (url === '/api/asset-types') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 1, name: 'laptop', display_name: 'Laptop', is_active: 1, sort_order: 1 },
+            { id: 2, name: 'mobile_phone', display_name: 'Mobile Phone', is_active: 1, sort_order: 2 },
+            { id: 3, name: 'tablet', display_name: 'Tablet', is_active: 1, sort_order: 3 }
           ]
         });
       }

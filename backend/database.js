@@ -292,6 +292,156 @@ const ensureConfigSync = () => {
 
 ensureConfigSync();
 
+// Default email templates - used for seeding and reset
+const DEFAULT_EMAIL_TEMPLATES = [
+  {
+    template_key: 'test_email',
+    name: 'Test Email',
+    description: 'Test email sent to verify SMTP configuration',
+    subject: '{{siteName}} SMTP Test Email',
+    html_body: `<h2 style="color: #333;">{{siteName}} SMTP Test Email</h2>
+<p>This is a test email from <strong>{{siteName}} (KeyData Asset Registration System)</strong>.</p>
+<p>If you received this email, your SMTP settings are configured correctly.</p>
+<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+<p style="color: #666; font-size: 12px;">
+  <strong>SMTP Server:</strong> {{smtpHost}}:{{smtpPort}}<br>
+  <strong>Sent at:</strong> {{timestamp}}
+</p>`,
+    text_body: `This is a test email from {{siteName}} (KeyData Asset Registration System).
+
+If you received this email, your SMTP settings are configured correctly.
+
+SMTP Server: {{smtpHost}}:{{smtpPort}}
+Sent at: {{timestamp}}`,
+    variables: JSON.stringify(['siteName', 'smtpHost', 'smtpPort', 'timestamp'])
+  },
+  {
+    template_key: 'password_reset',
+    name: 'Password Reset Email',
+    description: 'Email sent to users when they request a password reset',
+    subject: 'Password Reset Request - {{siteName}}',
+    html_body: `<h2 style="color: #333;">Password Reset Request</h2>
+<p>You recently requested to reset your password for your <strong>{{siteName}}</strong> account.</p>
+<p>Click the button below to reset your password. This link will expire in {{expiryTime}}.</p>
+<div style="margin: 30px 0; text-align: center;">
+  <a href="{{resetUrl}}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Reset Password</a>
+</div>
+<p style="color: #666; font-size: 14px;">
+  If the button doesn't work, copy and paste this link into your browser:<br>
+  <a href="{{resetUrl}}" style="color: #3B82F6; word-break: break-all;">{{resetUrl}}</a>
+</p>
+<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+<p style="color: #999; font-size: 12px;">
+  If you didn't request a password reset, please ignore this email or contact support if you have concerns.<br>
+  This link will expire in {{expiryTime}} for security reasons.
+</p>`,
+    text_body: `You recently requested to reset your password for your {{siteName}} account.
+
+Click the link below to reset your password. This link will expire in {{expiryTime}}.
+
+{{resetUrl}}
+
+If you didn't request a password reset, please ignore this email or contact support if you have concerns.`,
+    variables: JSON.stringify(['siteName', 'resetUrl', 'expiryTime'])
+  },
+  {
+    template_key: 'attestation_launch',
+    name: 'Attestation Campaign Launch',
+    description: 'Email sent to employees when a new attestation campaign starts',
+    subject: 'Action Required: Asset Attestation - {{campaignName}}',
+    html_body: `<h2 style="color: #333;">Asset Attestation Required</h2>
+<p>A new asset attestation campaign has been launched: <strong>{{campaignName}}</strong></p>
+<p>{{campaignDescription}}</p>
+<p>Please review and attest to the status of all your registered assets. You can also add any missing assets that aren't currently registered.</p>
+<div style="margin: 30px 0; text-align: center;">
+  <a href="{{attestationUrl}}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Complete Attestation</a>
+</div>
+<p style="color: #666; font-size: 14px;">
+  If the button doesn't work, copy and paste this link into your browser:<br>
+  <a href="{{attestationUrl}}" style="color: #3B82F6; word-break: break-all;">{{attestationUrl}}</a>
+</p>
+<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+<p style="color: #999; font-size: 12px;">
+  This attestation is required to maintain accurate asset records. Please complete it at your earliest convenience.
+</p>`,
+    text_body: `A new asset attestation campaign has been launched: {{campaignName}}
+
+{{campaignDescription}}
+
+Please review and attest to the status of all your registered assets. You can also add any missing assets that aren't currently registered.
+
+Complete your attestation here: {{attestationUrl}}`,
+    variables: JSON.stringify(['siteName', 'campaignName', 'campaignDescription', 'attestationUrl'])
+  },
+  {
+    template_key: 'attestation_reminder',
+    name: 'Attestation Reminder',
+    description: 'Reminder email sent to employees with pending attestations',
+    subject: 'Reminder: Asset Attestation Pending - {{campaignName}}',
+    html_body: `<h2 style="color: #333;">Reminder: Asset Attestation Pending</h2>
+<p>This is a friendly reminder that you have a pending asset attestation for: <strong>{{campaignName}}</strong></p>
+<p>Please complete your attestation as soon as possible to help us maintain accurate asset records.</p>
+<div style="margin: 30px 0; text-align: center;">
+  <a href="{{attestationUrl}}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Complete Attestation Now</a>
+</div>
+<p style="color: #666; font-size: 14px;">
+  If the button doesn't work, copy and paste this link into your browser:<br>
+  <a href="{{attestationUrl}}" style="color: #3B82F6; word-break: break-all;">{{attestationUrl}}</a>
+</p>`,
+    text_body: `This is a friendly reminder that you have a pending asset attestation for: {{campaignName}}
+
+Please complete your attestation as soon as possible to help us maintain accurate asset records.
+
+Complete your attestation here: {{attestationUrl}}`,
+    variables: JSON.stringify(['siteName', 'campaignName', 'attestationUrl'])
+  },
+  {
+    template_key: 'attestation_escalation',
+    name: 'Attestation Escalation',
+    description: 'Email sent to managers when team members have overdue attestations',
+    subject: 'Team Attestation Outstanding: {{employeeName}} - {{campaignName}}',
+    html_body: `<h2 style="color: #333;">Action Required: Team Member Attestation Outstanding</h2>
+<p>This is a notification that one of your team members has not yet completed their asset attestation.</p>
+<div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+  <p style="margin: 5px 0;"><strong>Employee:</strong> {{employeeName}} ({{employeeEmail}})</p>
+  <p style="margin: 5px 0;"><strong>Campaign:</strong> {{campaignName}}</p>
+</div>
+<p>Please follow up with this team member to ensure they complete their asset attestation promptly.</p>
+<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+<p style="color: #999; font-size: 12px;">
+  This is an automated escalation notification sent because the attestation has been outstanding for {{escalationDays}} days.
+</p>`,
+    text_body: `This is a notification that one of your team members has not yet completed their asset attestation.
+
+Employee: {{employeeName}} ({{employeeEmail}})
+Campaign: {{campaignName}}
+
+Please follow up with this team member to ensure they complete their asset attestation promptly.
+
+This is an automated escalation notification sent because the attestation has been outstanding for {{escalationDays}} days.`,
+    variables: JSON.stringify(['siteName', 'campaignName', 'employeeName', 'employeeEmail', 'escalationDays'])
+  },
+  {
+    template_key: 'attestation_complete',
+    name: 'Attestation Completion Notification',
+    description: 'Notification sent to admins when an employee completes their attestation',
+    subject: 'Attestation Completed: {{employeeName}} - {{campaignName}}',
+    html_body: `<h2 style="color: #333;">Asset Attestation Completed</h2>
+<p>An employee has completed their asset attestation.</p>
+<div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+  <p style="margin: 5px 0;"><strong>Employee:</strong> {{employeeName}} ({{employeeEmail}})</p>
+  <p style="margin: 5px 0;"><strong>Campaign:</strong> {{campaignName}}</p>
+  <p style="margin: 5px 0;"><strong>Completed:</strong> {{completedAt}}</p>
+</div>`,
+    text_body: `An employee has completed their asset attestation.
+
+Employee: {{employeeName}} ({{employeeEmail}})
+Campaign: {{campaignName}}
+Completed: {{completedAt}}`,
+    variables: JSON.stringify(['siteName', 'campaignName', 'employeeName', 'employeeEmail', 'completedAt'])
+  }
+];
+
 const initDb = async () => {
   const assetsTable = isPostgres ? `
     CREATE TABLE IF NOT EXISTS assets (
@@ -1146,156 +1296,8 @@ const initDb = async () => {
   if (templateCount === 0) {
     console.log('Seeding default email templates...');
     const now = new Date().toISOString();
-    const defaultTemplates = [
-      {
-        template_key: 'test_email',
-        name: 'Test Email',
-        description: 'Test email sent to verify SMTP configuration',
-        subject: '{{siteName}} SMTP Test Email',
-        html_body: `<h2 style="color: #333;">{{siteName}} SMTP Test Email</h2>
-<p>This is a test email from <strong>{{siteName}} (KeyData Asset Registration System)</strong>.</p>
-<p>If you received this email, your SMTP settings are configured correctly.</p>
-<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-<p style="color: #666; font-size: 12px;">
-  <strong>SMTP Server:</strong> {{smtpHost}}:{{smtpPort}}<br>
-  <strong>Sent at:</strong> {{timestamp}}
-</p>`,
-        text_body: `This is a test email from {{siteName}} (KeyData Asset Registration System).
 
-If you received this email, your SMTP settings are configured correctly.
-
-SMTP Server: {{smtpHost}}:{{smtpPort}}
-Sent at: {{timestamp}}`,
-        variables: JSON.stringify(['siteName', 'smtpHost', 'smtpPort', 'timestamp'])
-      },
-      {
-        template_key: 'password_reset',
-        name: 'Password Reset Email',
-        description: 'Email sent to users when they request a password reset',
-        subject: 'Password Reset Request - {{siteName}}',
-        html_body: `<h2 style="color: #333;">Password Reset Request</h2>
-<p>You recently requested to reset your password for your <strong>{{siteName}}</strong> account.</p>
-<p>Click the button below to reset your password. This link will expire in {{expiryTime}}.</p>
-<div style="margin: 30px 0; text-align: center;">
-  <a href="{{resetUrl}}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Reset Password</a>
-</div>
-<p style="color: #666; font-size: 14px;">
-  If the button doesn't work, copy and paste this link into your browser:<br>
-  <a href="{{resetUrl}}" style="color: #3B82F6; word-break: break-all;">{{resetUrl}}</a>
-</p>
-<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-<p style="color: #999; font-size: 12px;">
-  If you didn't request a password reset, please ignore this email or contact support if you have concerns.<br>
-  This link will expire in {{expiryTime}} for security reasons.
-</p>`,
-        text_body: `You recently requested to reset your password for your {{siteName}} account.
-
-Click the link below to reset your password. This link will expire in {{expiryTime}}.
-
-{{resetUrl}}
-
-If you didn't request a password reset, please ignore this email or contact support if you have concerns.`,
-        variables: JSON.stringify(['siteName', 'resetUrl', 'expiryTime'])
-      },
-      {
-        template_key: 'attestation_launch',
-        name: 'Attestation Campaign Launch',
-        description: 'Email sent to employees when a new attestation campaign starts',
-        subject: 'Action Required: Asset Attestation - {{campaignName}}',
-        html_body: `<h2 style="color: #333;">Asset Attestation Required</h2>
-<p>A new asset attestation campaign has been launched: <strong>{{campaignName}}</strong></p>
-<p>{{campaignDescription}}</p>
-<p>Please review and attest to the status of all your registered assets. You can also add any missing assets that aren't currently registered.</p>
-<div style="margin: 30px 0; text-align: center;">
-  <a href="{{attestationUrl}}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Complete Attestation</a>
-</div>
-<p style="color: #666; font-size: 14px;">
-  If the button doesn't work, copy and paste this link into your browser:<br>
-  <a href="{{attestationUrl}}" style="color: #3B82F6; word-break: break-all;">{{attestationUrl}}</a>
-</p>
-<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-<p style="color: #999; font-size: 12px;">
-  This attestation is required to maintain accurate asset records. Please complete it at your earliest convenience.
-</p>`,
-        text_body: `A new asset attestation campaign has been launched: {{campaignName}}
-
-{{campaignDescription}}
-
-Please review and attest to the status of all your registered assets. You can also add any missing assets that aren't currently registered.
-
-Complete your attestation here: {{attestationUrl}}`,
-        variables: JSON.stringify(['siteName', 'campaignName', 'campaignDescription', 'attestationUrl'])
-      },
-      {
-        template_key: 'attestation_reminder',
-        name: 'Attestation Reminder',
-        description: 'Reminder email sent to employees with pending attestations',
-        subject: 'Reminder: Asset Attestation Pending - {{campaignName}}',
-        html_body: `<h2 style="color: #333;">Reminder: Asset Attestation Pending</h2>
-<p>This is a friendly reminder that you have a pending asset attestation for: <strong>{{campaignName}}</strong></p>
-<p>Please complete your attestation as soon as possible to help us maintain accurate asset records.</p>
-<div style="margin: 30px 0; text-align: center;">
-  <a href="{{attestationUrl}}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Complete Attestation Now</a>
-</div>
-<p style="color: #666; font-size: 14px;">
-  If the button doesn't work, copy and paste this link into your browser:<br>
-  <a href="{{attestationUrl}}" style="color: #3B82F6; word-break: break-all;">{{attestationUrl}}</a>
-</p>`,
-        text_body: `This is a friendly reminder that you have a pending asset attestation for: {{campaignName}}
-
-Please complete your attestation as soon as possible to help us maintain accurate asset records.
-
-Complete your attestation here: {{attestationUrl}}`,
-        variables: JSON.stringify(['siteName', 'campaignName', 'attestationUrl'])
-      },
-      {
-        template_key: 'attestation_escalation',
-        name: 'Attestation Escalation',
-        description: 'Email sent to managers when team members have overdue attestations',
-        subject: 'Team Attestation Outstanding: {{employeeName}} - {{campaignName}}',
-        html_body: `<h2 style="color: #333;">Action Required: Team Member Attestation Outstanding</h2>
-<p>This is a notification that one of your team members has not yet completed their asset attestation.</p>
-<div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
-  <p style="margin: 5px 0;"><strong>Employee:</strong> {{employeeName}} ({{employeeEmail}})</p>
-  <p style="margin: 5px 0;"><strong>Campaign:</strong> {{campaignName}}</p>
-</div>
-<p>Please follow up with this team member to ensure they complete their asset attestation promptly.</p>
-<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-<p style="color: #999; font-size: 12px;">
-  This is an automated escalation notification sent because the attestation has been outstanding for {{escalationDays}} days.
-</p>`,
-        text_body: `This is a notification that one of your team members has not yet completed their asset attestation.
-
-Employee: {{employeeName}} ({{employeeEmail}})
-Campaign: {{campaignName}}
-
-Please follow up with this team member to ensure they complete their asset attestation promptly.
-
-This is an automated escalation notification sent because the attestation has been outstanding for {{escalationDays}} days.`,
-        variables: JSON.stringify(['siteName', 'campaignName', 'employeeName', 'employeeEmail', 'escalationDays'])
-      },
-      {
-        template_key: 'attestation_complete',
-        name: 'Attestation Completion Notification',
-        description: 'Notification sent to admins when an employee completes their attestation',
-        subject: 'Attestation Completed: {{employeeName}} - {{campaignName}}',
-        html_body: `<h2 style="color: #333;">Asset Attestation Completed</h2>
-<p>An employee has completed their asset attestation.</p>
-<div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
-  <p style="margin: 5px 0;"><strong>Employee:</strong> {{employeeName}} ({{employeeEmail}})</p>
-  <p style="margin: 5px 0;"><strong>Campaign:</strong> {{campaignName}}</p>
-  <p style="margin: 5px 0;"><strong>Completed:</strong> {{completedAt}}</p>
-</div>`,
-        text_body: `An employee has completed their asset attestation.
-
-Employee: {{employeeName}} ({{employeeEmail}})
-Campaign: {{campaignName}}
-Completed: {{completedAt}}`,
-        variables: JSON.stringify(['siteName', 'campaignName', 'employeeName', 'employeeEmail', 'completedAt'])
-      }
-    ];
-
-    for (const template of defaultTemplates) {
+    for (const template of DEFAULT_EMAIL_TEMPLATES) {
       const insertQuery = isPostgres
         ? `INSERT INTO email_templates (template_key, name, description, subject, html_body, text_body, variables, is_custom, updated_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, 0, $8)`
@@ -1313,7 +1315,7 @@ Completed: {{completedAt}}`,
         now
       ]);
     }
-    console.log(`Seeded ${defaultTemplates.length} default email templates`);
+    console.log(`Seeded ${DEFAULT_EMAIL_TEMPLATES.length} default email templates`);
   }
 
   // Indexes
@@ -3386,14 +3388,26 @@ export const emailTemplateDb = {
   },
 
   reset: async (key) => {
-    // Reset to default by marking as not custom
-    // The application will need to re-seed or have the defaults stored elsewhere
-    // For now, we'll just mark it as not custom and keep the current content
-    // In a production scenario, you'd want to store defaults separately
+    // Find the default template
+    const defaultTemplate = DEFAULT_EMAIL_TEMPLATES.find(t => t.template_key === key);
+    if (!defaultTemplate) {
+      throw new Error(`No default template found for key: ${key}`);
+    }
+    
+    // Reset to default values
     const now = new Date().toISOString();
     await dbRun(
-      'UPDATE email_templates SET is_custom = 0, updated_at = ?, updated_by = NULL WHERE template_key = ?',
-      [now, key]
+      `UPDATE email_templates 
+       SET subject = ?, html_body = ?, text_body = ?, variables = ?, is_custom = 0, updated_at = ?, updated_by = NULL
+       WHERE template_key = ?`,
+      [
+        defaultTemplate.subject,
+        defaultTemplate.html_body,
+        defaultTemplate.text_body,
+        defaultTemplate.variables,
+        now,
+        key
+      ]
     );
   }
 };

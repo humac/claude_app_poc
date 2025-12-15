@@ -1257,7 +1257,8 @@ const initDb = async () => {
 
   // Seed default asset types if table is empty
   const existingTypes = await dbAll('SELECT COUNT(*) as count FROM asset_types');
-  const typeCount = existingTypes[0]?.count || 0;
+  // Ensure count is a number (handles both SQLite and PostgreSQL return types)
+  const typeCount = parseInt(existingTypes[0]?.count) || 0;
   
   if (typeCount === 0) {
     console.log('Seeding default asset types...');
@@ -1287,6 +1288,8 @@ const initDb = async () => {
       await dbRun(insertQuery, [type.name, type.display_name, type.description, type.sort_order, now, now]);
     }
     console.log(`Seeded ${defaultTypes.length} default asset types`);
+  } else {
+    console.log(`Asset types already exist (${typeCount} found), skipping seeding`);
   }
 
   // Seed default email templates if table is empty

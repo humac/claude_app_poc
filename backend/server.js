@@ -5475,7 +5475,7 @@ app.get('/api/attestation/validate-invite/:token', async (req, res) => {
     }
     
     // Get asset count for this employee
-    const assets = await assetDb.getByEmployee(invite.employee_email);
+    const assets = await assetDb.getByEmployeeEmail(invite.employee_email);
     const assetCount = assets.length;
     
     // Check if SSO is enabled
@@ -5514,7 +5514,7 @@ app.get('/api/attestation/campaigns/:id/pending-invites', authenticate, authoriz
     // Enrich with asset counts
     const enrichedInvites = await Promise.all(
       pendingInvites.map(async (invite) => {
-        const assets = await assetDb.getByEmployee(invite.employee_email);
+        const assets = await assetDb.getByEmployeeEmail(invite.employee_email);
         return {
           ...invite,
           asset_count: assets.length
@@ -5567,7 +5567,7 @@ app.post('/api/attestation/campaigns/:id/resend-invites', authenticate, authoriz
     
     for (const invite of invitesToResend) {
       // Get asset count
-      const assets = await assetDb.getByEmployee(invite.employee_email);
+      const assets = await assetDb.getByEmployeeEmail(invite.employee_email);
       const assetCount = assets.length;
       
       try {

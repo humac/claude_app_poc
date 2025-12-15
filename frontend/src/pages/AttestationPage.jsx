@@ -822,19 +822,19 @@ export default function AttestationPage() {
                     Notify manager after X days
                   </p>
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="unregistered_reminder_days">Unregistered Owner Reminder (days)</Label>
-                <Input
-                  id="unregistered_reminder_days"
-                  type="number"
-                  min="1"
-                  value={formData.unregistered_reminder_days}
-                  onChange={(e) => setFormData({ ...formData, unregistered_reminder_days: parseInt(e.target.value) || 7 })}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Send reminder to unregistered asset owners after X days
-                </p>
+                <div className="col-span-2">
+                  <Label htmlFor="unregistered_reminder_days">Unregistered Owner Reminder (days)</Label>
+                  <Input
+                    id="unregistered_reminder_days"
+                    type="number"
+                    min="1"
+                    value={formData.unregistered_reminder_days}
+                    onChange={(e) => setFormData({ ...formData, unregistered_reminder_days: parseInt(e.target.value) || 7 })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Send reminder to unregistered asset owners after X days
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -1243,19 +1243,19 @@ export default function AttestationPage() {
                     Notify manager after X days
                   </p>
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="edit-unregistered_reminder_days">Unregistered Owner Reminder (days)</Label>
-                <Input
-                  id="edit-unregistered_reminder_days"
-                  type="number"
-                  min="1"
-                  value={formData.unregistered_reminder_days}
-                  onChange={(e) => setFormData({ ...formData, unregistered_reminder_days: parseInt(e.target.value) || 7 })}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Send reminder to unregistered asset owners after X days
-                </p>
+                <div className="col-span-2">
+                  <Label htmlFor="edit-unregistered_reminder_days">Unregistered Owner Reminder (days)</Label>
+                  <Input
+                    id="edit-unregistered_reminder_days"
+                    type="number"
+                    min="1"
+                    value={formData.unregistered_reminder_days}
+                    onChange={(e) => setFormData({ ...formData, unregistered_reminder_days: parseInt(e.target.value) || 7 })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Send reminder to unregistered asset owners after X days
+                  </p>
+                </div>
               </div>
             </div>
           )}

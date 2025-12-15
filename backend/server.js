@@ -4930,6 +4930,10 @@ app.post('/api/attestation/campaigns/:id/start', authenticate, authorize('admin'
         
         // Get unregistered owners by company IDs
         unregisteredOwners = await assetDb.getUnregisteredOwnersByCompanyIds(validCompanyIds);
+        
+        if (users.length === 0 && unregisteredOwners.length === 0) {
+          return res.status(400).json({ error: 'No asset owners found in the selected companies' });
+        }
       } catch (parseError) {
         console.error('Error parsing target_company_ids:', parseError);
         return res.status(500).json({ error: 'Invalid target company IDs format' });

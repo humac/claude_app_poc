@@ -144,7 +144,7 @@ export const autoCloseExpiredCampaigns = async () => {
  */
 export const processUnregisteredReminders = async () => {
   try {
-    const { attestationPendingInviteDb, oidcSettingsDb } = await import('../database.js');
+    const { attestationPendingInviteDb, oidcSettingsDb, assetDb } = await import('../database.js');
     const { sendAttestationUnregisteredReminder } = await import('./smtpMailer.js');
     
     const campaigns = await attestationCampaignDb.getAll();
@@ -173,7 +173,6 @@ export const processUnregisteredReminders = async () => {
         
         for (const invite of invitesNeedingReminder) {
           // Get asset count for this employee
-          const { assetDb } = await import('../database.js');
           const assets = await assetDb.getByEmployee(invite.employee_email);
           const assetCount = assets.length;
           

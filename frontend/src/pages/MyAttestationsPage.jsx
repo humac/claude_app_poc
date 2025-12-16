@@ -194,7 +194,9 @@ export default function MyAttestationsPage() {
       // Track which assets have been attested
       const attestedIds = new Set(data.attestedAssets?.map(a => a.asset_id) || []);
       setAttestedAssetIds(attestedIds);
-      setCertifiedAssetIds(attestedIds); // Already attested assets are considered certified
+      // Note: Already attested assets from previous sessions are considered certified
+      // to avoid requiring users to re-certify assets they've already confirmed
+      setCertifiedAssetIds(attestedIds);
       
       // Initialize selected statuses with current asset statuses
       const statuses = {};
@@ -595,7 +597,11 @@ export default function MyAttestationsPage() {
                   </Button>
                   <Button 
                     onClick={handleCompleteAttestation}
-                    disabled={attestationDetails.assets?.length > 0 && certifiedAssetIds.size < attestationDetails.assets.length}
+                    disabled={
+                      // Disable if there are assets but not all are certified
+                      attestationDetails.assets?.length > 0 && 
+                      certifiedAssetIds.size < attestationDetails.assets.length
+                    }
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
                     Complete Attestation

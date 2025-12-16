@@ -1694,8 +1694,9 @@ const initDb = async () => {
       const existing = await dbGet(selectQuery, [templateKey]);
       
       if (existing && existing.html_body) {
-        // Check if template already has fallback URL text
-        const hasFallbackUrl = existing.html_body.includes('If the button doesn\'t work, copy and paste this link');
+        // Check if template already has fallback URL text (checking for both button and link phrases)
+        const hasFallbackUrl = existing.html_body.includes('If the button doesn\'t work') && 
+                               existing.html_body.includes('copy and paste this link');
         
         if (!hasFallbackUrl) {
           // Template needs fallback URL, update it

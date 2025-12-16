@@ -5220,7 +5220,17 @@ app.get('/api/attestation/records/:id', authenticate, async (req, res) => {
     
     // Get user's assets
     const allAssets = await assetDb.getAll();
-    const userAssets = allAssets.filter(a => a.employee_email === req.user.email);
+    let userAssets = allAssets.filter(a => a.employee_email === req.user.email);
+    
+    // Filter by company if campaign is company-scoped
+    if (campaign.target_type === 'companies' && campaign.target_company_ids) {
+      try {
+        const targetCompanyIds = JSON.parse(campaign.target_company_ids);
+        userAssets = userAssets.filter(asset => targetCompanyIds.includes(asset.company_id));
+      } catch (parseError) {
+        console.error('Error parsing target_company_ids:', parseError);
+      }
+    }
     
     // Get attested assets for this record
     const attestedAssets = await attestationAssetDb.getByRecordId(record.id);
@@ -5316,13 +5326,22 @@ app.post('/api/attestation/records/:id/assets/new', authenticate, async (req, re
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    const { asset_type, make, model, serial_number, asset_tag, company_id, notes } = req.body;
+    const { asset_type, make, model, serial_number, asset_tag, company_id, notes, 
+            employee_first_name, employee_last_name, employee_email,
+            manager_first_name, manager_last_name, manager_email } = req.body;
     
+    // Validate required fields
     if (!asset_type || !serial_number || !asset_tag) {
       return res.status(400).json({ error: 'Asset type, serial number, and asset tag are required' });
     }
+    if (!employee_first_name || !employee_last_name || !employee_email) {
+      return res.status(400).json({ error: 'Employee first name, last name, and email are required' });
+    }
+    if (!company_id) {
+      return res.status(400).json({ error: 'Company is required' });
+    }
     
-    // Create new asset record
+    // Create new asset record with employee and manager info
     await attestationNewAssetDb.create({
       attestation_record_id: record.id,
       asset_type,
@@ -5331,7 +5350,13 @@ app.post('/api/attestation/records/:id/assets/new', authenticate, async (req, re
       serial_number,
       asset_tag,
       company_id,
-      notes
+      notes,
+      employee_first_name,
+      employee_last_name,
+      employee_email,
+      manager_first_name,
+      manager_last_name,
+      manager_email
     });
     
     // Update record status to in_progress if it was pending
@@ -5378,11 +5403,14 @@ app.post('/api/attestation/records/:id/complete', authenticate, async (req, res)
     // Transfer new assets to the main assets table
     for (const newAsset of newAssets) {
       try {
+        // Use employee/manager info from newAsset if available, otherwise fallback to current user
         const createdAsset = await assetDb.create({
-          employee_email: req.user.email,
-          employee_first_name: req.user.first_name || '',
-          employee_last_name: req.user.last_name || '',
-          manager_email: req.user.manager_email || null,
+          employee_email: newAsset.employee_email || req.user.email,
+          employee_first_name: newAsset.employee_first_name || req.user.first_name || '',
+          employee_last_name: newAsset.employee_last_name || req.user.last_name || '',
+          manager_email: newAsset.manager_email || req.user.manager_email || null,
+          manager_first_name: newAsset.manager_first_name || null,
+          manager_last_name: newAsset.manager_last_name || null,
           company_id: newAsset.company_id,
           asset_type: newAsset.asset_type,
           make: newAsset.make || '',

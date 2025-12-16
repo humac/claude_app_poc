@@ -56,10 +56,19 @@ export default function MyAttestationsPage() {
     model: '',
     serial_number: '',
     asset_tag: '',
-    notes: ''
+    notes: '',
+    employee_first_name: '',
+    employee_last_name: '',
+    employee_email: '',
+    manager_first_name: '',
+    manager_last_name: '',
+    manager_email: '',
+    company_id: null
   });
   const [assetTypes, setAssetTypes] = useState([]);
   const [loadingAssetTypes, setLoadingAssetTypes] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
 
   const loadAttestations = async () => {
     setLoading(true);
@@ -104,6 +113,65 @@ export default function MyAttestationsPage() {
     } finally {
       setLoadingAssetTypes(false);
     }
+  };
+
+  const fetchCompanies = async () => {
+    setLoadingCompanies(true);
+    try {
+      const response = await fetch('/api/companies/names', {
+        headers: getAuthHeaders(),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCompanies(data);
+      } else {
+        console.error('Failed to fetch companies');
+      }
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
+  const handleOpenAddAssetModal = async () => {
+    const campaign = attestationDetails?.campaign;
+    const isCompanyScoped = campaign?.target_type === 'companies';
+    
+    // Get the target company ID for company-scoped campaigns
+    let targetCompanyId = null;
+    if (isCompanyScoped && campaign?.target_company_ids) {
+      try {
+        const targetCompanyIds = JSON.parse(campaign.target_company_ids);
+        targetCompanyId = targetCompanyIds.length > 0 ? targetCompanyIds[0] : null;
+      } catch (e) {
+        console.error('Error parsing target_company_ids:', e);
+      }
+    }
+    
+    // Initialize form with user info
+    setNewAssetForm({
+      asset_type: '',
+      make: '',
+      model: '',
+      serial_number: '',
+      asset_tag: '',
+      notes: '',
+      employee_first_name: user?.first_name || '',
+      employee_last_name: user?.last_name || '',
+      employee_email: user?.email || '',
+      manager_first_name: user?.manager_first_name || '',
+      manager_last_name: user?.manager_last_name || '',
+      manager_email: user?.manager_email || '',
+      company_id: targetCompanyId
+    });
+    
+    // Load companies if needed
+    if (companies.length === 0) {
+      fetchCompanies();
+    }
+    
+    setShowAddAssetModal(true);
   };
 
   const handleStartAttestation = async (attestation) => {
@@ -170,7 +238,10 @@ export default function MyAttestationsPage() {
   };
 
   const handleAddNewAsset = async () => {
-    if (!newAssetForm.asset_type || !newAssetForm.serial_number || !newAssetForm.asset_tag) {
+    // Validate required fields
+    if (!newAssetForm.asset_type || !newAssetForm.serial_number || !newAssetForm.asset_tag ||
+        !newAssetForm.employee_first_name || !newAssetForm.employee_last_name || !newAssetForm.employee_email ||
+        !newAssetForm.company_id) {
       toast({
         title: 'Validation Error',
         description: 'Please fill in all required fields',
@@ -200,7 +271,14 @@ export default function MyAttestationsPage() {
         model: '',
         serial_number: '',
         asset_tag: '',
-        notes: ''
+        notes: '',
+        employee_first_name: '',
+        employee_last_name: '',
+        employee_email: '',
+        manager_first_name: '',
+        manager_last_name: '',
+        manager_email: '',
+        company_id: null
       });
 
       // Reload details to show the new asset
@@ -363,7 +441,7 @@ export default function MyAttestationsPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setShowAddAssetModal(true)}
+                    onClick={handleOpenAddAssetModal}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Missing Asset
@@ -378,7 +456,7 @@ export default function MyAttestationsPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="border rounded-md">
+                  <div className="rounded-md overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -410,13 +488,21 @@ export default function MyAttestationsPage() {
                                   </div>
                                 ) : (
                                   <div className="flex justify-end gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleAttestAsset(asset, asset.status)}
+                                    <Select
+                                      value={asset.status}
+                                      onValueChange={(value) => handleAttestAsset(asset, value)}
                                     >
-                                      Confirm Status
-                                    </Button>
+                                      <SelectTrigger className="w-[180px]">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="active">Active (Confirmed)</SelectItem>
+                                        <SelectItem value="lost">Lost</SelectItem>
+                                        <SelectItem value="stolen">Stolen</SelectItem>
+                                        <SelectItem value="decommissioned">Decommissioned</SelectItem>
+                                        <SelectItem value="transferred">Transferred</SelectItem>
+                                      </SelectContent>
+                                    </Select>
                                   </div>
                                 )}
                               </TableCell>
@@ -433,7 +519,7 @@ export default function MyAttestationsPage() {
               {attestationDetails.newAssets?.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Newly Added Assets</h3>
-                  <div className="border rounded-md">
+                  <div className="rounded-md overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -477,7 +563,7 @@ export default function MyAttestationsPage() {
 
       {/* Add New Asset Modal */}
       <Dialog open={showAddAssetModal} onOpenChange={setShowAddAssetModal}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Missing Asset</DialogTitle>
             <DialogDescription>
@@ -552,6 +638,134 @@ export default function MyAttestationsPage() {
                 placeholder="Enter asset tag"
               />
             </div>
+
+            {/* Employee Information */}
+            <div className="space-y-2 pt-2 border-t">
+              <h4 className="font-medium text-sm">Employee Information</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="employee_first_name">First Name *</Label>
+                  <Input
+                    id="employee_first_name"
+                    value={newAssetForm.employee_first_name}
+                    onChange={(e) => setNewAssetForm({ ...newAssetForm, employee_first_name: e.target.value })}
+                    placeholder="First name"
+                    readOnly={attestationDetails?.campaign?.target_type === 'companies'}
+                    className={attestationDetails?.campaign?.target_type === 'companies' ? 'bg-muted' : ''}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="employee_last_name">Last Name *</Label>
+                  <Input
+                    id="employee_last_name"
+                    value={newAssetForm.employee_last_name}
+                    onChange={(e) => setNewAssetForm({ ...newAssetForm, employee_last_name: e.target.value })}
+                    placeholder="Last name"
+                    readOnly={attestationDetails?.campaign?.target_type === 'companies'}
+                    className={attestationDetails?.campaign?.target_type === 'companies' ? 'bg-muted' : ''}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="employee_email">Email *</Label>
+                <Input
+                  id="employee_email"
+                  type="email"
+                  value={newAssetForm.employee_email}
+                  onChange={(e) => setNewAssetForm({ ...newAssetForm, employee_email: e.target.value })}
+                  placeholder="employee@example.com"
+                  readOnly={attestationDetails?.campaign?.target_type === 'companies'}
+                  className={attestationDetails?.campaign?.target_type === 'companies' ? 'bg-muted' : ''}
+                />
+              </div>
+            </div>
+
+            {/* Manager Information */}
+            <div className="space-y-2 pt-2 border-t">
+              <h4 className="font-medium text-sm">Manager Information</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="manager_first_name">First Name</Label>
+                  <Input
+                    id="manager_first_name"
+                    value={newAssetForm.manager_first_name}
+                    onChange={(e) => setNewAssetForm({ ...newAssetForm, manager_first_name: e.target.value })}
+                    placeholder="First name"
+                    readOnly={attestationDetails?.campaign?.target_type === 'companies'}
+                    className={attestationDetails?.campaign?.target_type === 'companies' ? 'bg-muted' : ''}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="manager_last_name">Last Name</Label>
+                  <Input
+                    id="manager_last_name"
+                    value={newAssetForm.manager_last_name}
+                    onChange={(e) => setNewAssetForm({ ...newAssetForm, manager_last_name: e.target.value })}
+                    placeholder="Last name"
+                    readOnly={attestationDetails?.campaign?.target_type === 'companies'}
+                    className={attestationDetails?.campaign?.target_type === 'companies' ? 'bg-muted' : ''}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="manager_email">Email</Label>
+                <Input
+                  id="manager_email"
+                  type="email"
+                  value={newAssetForm.manager_email}
+                  onChange={(e) => setNewAssetForm({ ...newAssetForm, manager_email: e.target.value })}
+                  placeholder="manager@example.com"
+                  readOnly={attestationDetails?.campaign?.target_type === 'companies'}
+                  className={attestationDetails?.campaign?.target_type === 'companies' ? 'bg-muted' : ''}
+                />
+              </div>
+            </div>
+
+            {/* Company Selection */}
+            <div className="space-y-2 pt-2 border-t">
+              <h4 className="font-medium text-sm">Company</h4>
+              {attestationDetails?.campaign?.target_type === 'companies' ? (
+                <div>
+                  <Label>Company (Auto-selected from campaign)</Label>
+                  <Input
+                    value={companies.find(c => c.id === newAssetForm.company_id)?.name || (companies.length > 0 ? 'Company not found' : 'Loading...')}
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="company_id">Company *</Label>
+                  {loadingCompanies ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading companies...
+                    </div>
+                  ) : companies.length > 0 ? (
+                    <Select
+                      value={newAssetForm.company_id?.toString() || ''}
+                      onValueChange={(value) => setNewAssetForm({ ...newAssetForm, company_id: parseInt(value) })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select company" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {companies.map((company) => (
+                          <SelectItem key={company.id} value={company.id.toString()}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      No companies available
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div>
               <Label htmlFor="notes">Notes</Label>
               <Textarea

@@ -1395,6 +1395,32 @@ const initDb = async () => {
     // Don't fail initialization
   }
 
+  // Add employee and manager fields to attestation_new_assets table
+  try {
+    const newAssetCols = isPostgres
+      ? await dbAll(`
+          SELECT column_name as name
+          FROM information_schema.columns
+          WHERE table_name = 'attestation_new_assets'
+        `)
+      : await dbAll("PRAGMA table_info(attestation_new_assets)");
+
+    const hasEmployeeFirstName = newAssetCols.some(col => col.name === 'employee_first_name');
+    if (!hasEmployeeFirstName) {
+      console.log('Migrating attestation_new_assets table: adding employee and manager fields...');
+      await dbRun("ALTER TABLE attestation_new_assets ADD COLUMN employee_first_name TEXT");
+      await dbRun("ALTER TABLE attestation_new_assets ADD COLUMN employee_last_name TEXT");
+      await dbRun("ALTER TABLE attestation_new_assets ADD COLUMN employee_email TEXT");
+      await dbRun("ALTER TABLE attestation_new_assets ADD COLUMN manager_first_name TEXT");
+      await dbRun("ALTER TABLE attestation_new_assets ADD COLUMN manager_last_name TEXT");
+      await dbRun("ALTER TABLE attestation_new_assets ADD COLUMN manager_email TEXT");
+      console.log('Migration complete: Added employee and manager fields to attestation_new_assets');
+    }
+  } catch (err) {
+    console.error('Migration error (attestation_new_assets employee/manager fields):', err.message);
+    // Don't fail initialization
+  }
+
   // Create indexes for attestation_pending_invites table
   try {
     if (isPostgres) {
@@ -3614,16 +3640,20 @@ export const attestationNewAssetDb = {
     const now = new Date().toISOString();
     if (isPostgres) {
       const result = await dbRun(
-        `INSERT INTO attestation_new_assets (attestation_record_id, asset_type, make, model, serial_number, asset_tag, company_id, notes, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-        [asset.attestation_record_id, asset.asset_type, asset.make, asset.model, asset.serial_number, asset.asset_tag, asset.company_id, asset.notes, now]
+        `INSERT INTO attestation_new_assets (attestation_record_id, asset_type, make, model, serial_number, asset_tag, company_id, notes, 
+         employee_first_name, employee_last_name, employee_email, manager_first_name, manager_last_name, manager_email, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id`,
+        [asset.attestation_record_id, asset.asset_type, asset.make, asset.model, asset.serial_number, asset.asset_tag, asset.company_id, asset.notes,
+         asset.employee_first_name, asset.employee_last_name, asset.employee_email, asset.manager_first_name, asset.manager_last_name, asset.manager_email, now]
       );
       return { id: result.rows[0].id };
     } else {
       const result = await dbRun(
-        `INSERT INTO attestation_new_assets (attestation_record_id, asset_type, make, model, serial_number, asset_tag, company_id, notes, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [asset.attestation_record_id, asset.asset_type, asset.make, asset.model, asset.serial_number, asset.asset_tag, asset.company_id, asset.notes, now]
+        `INSERT INTO attestation_new_assets (attestation_record_id, asset_type, make, model, serial_number, asset_tag, company_id, notes,
+         employee_first_name, employee_last_name, employee_email, manager_first_name, manager_last_name, manager_email, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [asset.attestation_record_id, asset.asset_type, asset.make, asset.model, asset.serial_number, asset.asset_tag, asset.company_id, asset.notes,
+         asset.employee_first_name, asset.employee_last_name, asset.employee_email, asset.manager_first_name, asset.manager_last_name, asset.manager_email, now]
       );
       return { id: result.lastInsertRowid };
     }

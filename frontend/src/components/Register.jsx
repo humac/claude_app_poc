@@ -25,6 +25,7 @@ const RegisterNew = ({ onSwitchToLogin }) => {
   const [inviteData, setInviteData] = useState(null);
   const [oidcConfig, setOidcConfig] = useState(null);
   const [loadingInvite, setLoadingInvite] = useState(false);
+  const [oidcLoading, setOidcLoading] = useState(false);
 
   useEffect(() => {
     // Fetch branding settings
@@ -189,21 +190,47 @@ const RegisterNew = ({ onSwitchToLogin }) => {
                     <p className="text-sm text-muted-foreground mb-3">Sign in with SSO to automatically create your account</p>
                     <Button
                       type="button"
-                      onClick={() => {
-                        // Store invite token if present so we can redirect after OIDC callback
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const token = urlParams.get('token');
-                        if (token) {
-                          sessionStorage.setItem('attestation_invite_token', token);
+                      onClick={async () => {
+                        setOidcLoading(true);
+                        setError(null);
+                        
+                        try {
+                          // Store invite token if present so we can redirect after OIDC callback
+                          const urlParams = new URLSearchParams(window.location.search);
+                          const token = urlParams.get('token');
+                          if (token) {
+                            sessionStorage.setItem('attestation_invite_token', token);
+                          }
+                          
+                          const response = await fetch('/api/auth/oidc/login');
+                          const data = await response.json();
+                          
+                          if (!response.ok) {
+                            throw new Error(data.error || 'Failed to initiate SSO login');
+                          }
+                          
+                          window.location.href = data.authUrl;
+                        } catch (err) {
+                          setError(err.message);
+                          setOidcLoading(false);
                         }
-                        window.location.href = '/api/auth/oidc/login';
                       }}
                       variant={oidcConfig?.button_variant || 'outline'}
                       className="w-full"
                       size="lg"
+                      disabled={oidcLoading || loading}
                     >
-                      <KeyRound className="h-4 w-4" />
-                      {oidcConfig?.button_text || 'Sign In with SSO'}
+                      {oidcLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Redirecting...
+                        </>
+                      ) : (
+                        <>
+                          <KeyRound className="h-4 w-4" />
+                          {oidcConfig?.button_text || 'Sign In with SSO'}
+                        </>
+                      )}
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2">Your account will be created automatically</p>
                   </div>

@@ -61,6 +61,8 @@ export const authenticate = async (req, res, next) => {
 
     // Fetch fresh user data from database to ensure role is up-to-date
     // This allows role changes to take effect without requiring re-login
+    // Trade-off: Adds a DB query per request, but ensures correctness
+    // Future optimization: Consider caching with short TTL or event-based invalidation
     const user = await userDb.getById(decoded.id);
     
     if (!user) {

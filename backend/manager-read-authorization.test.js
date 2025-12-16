@@ -74,7 +74,8 @@ describe('Manager Read-Only Authorization', () => {
       if (managerUser?.id) await userDb.delete(managerUser.id);
       if (employeeUser?.id) await userDb.delete(employeeUser.id);
     } catch (error) {
-      // Ignore cleanup errors
+      // Log cleanup errors but don't fail the test suite
+      console.error('Error cleaning up test users:', error);
     }
   });
 

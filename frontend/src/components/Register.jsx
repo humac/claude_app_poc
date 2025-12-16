@@ -115,9 +115,14 @@ const RegisterNew = ({ onSwitchToLogin }) => {
 
     if (!result.success) {
       setError(result.error);
+      setLoading(false);
+    } else {
+      // Check if user should be redirected to attestations
+      if (result.redirectToAttestations) {
+        window.location.href = '/my-attestations';
+      }
+      // Otherwise, default navigation will occur (handled by AuthContext/App routing)
     }
-
-    setLoading(false);
   };
 
   return (

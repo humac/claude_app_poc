@@ -547,39 +547,7 @@ Please remind them to register their account so they can complete their asset at
 {{deadlineText}}`,
     variables: JSON.stringify(['siteName', 'managerName', 'employeeName', 'employeeEmail', 'campaignName', 'assetCount', 'endDate', 'deadlineHtml', 'deadlineText'])
   },
-  {
-    template_key: 'attestation_ready',
-    name: 'Attestation Ready',
-    description: 'Sent after a user registers, confirming their attestation is ready to complete',
-    subject: '{{siteName}} - Your Asset Attestation is Ready',
-    html_body: `<h2>Welcome! Your Attestation is Ready</h2>
-<p>Hello {{firstName}},</p>
-<p>Thank you for registering your account. You can now complete your asset attestation for the "<strong>{{campaignName}}</strong>" campaign.</p>
-<div style="margin: 30px 0; text-align: center;">
-  <a href="{{attestationUrl}}" style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Complete Your Attestation</a>
-</div>
-<p style="color: #666; font-size: 14px;">
-  If the button doesn't work, copy and paste this link into your browser:<br>
-  <a href="{{attestationUrl}}" style="color: #3B82F6; word-break: break-all;">{{attestationUrl}}</a>
-</p>
-{{deadlineHtml}}
-<p>If you have any questions, please contact your administrator.</p>`,
-    text_body: `Welcome! Your Attestation is Ready
 
-Hello {{firstName}},
-
-Thank you for registering your account. You can now complete your asset attestation for the "{{campaignName}}" campaign.
-
-Complete your attestation here: {{attestationUrl}}
-
-If the button doesn't work, copy and paste this link into your browser:
-{{attestationUrl}}
-
-{{deadlineText}}
-
-If you have any questions, please contact your administrator.`,
-    variables: JSON.stringify(['siteName', 'firstName', 'campaignName', 'campaignDescription', 'endDate', 'deadlineHtml', 'deadlineText', 'attestationUrl'])
-  }
 ];
 
 const initDb = async () => {
@@ -1633,8 +1601,7 @@ const initDb = async () => {
   const templatesNeedingUpdate = [
     'attestation_registration_invite',
     'attestation_unregistered_reminder', 
-    'attestation_unregistered_escalation',
-    'attestation_ready'
+    'attestation_unregistered_escalation'
   ];
   
   let migratedCount = 0;
@@ -1680,8 +1647,7 @@ const initDb = async () => {
   console.log('Checking for email templates that need fallback URL sections...');
   const templatesNeedingFallbackUrls = [
     'attestation_registration_invite',
-    'attestation_unregistered_reminder',
-    'attestation_ready'
+    'attestation_unregistered_reminder'
   ];
   
   let fallbackUrlUpdatedCount = 0;
@@ -1729,6 +1695,19 @@ const initDb = async () => {
     console.log(`Added fallback URLs to ${fallbackUrlUpdatedCount} email template(s)`);
   } else {
     console.log('All email templates already have fallback URLs');
+  }
+
+  // Migration: Remove obsolete attestation_ready template
+  console.log('Removing obsolete attestation_ready email template...');
+  try {
+    const deleteQuery = isPostgres
+      ? 'DELETE FROM email_templates WHERE template_key = $1'
+      : 'DELETE FROM email_templates WHERE template_key = ?';
+    
+    await dbRun(deleteQuery, ['attestation_ready']);
+    console.log('Removed obsolete attestation_ready template');
+  } catch (err) {
+    console.error('Error removing attestation_ready template:', err);
   }
 
   // Indexes

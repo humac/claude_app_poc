@@ -87,19 +87,7 @@ describe('Attestation Email Template Variables', () => {
     expect(variables).toContain('endDate');
   });
 
-  it('should have campaignDescription in attestation_ready variables', async () => {
-    const template = await emailTemplateDb.getByKey('attestation_ready');
-    expect(template).toBeDefined();
-    expect(template.variables).toBeDefined();
-    
-    const variables = JSON.parse(template.variables);
-    expect(variables).toContain('campaignDescription');
-    expect(variables).toContain('siteName');
-    expect(variables).toContain('firstName');
-    expect(variables).toContain('campaignName');
-    expect(variables).toContain('endDate');
-    expect(variables).toContain('attestationUrl');
-  });
+
 
   it('should have valid JSON in all template variables fields', async () => {
     const templates = await emailTemplateDb.getAll();

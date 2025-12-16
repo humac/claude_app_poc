@@ -170,4 +170,109 @@ describe('Register Component', () => {
 
     expect(mockSwitchToLogin).toHaveBeenCalledTimes(1);
   });
+
+  it('handles SSO button click correctly by fetching authUrl first', async () => {
+    // Mock branding fetch
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ logo_data: null }),
+    });
+    // Mock OIDC config fetch - enabled
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        enabled: true,
+        button_text: 'Sign In with SSO',
+        button_variant: 'outline',
+      }),
+    });
+
+    const mockSwitchToLogin = vi.fn();
+    const user = userEvent.setup();
+
+    // Mock window.location
+    delete window.location;
+    window.location = { href: '' };
+
+    render(
+      <AuthProvider>
+        <Register onSwitchToLogin={mockSwitchToLogin} />
+      </AuthProvider>
+    );
+
+    // Wait for the SSO button to appear
+    await waitFor(() => {
+      expect(screen.getByText('Sign In with SSO')).toBeInTheDocument();
+    });
+
+    // Mock the OIDC login endpoint fetch
+    const mockAuthUrl = 'https://sso.example.com/authorize?state=abc123';
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        authUrl: mockAuthUrl,
+        state: 'abc123',
+      }),
+    });
+
+    const ssoButton = screen.getByText('Sign In with SSO').closest('button');
+    await user.click(ssoButton);
+
+    // Should call fetch to get authUrl
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/oidc/login');
+    });
+
+    // Should redirect to authUrl
+    await waitFor(() => {
+      expect(window.location.href).toBe(mockAuthUrl);
+    });
+  });
+
+  it('shows error if SSO login fetch fails', async () => {
+    // Mock branding fetch
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ logo_data: null }),
+    });
+    // Mock OIDC config fetch - enabled
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        enabled: true,
+        button_text: 'Sign In with SSO',
+        button_variant: 'outline',
+      }),
+    });
+
+    const mockSwitchToLogin = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <AuthProvider>
+        <Register onSwitchToLogin={mockSwitchToLogin} />
+      </AuthProvider>
+    );
+
+    // Wait for the SSO button to appear
+    await waitFor(() => {
+      expect(screen.getByText('Sign In with SSO')).toBeInTheDocument();
+    });
+
+    // Mock the OIDC login endpoint fetch to fail
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({
+        error: 'OIDC is not configured',
+      }),
+    });
+
+    const ssoButton = screen.getByText('Sign In with SSO').closest('button');
+    await user.click(ssoButton);
+
+    // Should show error message
+    await waitFor(() => {
+      expect(screen.getByText(/OIDC is not configured/i)).toBeInTheDocument();
+    });
+  });
 });

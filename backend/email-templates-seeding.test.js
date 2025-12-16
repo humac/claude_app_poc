@@ -45,7 +45,7 @@ describe('Email Templates Seeding', () => {
     const templates = await emailTemplateDb.getAll();
     
     expect(templates).toBeDefined();
-    expect(templates.length).toBe(10);
+    expect(templates.length).toBe(9);
     
     // Verify all expected templates exist
     const templateKeys = templates.map(t => t.template_key);
@@ -58,7 +58,6 @@ describe('Email Templates Seeding', () => {
     expect(templateKeys).toContain('attestation_registration_invite');
     expect(templateKeys).toContain('attestation_unregistered_reminder');
     expect(templateKeys).toContain('attestation_unregistered_escalation');
-    expect(templateKeys).toContain('attestation_ready');
   });
 
   it('should have correct structure for each template', async () => {

@@ -392,6 +392,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     // Check for pending attestation invites and convert them
+    let hasActiveAttestation = false;
     try {
       const pendingInvites = await attestationPendingInviteDb.getActiveByEmail(newUser.email);
       for (const invite of pendingInvites) {
@@ -411,13 +412,8 @@ app.post('/api/auth/register', async (req, res) => {
             converted_record_id: record.id
           });
           
-          // Send "attestation ready" email
-          try {
-            const { sendAttestationReadyEmail } = await import('./services/smtpMailer.js');
-            await sendAttestationReadyEmail(newUser.email, newUser.first_name, campaign);
-          } catch (emailError) {
-            console.error(`Failed to send attestation ready email to ${newUser.email}:`, emailError);
-          }
+          // Note: attestation_ready email removed - user will be redirected to attestations page
+          hasActiveAttestation = true;
           
           console.log(`Converted pending invite to attestation record for ${newUser.email} in campaign ${campaign.name}`);
         }
@@ -443,7 +439,8 @@ app.post('/api/auth/register', async (req, res) => {
         manager_last_name: newUser.manager_last_name,
         manager_email: newUser.manager_email,
         profile_image: newUser.profile_image
-      }
+      },
+      redirectToAttestations: hasActiveAttestation
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -2981,13 +2978,7 @@ app.get('/api/auth/oidc/callback', async (req, res) => {
             converted_record_id: record.id
           });
           
-          // Send "attestation ready" email
-          try {
-            const { sendAttestationReadyEmail } = await import('./services/smtpMailer.js');
-            await sendAttestationReadyEmail(user.email, user.first_name, campaign);
-          } catch (emailError) {
-            console.error(`Failed to send attestation ready email to ${user.email}:`, emailError);
-          }
+          // Note: attestation_ready email removed - user will be redirected to attestations page
           
           console.log(`Converted pending invite to attestation record for ${user.email} in campaign ${campaign.name}`);
         }

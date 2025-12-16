@@ -157,6 +157,27 @@ const serializePasskey = (passkey) => ({
 });
 
 /**
+ * Sanitizes text for safe logging by limiting length and removing newlines
+ * @param {string} text - Text to sanitize
+ * @param {number} maxLength - Maximum length (default 500)
+ * @returns {string} Sanitized text
+ */
+const sanitizeForLog = (text, maxLength = 500) => {
+  if (!text) return '';
+  // Remove newlines and limit length to prevent log injection
+  return text.replace(/[\r\n]/g, ' ').substring(0, maxLength);
+};
+
+/**
+ * Constructs a display name from user object
+ * @param {Object} user - User object with first_name, last_name, name, email
+ * @returns {string} Formatted user name
+ */
+const getUserDisplayName = (user) => {
+  return `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || user.email;
+};
+
+/**
  * Auto-assign manager role to a user if they have employees reporting to them
  * @param {string} email - The email of the user to potentially assign manager role to
  * @param {string} triggeredBy - Email of the user who triggered this action (for audit log)
@@ -5699,40 +5720,42 @@ app.post('/api/attestation/campaigns/:id/bulk-remind', authenticate, authorize('
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const attestationUrl = `${frontendUrl}/my-attestations`;
     
-    let sent = 0;
-    let failed = 0;
+    // Process all reminders in parallel for better performance
+    const results = await Promise.all(
+      record_ids.map(async (recordId) => {
+        try {
+          const record = await attestationRecordDb.getById(recordId);
+          if (!record || record.campaign_id !== campaign.id) {
+            return { success: false, recordId };
+          }
+          
+          const user = await userDb.getById(record.user_id);
+          if (!user) {
+            return { success: false, recordId };
+          }
+          
+          // Send reminder email
+          const result = await sendAttestationReminderEmail(user.email, campaign, attestationUrl);
+          
+          if (result.success) {
+            // Update reminder timestamp
+            await attestationRecordDb.update(record.id, {
+              reminder_sent_at: new Date().toISOString()
+            });
+            return { success: true, recordId };
+          } else {
+            return { success: false, recordId };
+          }
+        } catch (error) {
+          console.error(`Error sending reminder for record ${recordId}:`, error);
+          return { success: false, recordId };
+        }
+      })
+    );
     
-    for (const recordId of record_ids) {
-      try {
-        const record = await attestationRecordDb.getById(recordId);
-        if (!record || record.campaign_id !== campaign.id) {
-          failed++;
-          continue;
-        }
-        
-        const user = await userDb.getById(record.user_id);
-        if (!user) {
-          failed++;
-          continue;
-        }
-        
-        // Send reminder email
-        const result = await sendAttestationReminderEmail(user.email, campaign, attestationUrl);
-        
-        if (result.success) {
-          // Update reminder timestamp
-          await attestationRecordDb.update(record.id, {
-            reminder_sent_at: new Date().toISOString()
-          });
-          sent++;
-        } else {
-          failed++;
-        }
-      } catch (error) {
-        console.error(`Error sending reminder for record ${recordId}:`, error);
-        failed++;
-      }
-    }
+    // Count successes and failures
+    const sent = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
     
     // Log bulk action
     await auditDb.log(
@@ -5842,7 +5865,7 @@ app.post('/api/attestation/records/:id/escalate', authenticate, authorize('admin
     
     // Send escalation email to manager
     const { sendAttestationEscalationEmail } = await import('./services/smtpMailer.js');
-    const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || user.email;
+    const userName = getUserDisplayName(user);
     const result = await sendAttestationEscalationEmail(
       user.manager_email,
       userName,
@@ -5857,9 +5880,9 @@ app.post('/api/attestation/records/:id/escalate', authenticate, authorize('admin
         escalation_sent_at: new Date().toISOString()
       });
       
-      // Log action
+      // Log action - sanitize custom message to prevent log injection
       const details = custom_message 
-        ? `Manual escalation sent to manager ${user.manager_email} with custom message: ${custom_message}`
+        ? `Manual escalation sent to manager ${user.manager_email} with custom message: ${sanitizeForLog(custom_message)}`
         : `Manual escalation sent to manager ${user.manager_email}`;
       
       await auditDb.log(

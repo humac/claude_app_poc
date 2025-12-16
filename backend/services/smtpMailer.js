@@ -8,6 +8,21 @@ import { decryptValue } from '../utils/encryption.js';
  */
 
 /**
+ * Escapes HTML special characters to prevent XSS
+ * @param {string} text - Text to escape
+ * @returns {string} HTML-escaped text
+ */
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
+/**
  * Substitutes variables in a template string with provided values
  * Variables use {{variableName}} syntax
  * @param {string} template - Template string with {{variable}} placeholders
@@ -597,11 +612,12 @@ export const sendAttestationEscalationEmail = async (managerEmail, employeeName,
       // Fallback to hardcoded template
       subject = `Team Attestation Outstanding: ${employeeName} - ${campaign.name}`;
       
-      // Add custom message section if provided
+      // Add custom message section if provided - escape HTML to prevent XSS
       const customMessageHtml = customMessage 
-        ? `<div style="padding: 12px; background-color: #fff3cd; border-left: 4px solid #ffc107; margin: 16px 0;"><strong>Additional Note:</strong> ${customMessage}</div>`
+        ? `<div style="padding: 12px; background-color: #fff3cd; border-left: 4px solid #ffc107; margin: 16px 0;"><strong>Additional Note:</strong> ${escapeHtml(customMessage)}</div>`
         : '';
       
+      // Plain text doesn't need HTML escaping but should still be sanitized
       const customMessageText = customMessage
         ? `\n\nAdditional Note: ${customMessage}\n`
         : '';

@@ -1168,7 +1168,7 @@ export default function AttestationPage() {
           ) : dashboardData ? (
             <div className="space-y-6">
               {/* Stats Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -1243,7 +1243,7 @@ export default function AttestationPage() {
                       <Badge 
                         variant="destructive" 
                         className="ml-1 h-5 w-5 p-0 flex items-center justify-center"
-                        aria-label="Has overdue items"
+                        aria-label={`Alert: ${overdueCount} overdue item${overdueCount !== 1 ? 's' : ''}`}
                       >
                         !
                       </Badge>
@@ -1271,7 +1271,6 @@ export default function AttestationPage() {
                     className="pl-9"
                     value={dashboardSearchQuery}
                     onChange={(e) => setDashboardSearchQuery(e.target.value)}
-                    aria-label="Search employees by name or email"
                   />
                 </div>
                 <div className="text-sm text-muted-foreground">

@@ -23,6 +23,7 @@ export default [
     rules: {
       'no-unused-vars': ['error', { 
         argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
         caughtErrors: 'none'
       }],
       'no-console': 'off'

@@ -6,7 +6,7 @@ import { assetDb, companyDb, auditDb, userDb, oidcSettingsDb, brandingSettingsDb
 import { authenticate, authorize, hashPassword, comparePassword, generateToken } from './auth.js';
 import { initializeOIDC, getAuthorizationUrl, handleCallback, getUserInfo, extractUserData, isOIDCEnabled } from './oidc.js';
 import { generateMFASecret, verifyTOTP, generateBackupCodes, formatBackupCode } from './mfa.js';
-import { testHubSpotConnection, syncCompaniesToKARS } from './hubspot.js';
+import { testHubSpotConnection, syncCompaniesToACS } from './hubspot.js';
 import { encryptValue } from './utils/encryption.js';
 import { safeJsonParse, safeJsonParseArray } from './utils/json.js';
 import { sendTestEmail, sendPasswordResetEmail } from './services/smtpMailer.js';
@@ -2473,7 +2473,7 @@ app.post('/api/admin/hubspot/sync-companies', authenticate, authorize('admin'), 
 
     try {
       // Perform the sync
-      const result = await syncCompaniesToKARS(
+      const result = await syncCompaniesToACS(
         accessToken,
         companyDb,
         auditDb,
@@ -5962,7 +5962,7 @@ const startServer = async () => {
     console.log(`Using ${databaseEngine.toUpperCase()} database backend`);
 
     app.listen(PORT, () => {
-    console.log(`KARS API running on http://localhost:${PORT}`);
+    console.log(`ACS API running on http://localhost:${PORT}`);
       console.log(`Health check: http://localhost:${PORT}/api/health`);
     });
   } catch (error) {

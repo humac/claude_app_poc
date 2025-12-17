@@ -1761,7 +1761,7 @@ app.delete('/api/auth/passkeys/:id', authenticate, async (req, res) => {
 });
 
 // Get all users (admin only)
-app.get('/api/auth/users', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+app.get('/api/auth/users', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
   try {
     const users = await userDb.getAll();
     res.json(users);
@@ -3762,7 +3762,7 @@ app.delete('/api/assets/:id', authenticate, async (req, res) => {
 // ===== Company Management Endpoints =====
 
 // Get all companies (admin and manager read-only - full details)
-app.get('/api/companies', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+app.get('/api/companies', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
   try {
     const companies = await companyDb.getAll();
     res.json(companies);

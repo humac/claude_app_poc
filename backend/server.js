@@ -110,9 +110,9 @@ const parseCSVFile = async (filePath) => {
 };
 
 // Middleware
-// Configure CORS with origin whitelist
-const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+// Configure CORS with origin whitelist (uses ALLOWED_ORIGINS from .env)
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
   : ['http://localhost:5173', 'http://localhost:3000']; // Default dev origins
 
 app.use(cors({

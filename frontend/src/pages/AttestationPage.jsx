@@ -24,10 +24,7 @@ import {
   Bell,
   RefreshCw,
   AlertTriangle,
-  Mail,
-  MoreHorizontal,
-  ExternalLink,
-  SidebarOpen
+  Mail
 } from 'lucide-react';
 import {
   Table,
@@ -46,7 +43,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,9 +78,9 @@ export default function AttestationPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
   
-  // Drawer states (replacing old dashboard modal)
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerCampaign, setDrawerCampaign] = useState(null);
+  // Dashboard modal state
+  const [showDashboardModal, setShowDashboardModal] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
   
   const [campaignStats, setCampaignStats] = useState({});
   const [formData, setFormData] = useState({
@@ -499,44 +495,10 @@ export default function AttestationPage() {
     }
   };
 
-  // Smart dashboard routing - checks record count and opens appropriate view
-  const handleSmartDashboardOpen = async (campaign) => {
-    try {
-      // Fetch dashboard to get record count
-      const res = await fetch(`/api/attestation/campaigns/${campaign.id}/dashboard`, {
-        headers: { ...getAuthHeaders() }
-      });
-      
-      if (!res.ok) throw new Error('Failed to load dashboard');
-      
-      const data = await res.json();
-      const recordCount = data.records?.length || 0;
-      
-      if (recordCount <= 20) {
-        // Small campaign → Drawer
-        setDrawerCampaign(campaign);
-        setDrawerOpen(true);
-      } else {
-        // Large campaign → Full page
-        navigate(`/attestation/campaigns/${campaign.id}/dashboard`);
-      }
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: 'Error',
-        description: 'Failed to open dashboard',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleOpenInDrawer = (campaign) => {
-    setDrawerCampaign(campaign);
-    setDrawerOpen(true);
-  };
-
-  const handleOpenFullPage = (campaign) => {
-    navigate(`/attestation/campaigns/${campaign.id}/dashboard`);
+  // Simple handler to open dashboard modal
+  const handleViewDashboard = (campaign) => {
+    setSelectedCampaign(campaign);
+    setShowDashboardModal(true);
   };
 
   const handleExportCampaign = async (campaignId, campaignName) => {
@@ -732,29 +694,14 @@ export default function AttestationPage() {
                         )}
                         {campaign.status === 'active' && (
                           <>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button size="sm" variant="outline">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  Dashboard
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleSmartDashboardOpen(campaign)}>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Dashboard
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleOpenInDrawer(campaign)}>
-                                  <SidebarOpen className="h-4 w-4 mr-2" />
-                                  Quick View
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleOpenFullPage(campaign)}>
-                                  <ExternalLink className="h-4 w-4 mr-2" />
-                                  Full Page
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewDashboard(campaign)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Dashboard
+                            </Button>
                             <Button
                               size="sm"
                               variant="outline"
@@ -1112,36 +1059,35 @@ export default function AttestationPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dashboard Drawer */}
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent 
-          side="right" 
-          className="w-[600px] sm:w-[700px] lg:w-[800px] overflow-y-auto"
-        >
-          <SheetHeader>
-            <SheetTitle>{drawerCampaign?.name}</SheetTitle>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => {
-                setDrawerOpen(false);
-                navigate(`/attestation/campaigns/${drawerCampaign.id}/dashboard`);
-              }}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Open Full Dashboard
-            </Button>
-          </SheetHeader>
+      {/* Dashboard Modal */}
+      <Dialog 
+        open={showDashboardModal} 
+        onOpenChange={(open) => {
+          setShowDashboardModal(open);
+          if (!open) {
+            setSelectedCampaign(null);
+          }
+        }}
+      >
+        <DialogContent className="w-[95vw] max-w-7xl h-[92vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
+            <DialogTitle className="text-2xl">
+              Campaign Dashboard: {selectedCampaign?.name}
+            </DialogTitle>
+            <DialogDescription>
+              View completion status and employee details
+            </DialogDescription>
+          </DialogHeader>
           
-          <div className="mt-6">
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
             <DashboardContent 
-              campaign={drawerCampaign} 
-              compact={true}
-              onClose={() => setDrawerOpen(false)}
+              campaign={selectedCampaign} 
+              compact={false}
+              onClose={() => setShowDashboardModal(false)}
             />
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Campaign Modal - Multi-Step Wizard */}
       <Dialog open={showEditModal} onOpenChange={(open) => {

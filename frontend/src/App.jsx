@@ -43,7 +43,6 @@ import ForgotPassword from '@/components/ForgotPassword';
 import ResetPassword from '@/components/ResetPassword';
 import AttestationPage from '@/pages/AttestationPage';
 import MyAttestationsPage from '@/pages/MyAttestationsPage';
-import CampaignDashboardPage from '@/pages/CampaignDashboardPage';
 
 function AppNew() {
   const { user, logout, loading, isAuthenticated } = useAuth();
@@ -445,13 +444,7 @@ function AppNew() {
           )}
           <Route path="/audit" element={<AuditReporting />} />
           {(user?.role === 'admin' || user?.role === 'manager') && (
-            <>
-              <Route path="/attestation" element={<AttestationPage />} />
-              <Route 
-                path="/attestation/campaigns/:id/dashboard" 
-                element={<CampaignDashboardPage />} 
-              />
-            </>
+            <Route path="/attestation" element={<AttestationPage />} />
           )}
           {user?.role === 'admin' && (
             <Route path="/admin" element={<AdminSettings />} />

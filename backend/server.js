@@ -4161,7 +4161,7 @@ app.put('/api/admin/asset-types/reorder', authenticate, authorize('admin'), asyn
 // ===== Audit & Reporting Endpoints =====
 
 // Get all audit logs (with role-based filtering)
-app.get('/api/audit/logs', authenticate, async (req, res) => {
+app.get('/api/audit/logs', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
   try {
     const user = await userDb.getById(req.user.id);
 
@@ -4182,7 +4182,7 @@ app.get('/api/audit/logs', authenticate, async (req, res) => {
       // Employees only see their own audit logs
       logs = logs.filter(log => log.user_email === user.email);
     }
-    // Admin and Manager see all logs (no filtering)
+    // Admin, Manager, and Attestation Coordinator see all logs (no filtering)
 
     res.json(logs);
   } catch (error) {
@@ -4226,7 +4226,7 @@ app.get('/api/audit/stats', async (req, res) => {
 });
 
 // Generate report (CSV export)
-app.get('/api/audit/export', authenticate, async (req, res) => {
+app.get('/api/audit/export', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
   try {
     const user = await userDb.getById(req.user.id);
 
@@ -4245,7 +4245,7 @@ app.get('/api/audit/export', authenticate, async (req, res) => {
       // Employees only see their own audit logs
       logs = logs.filter(log => log.user_email === user.email);
     }
-    // Admin and Manager see all logs (no filtering)
+    // Admin, Manager, and Attestation Coordinator see all logs (no filtering)
 
     // Generate CSV
     const headers = ['ID', 'Timestamp', 'Action', 'Entity Type', 'Entity Name', 'Details', 'User Email'];
@@ -4283,8 +4283,8 @@ app.get('/api/reports/summary', authenticate, async (req, res) => {
 
     // Filter assets based on role
     let assets;
-    if (user.role === 'admin' || user.role === 'manager') {
-      // Admin and Manager see all assets
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
+      // Admin, Manager, and Attestation Coordinator see all assets
       assets = allAssets;
     } else {
       // Employee sees only own assets
@@ -4342,7 +4342,7 @@ app.get('/api/reports/summary-enhanced', authenticate, async (req, res) => {
 
     // Filter assets based on role
     let assets;
-    if (user.role === 'admin' || user.role === 'manager') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
       assets = allAssets;
     } else {
       assets = allAssets.filter(asset => asset.employee_email === user.email);
@@ -4431,7 +4431,7 @@ app.get('/api/reports/summary-enhanced', authenticate, async (req, res) => {
 });
 
 // Enhanced statistics with time series data
-app.get('/api/reports/statistics-enhanced', authenticate, authorize('admin', 'manager'), async (req, res) => {
+app.get('/api/reports/statistics-enhanced', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
   try {
     const period = parseInt(req.query.period) || 30;
     const startDate = new Date(Date.now() - period * 24 * 60 * 60 * 1000);
@@ -4503,14 +4503,14 @@ app.get('/api/reports/statistics-enhanced', authenticate, authorize('admin', 'ma
 });
 
 // Compliance metrics
-app.get('/api/reports/compliance', authenticate, authorize('admin', 'manager'), async (req, res) => {
+app.get('/api/reports/compliance', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
   try {
     const user = await userDb.getById(req.user.id);
     const allAssets = await assetDb.getAll();
 
     // Filter assets based on role
     let assets;
-    if (user.role === 'admin' || user.role === 'manager') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
       assets = allAssets;
     } else {
       assets = allAssets.filter(asset => asset.employee_email === user.email);
@@ -4649,7 +4649,7 @@ app.get('/api/reports/compliance', authenticate, authorize('admin', 'manager'), 
 });
 
 // Trend data with period comparison
-app.get('/api/reports/trends', authenticate, authorize('admin', 'manager'), async (req, res) => {
+app.get('/api/reports/trends', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
   try {
     const user = await userDb.getById(req.user.id);
     const period = parseInt(req.query.period) || 30;
@@ -4659,7 +4659,7 @@ app.get('/api/reports/trends', authenticate, authorize('admin', 'manager'), asyn
 
     // Filter assets based on role
     let assets;
-    if (user.role === 'admin' || user.role === 'manager') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
       assets = allAssets;
     } else {
       assets = allAssets.filter(asset => asset.employee_email === user.email);

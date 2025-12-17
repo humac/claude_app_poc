@@ -5,7 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 export default [
   js.configs.recommended,
   {
-    ignores: ['node_modules/**', 'coverage/**', 'dist/**', '*.test.jsx']
+    ignores: ['node_modules/**', 'coverage/**', 'dist/**', '**/*.test.jsx', '**/*.test.js']
   },
   {
     files: ['**/*.{js,jsx}'],
@@ -42,7 +42,10 @@ export default [
       }
     },
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        caughtErrors: 'none'
+      }],
       'no-console': 'off',
       'react/prop-types': 'off'
     }

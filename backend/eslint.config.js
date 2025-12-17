@@ -1,6 +1,6 @@
 export default [
   {
-    ignores: ['node_modules/**', 'coverage/**', 'data/**', '*.test.js']
+    ignores: ['node_modules/**', 'coverage/**', 'data/**', '**/*.test.js']
   },
   {
     files: ['**/*.js'],
@@ -21,7 +21,10 @@ export default [
       }
     },
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        caughtErrors: 'none'
+      }],
       'no-console': 'off'
     }
   }

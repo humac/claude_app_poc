@@ -4182,7 +4182,7 @@ app.get('/api/audit/logs', authenticate, authorize('admin', 'manager', 'attestat
       // Employees only see their own audit logs
       logs = logs.filter(log => log.user_email === user.email);
     }
-    // Admin and Manager see all logs (no filtering)
+    // Admin, Manager, and Attestation Coordinator see all logs (no filtering)
 
     res.json(logs);
   } catch (error) {
@@ -4245,7 +4245,7 @@ app.get('/api/audit/export', authenticate, authorize('admin', 'manager', 'attest
       // Employees only see their own audit logs
       logs = logs.filter(log => log.user_email === user.email);
     }
-    // Admin and Manager see all logs (no filtering)
+    // Admin, Manager, and Attestation Coordinator see all logs (no filtering)
 
     // Generate CSV
     const headers = ['ID', 'Timestamp', 'Action', 'Entity Type', 'Entity Name', 'Details', 'User Email'];
@@ -4283,8 +4283,8 @@ app.get('/api/reports/summary', authenticate, async (req, res) => {
 
     // Filter assets based on role
     let assets;
-    if (user.role === 'admin' || user.role === 'manager') {
-      // Admin and Manager see all assets
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
+      // Admin, Manager, and Attestation Coordinator see all assets
       assets = allAssets;
     } else {
       // Employee sees only own assets
@@ -4342,7 +4342,7 @@ app.get('/api/reports/summary-enhanced', authenticate, async (req, res) => {
 
     // Filter assets based on role
     let assets;
-    if (user.role === 'admin' || user.role === 'manager') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
       assets = allAssets;
     } else {
       assets = allAssets.filter(asset => asset.employee_email === user.email);
@@ -4510,7 +4510,7 @@ app.get('/api/reports/compliance', authenticate, authorize('admin', 'manager', '
 
     // Filter assets based on role
     let assets;
-    if (user.role === 'admin' || user.role === 'manager') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
       assets = allAssets;
     } else {
       assets = allAssets.filter(asset => asset.employee_email === user.email);
@@ -4659,7 +4659,7 @@ app.get('/api/reports/trends', authenticate, authorize('admin', 'manager', 'atte
 
     // Filter assets based on role
     let assets;
-    if (user.role === 'admin' || user.role === 'manager') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
       assets = allAssets;
     } else {
       assets = allAssets.filter(asset => asset.employee_email === user.email);

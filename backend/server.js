@@ -8,6 +8,7 @@ import { initializeOIDC, getAuthorizationUrl, handleCallback, getUserInfo, extra
 import { generateMFASecret, verifyTOTP, generateBackupCodes, formatBackupCode } from './mfa.js';
 import { testHubSpotConnection, syncCompaniesToKARS } from './hubspot.js';
 import { encryptValue } from './utils/encryption.js';
+import { safeJsonParse, safeJsonParseArray } from './utils/json.js';
 import { sendTestEmail, sendPasswordResetEmail } from './services/smtpMailer.js';
 import { randomBytes, webcrypto as nodeWebcrypto } from 'crypto';
 import multer from 'multer';
@@ -109,7 +110,25 @@ const parseCSVFile = async (filePath) => {
 };
 
 // Middleware
-app.use(cors());
+// Configure CORS with origin whitelist
+const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
+  ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173', 'http://localhost:3000']; // Default dev origins
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.) in development
+    if (!origin && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -172,7 +191,7 @@ app.get('/api/health', (req, res) => {
 
 const serializePasskey = (passkey) => ({
   ...passkey,
-  transports: passkey?.transports ? JSON.parse(passkey.transports) : [],
+  transports: safeJsonParseArray(passkey?.transports),
 });
 
 /**
@@ -1143,7 +1162,7 @@ app.get('/api/auth/mfa/status', authenticate, async (req, res) => {
     const mfaStatus = await userDb.getMFAStatus(req.user.id);
     res.json({
       enabled: mfaStatus?.mfa_enabled === 1,
-      hasBackupCodes: mfaStatus?.mfa_backup_codes ? JSON.parse(mfaStatus.mfa_backup_codes).length > 0 : false
+      hasBackupCodes: safeJsonParseArray(mfaStatus?.mfa_backup_codes).length > 0
     });
   } catch (error) {
     console.error('Get MFA status error:', error);
@@ -1404,7 +1423,7 @@ app.post('/api/auth/passkeys/registration-options', authenticate, async (req, re
       excludeCredentials: validPasskeys.map((pk) => ({
         id: pk.credential_id,
         type: 'public-key',
-        transports: pk.transports ? JSON.parse(pk.transports) : undefined
+        transports: safeJsonParse(pk.transports, undefined)
       }))
     });
 
@@ -1623,7 +1642,7 @@ app.post('/api/auth/passkeys/auth-options', async (req, res) => {
       allowCredentials = validPasskeys.map((pk) => ({
         id: pk.credential_id,
         type: 'public-key',
-        transports: pk.transports ? JSON.parse(pk.transports) : undefined
+        transports: safeJsonParse(pk.transports, undefined)
       }));
 
       userId = user.id;
@@ -1738,7 +1757,7 @@ app.post('/api/auth/passkeys/verify-authentication', async (req, res) => {
         counter: typeof dbPasskey.counter === 'number' && Number.isFinite(dbPasskey.counter)
           ? dbPasskey.counter
           : 0,
-        transports: dbPasskey.transports ? JSON.parse(dbPasskey.transports) : []
+        transports: safeJsonParseArray(dbPasskey.transports)
       }
     });
 

@@ -4,13 +4,6 @@
  */
 
 import { Router } from 'express';
-import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import {
-  generateRegistrationOptions,
-  verifyRegistrationResponse,
-  generateAuthenticationOptions,
-  verifyAuthenticationResponse
-} from '@simplewebauthn/server';
 
 /**
  * Create and configure the auth router
@@ -23,36 +16,18 @@ export default function createAuthRouter(deps) {
     // Database
     userDb,
     auditDb,
-    passkeyDb,
     passwordResetTokenDb,
-    oidcSettingsDb,
     // Auth
     authenticate,
-    authorize,
     hashPassword,
     comparePassword,
     generateToken,
     // Rate limiters
     authRateLimiter,
     passwordResetRateLimiter,
-    // MFA
-    generateMFASecret,
-    verifyTOTP,
-    generateBackupCodes,
-    formatBackupCode,
-    // OIDC
-    initializeOIDC,
-    getAuthorizationUrl,
-    handleCallback,
-    getUserInfo,
-    extractUserData,
-    isOIDCEnabled,
     // Helpers
     syncAssetOwnership,
-    getPasskeyConfig,
     mfaSessions,
-    pendingPasskeyRegistrations,
-    pendingPasskeyAuthentications,
     // Email
     sendPasswordResetEmail,
   } = deps;

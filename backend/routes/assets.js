@@ -17,14 +17,12 @@ export default function createAssetsRouter(deps) {
   const {
     assetDb,
     userDb,
-    companyDb,
     auditDb,
     assetTypeDb,
     authenticate,
     authorize,
     upload,
     parseCSVFile,
-    syncAssetOwnership,
   } = deps;
 
   // Get all assets (with role-based filtering)
@@ -497,9 +495,6 @@ export default function createAssetsRouter(deps) {
         employee_first_name,
         employee_last_name,
         employee_email,
-        manager_first_name,
-        manager_last_name,
-        manager_email,
         company_name,
         asset_type,
         serial_number,

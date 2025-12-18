@@ -9,7 +9,7 @@ This document contains a comprehensive code review of the ACS codebase with sugg
 | Category | Status | Critical Issues |
 |----------|--------|-----------------|
 | **Security** | ✅ Critical Fixed | ~~6 critical~~, ~~4 high~~ → All resolved |
-| **Backend Architecture** | ⚠️ Needs Refactoring | Monolithic server.js (5,936 lines) |
+| **Backend Architecture** | 🔄 In Progress | ~~Monolithic server.js~~ → Route modules extracted |
 | **Frontend Architecture** | ⚠️ Needs Refactoring | Large components, code duplication |
 | **Test Coverage** | ⚠️ Gaps Exist | Backend: good, Frontend: 14% |
 | **Code Quality** | ✅ Solid Foundation | Good patterns, needs consistency |
@@ -496,7 +496,14 @@ useEffect(() => {
 - [x] Fix JSON parse error handling
 
 ### Phase 2: Backend Refactoring (2-3 weeks)
-- [ ] Split server.js into route modules
+- [x] Split server.js into route modules ✅ Done (77 endpoints extracted)
+  - `routes/assets.js` - 12 endpoints (~450 lines)
+  - `routes/companies.js` - 7 endpoints (~200 lines)
+  - `routes/audit.js` - 5 endpoints (~150 lines)
+  - `routes/reports.js` - 5 endpoints (~400 lines)
+  - `routes/admin.js` - 27 endpoints (~950 lines)
+  - `routes/attestation.js` - 21 endpoints (~900 lines)
+  - `routes/index.js` - Dependency injection mounting
 - [x] Create validation middleware ✅ Done (middleware/validation.js)
 - [x] Standardize error responses ✅ Done (utils/responses.js)
 - [ ] Add structured logging
@@ -540,6 +547,7 @@ The codebase has several strong points worth maintaining:
 | 2025-12-17 | **Phase 1 Security Fixes:** Added authentication to asset endpoints, authorization to CSV import, required JWT_SECRET, rate limiting on auth endpoints, CORS whitelist, safe JSON parsing utilities |
 | 2025-12-17 | **Phase 3 Frontend Quick Wins:** Created `useFetch` hook for consistent API error handling, extracted `user.js` utilities for name formatting, added memoized `AssetTableRow` and `AssetCard` components with React.memo, added aria-labels to icon buttons for accessibility, integrated new components into AssetTable.jsx |
 | 2025-12-18 | **Phase 2 Backend Quick Wins:** Created `utils/constants.js` (VALID_STATUSES, VALID_ROLES, validation helpers), `middleware/validation.js` (requireFields, validateEmail, validateStatus, validateRole, validateIdArray, validatePagination), `utils/responses.js` (standardized success/error response helpers). Updated server.js to use constants instead of hardcoded values. Asset type validation now uses dynamic types from database. |
+| 2025-12-18 | **Phase 2 Route Refactoring:** Extracted 77 endpoints into 6 route modules: `routes/assets.js` (12), `routes/companies.js` (7), `routes/audit.js` (5), `routes/reports.js` (5), `routes/admin.js` (27), `routes/attestation.js` (21). Created `routes/index.js` for centralized mounting with dependency injection. All 457 tests passing. |
 
 ---
 

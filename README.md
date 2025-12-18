@@ -10,6 +10,8 @@ A web application that supports organizational SOC2 compliance by tracking clien
 
 📖 **Documentation:** [View Wiki](../../wiki)
 
+📊 **DevOps Documentation:** [View Diagrams](/diagrams) - Comprehensive CI/CD workflow diagrams including Railway deployment flows, branch strategy, release workflows, and monitoring procedures.
+
 🔄 **Schema Update:** [Migration Guide](SCHEMA-MIGRATION.md) - Important: Now supports multiple asset types (laptops, mobile phones). Breaking change - requires fresh database.
 
 ---

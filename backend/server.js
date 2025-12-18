@@ -267,15 +267,19 @@ const autoAssignManagerRole = async (email, triggeredBy) => {
 // Routes extracted to separate modules for maintainability
 mountRoutes(app, {
   // Database
+  assetDb,
   companyDb,
   auditDb,
   userDb,
+  assetTypeDb,
   // Auth middleware
   authenticate,
   authorize,
   // File upload
   upload,
   parseCSVFile,
+  // Helpers
+  syncAssetOwnership,
 });
 
 // ===== Authentication Endpoints =====

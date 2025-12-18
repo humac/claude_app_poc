@@ -9,7 +9,7 @@ This document contains a comprehensive code review of the ACS codebase with sugg
 | Category | Status | Critical Issues |
 |----------|--------|-----------------|
 | **Security** | ✅ Critical Fixed | ~~6 critical~~, ~~4 high~~ → All resolved |
-| **Backend Architecture** | 🔄 In Progress | ~~Monolithic server.js~~ → Route modules extracted |
+| **Backend Architecture** | ✅ Complete | ~~Monolithic server.js~~ → 12 route modules (364 → 5,826 lines) |
 | **Frontend Architecture** | ⚠️ Needs Refactoring | Large components, code duplication |
 | **Test Coverage** | ⚠️ Gaps Exist | Backend: good, Frontend: 14% |
 | **Code Quality** | ✅ Solid Foundation | Good patterns, needs consistency |
@@ -83,31 +83,36 @@ This document contains a comprehensive code review of the ACS codebase with sugg
 
 ## 2. Backend Architecture Issues
 
-### Monolithic server.js (5,936 lines, 108 endpoints)
+### ✅ RESOLVED: Monolithic server.js
 
-**Problem:** Single file contains all routes, making it:
-- Difficult to navigate and maintain
-- Hard to test in isolation
-- Prone to merge conflicts
+~~**Problem:** Single file contains all routes (5,936 lines, 108 endpoints), making it difficult to navigate and maintain.~~
 
-**Recommended Structure:**
+**Resolution:** Refactored into 12 route modules with dependency injection:
 ```
 backend/
 ├── routes/
-│   ├── auth.js          # Auth endpoints (~35 routes)
-│   ├── assets.js        # Asset CRUD (~25 routes)
-│   ├── companies.js     # Company management
-│   ├── users.js         # User management
-│   ├── attestation.js   # Attestation workflows (~30 routes)
-│   ├── admin.js         # Admin settings
-│   └── audit.js         # Audit logs
+│   ├── admin.js         # 27 endpoints (1,079 lines)
+│   ├── assets.js        # 12 endpoints (579 lines)
+│   ├── attestation.js   # 21 endpoints (1,149 lines)
+│   ├── audit.js         # 5 endpoints (134 lines)
+│   ├── auth.js          # 8 endpoints (660 lines)
+│   ├── companies.js     # 7 endpoints (214 lines)
+│   ├── mfa.js           # 5 endpoints (245 lines)
+│   ├── oidc.js          # 3 endpoints (239 lines)
+│   ├── passkeys.js      # 7 endpoints (490 lines)
+│   ├── reports.js       # 5 endpoints (519 lines)
+│   ├── users.js         # 4 endpoints (257 lines)
+│   └── index.js         # Centralized mounting (261 lines)
 ├── middleware/
-│   ├── auth.js          # authenticate, authorize
-│   ├── validation.js    # Input validators
-│   └── errorHandler.js  # Centralized error handling
+│   ├── auth.js          # authenticate, authorize (existing)
+│   └── validation.js    # Input validators ✅
+├── utils/
+│   ├── constants.js     # Shared constants ✅
+│   ├── responses.js     # Standardized responses ✅
+│   └── json.js          # Safe JSON parsing ✅
 ├── services/
 │   └── (existing)
-└── server.js            # Entry point, middleware setup
+└── server.js            # Entry point only (364 lines)
 ```
 
 ---
@@ -495,18 +500,24 @@ useEffect(() => {
 - [x] Configure CORS properly
 - [x] Fix JSON parse error handling
 
-### Phase 2: Backend Refactoring (2-3 weeks)
-- [x] Split server.js into route modules ✅ Done (77 endpoints extracted)
-  - `routes/assets.js` - 12 endpoints (~450 lines)
-  - `routes/companies.js` - 7 endpoints (~200 lines)
-  - `routes/audit.js` - 5 endpoints (~150 lines)
-  - `routes/reports.js` - 5 endpoints (~400 lines)
-  - `routes/admin.js` - 27 endpoints (~950 lines)
-  - `routes/attestation.js` - 21 endpoints (~900 lines)
-  - `routes/index.js` - Dependency injection mounting
+### Phase 2: Backend Refactoring ✅ COMPLETED
+- [x] Split server.js into route modules ✅ Done (108 endpoints → 12 modules)
+  - `routes/admin.js` - 27 endpoints (1,079 lines) - Settings, branding, OIDC config, HubSpot
+  - `routes/assets.js` - 12 endpoints (579 lines) - Asset CRUD, import, types
+  - `routes/attestation.js` - 21 endpoints (1,149 lines) - Campaigns, records, employee flow
+  - `routes/audit.js` - 5 endpoints (134 lines) - Audit log access
+  - `routes/auth.js` - 8 endpoints (660 lines) - Login, register, password, profile
+  - `routes/companies.js` - 7 endpoints (214 lines) - Company CRUD
+  - `routes/mfa.js` - 5 endpoints (245 lines) - MFA enroll, verify, disable
+  - `routes/oidc.js` - 3 endpoints (239 lines) - SSO login, callback
+  - `routes/passkeys.js` - 7 endpoints (490 lines) - WebAuthn registration, auth
+  - `routes/reports.js` - 5 endpoints (519 lines) - Various reports
+  - `routes/users.js` - 4 endpoints (257 lines) - User management (admin)
+  - `routes/index.js` - (261 lines) - Centralized mounting with dependency injection
+  - `server.js` reduced from ~6,000 lines to 364 lines
 - [x] Create validation middleware ✅ Done (middleware/validation.js)
 - [x] Standardize error responses ✅ Done (utils/responses.js)
-- [ ] Add structured logging
+- [ ] Add structured logging (optional enhancement)
 - [x] Extract constants ✅ Done (utils/constants.js)
 
 ### Phase 3: Frontend Refactoring (2-3 weeks)
@@ -547,7 +558,8 @@ The codebase has several strong points worth maintaining:
 | 2025-12-17 | **Phase 1 Security Fixes:** Added authentication to asset endpoints, authorization to CSV import, required JWT_SECRET, rate limiting on auth endpoints, CORS whitelist, safe JSON parsing utilities |
 | 2025-12-17 | **Phase 3 Frontend Quick Wins:** Created `useFetch` hook for consistent API error handling, extracted `user.js` utilities for name formatting, added memoized `AssetTableRow` and `AssetCard` components with React.memo, added aria-labels to icon buttons for accessibility, integrated new components into AssetTable.jsx |
 | 2025-12-18 | **Phase 2 Backend Quick Wins:** Created `utils/constants.js` (VALID_STATUSES, VALID_ROLES, validation helpers), `middleware/validation.js` (requireFields, validateEmail, validateStatus, validateRole, validateIdArray, validatePagination), `utils/responses.js` (standardized success/error response helpers). Updated server.js to use constants instead of hardcoded values. Asset type validation now uses dynamic types from database. |
-| 2025-12-18 | **Phase 2 Route Refactoring:** Extracted 77 endpoints into 6 route modules: `routes/assets.js` (12), `routes/companies.js` (7), `routes/audit.js` (5), `routes/reports.js` (5), `routes/admin.js` (27), `routes/attestation.js` (21). Created `routes/index.js` for centralized mounting with dependency injection. All 457 tests passing. |
+| 2025-12-18 | **Phase 2 Route Refactoring (Part 1):** Extracted 77 endpoints into 6 route modules: `routes/assets.js` (12), `routes/companies.js` (7), `routes/audit.js` (5), `routes/reports.js` (5), `routes/admin.js` (27), `routes/attestation.js` (21). Created `routes/index.js` for centralized mounting with dependency injection. All 457 tests passing. |
+| 2025-12-18 | **Phase 2 Route Refactoring (Part 2 - Complete):** Extracted remaining auth-related routes into 5 additional modules: `routes/auth.js` (8 endpoints - login, register, password, profile), `routes/mfa.js` (5 endpoints - MFA enroll/verify/disable), `routes/passkeys.js` (7 endpoints - WebAuthn registration/auth), `routes/users.js` (4 endpoints - user management), `routes/oidc.js` (3 endpoints - SSO login/callback). Removed 5,690 lines of duplicate routes from server.js (now 364 lines). Fixed flaky tests for test isolation. All 457 tests passing. **Phase 2 Backend Refactoring is now complete.** |
 
 ---
 

@@ -314,6 +314,39 @@ import {
 } from './database.js';
 ```
 
+### Database Method Index
+
+**⚠️ CRITICAL: Always verify method names exist before using them. Update this index when adding/removing methods.**
+
+| Database Object | Available Methods |
+|-----------------|-------------------|
+| `assetDb` | `init`, `create`, `getAll`, `getById`, `search`, `updateStatus`, `update`, `delete`, `getByEmployeeEmail`, `getByManagerEmail`, `getRegisteredOwnersByCompanyIds`, `linkAssetsToUser`, `updateManagerForEmployee`, `updateManagerIdForOwner`, `getByIds`, `bulkUpdateStatus`, `bulkDelete`, `bulkUpdateManager`, `getEmployeeEmailsByManager`, `getScopedForUser`, `getUnregisteredOwners`, `getUnregisteredOwnersByCompanyIds` |
+| `userDb` | `create`, `getByEmail`, `getById`, `getAll`, `getByManagerEmail`, `updateRole`, `updateLastLogin`, `delete`, `updateProfile`, `updatePassword`, `getByOIDCSub`, `createFromOIDC`, `linkOIDC`, `enableMFA`, `disableMFA`, `getMFAStatus`, `completeProfile`, `useBackupCode`, `getByEmails`, `getByRole` |
+| `companyDb` | `create`, `createWithHubSpotId`, `getAll`, `getById`, `getByName`, `getByHubSpotId`, `update`, `updateByHubSpotId`, `setHubSpotId`, `delete`, `hasAssets`, `getAssetCount` |
+| `auditDb` | `log`, `getAll`, `getByEntity`, `getRecent`, `getStats` |
+| `passkeyDb` | `listByUser`, `getByCredentialId`, `getById`, `create`, `delete`, `updateCounter` |
+| `passwordResetTokenDb` | `create(userId, token, expiresAt)`, `findByToken`, `markAsUsed`, `deleteExpired`, `deleteByUserId` |
+| `oidcSettingsDb` | `get`, `update` |
+| `brandingSettingsDb` | `get`, `update`, `delete` |
+| `passkeySettingsDb` | `get`, `update` |
+| `hubspotSettingsDb` | `get`, `getAccessToken`, `update`, `updateSyncStatus` |
+| `hubspotSyncLogDb` | `log`, `getHistory` |
+| `smtpSettingsDb` | `get`, `getPassword`, `update` |
+| `systemSettingsDb` | `get`, `update`, `clear` |
+| `assetTypeDb` | `getAll`, `getActive`, `getById`, `getByName`, `create`, `update`, `delete`, `getUsageCount`, `reorder` |
+| `emailTemplateDb` | `getAll`, `getByKey`, `update`, `reset` |
+| `attestationCampaignDb` | `create`, `getAll`, `getById`, `update`, `delete` |
+| `attestationRecordDb` | `create`, `getByCampaignId`, `getById`, `getByUserAndCampaign`, `getByUserId`, `update` |
+| `attestationAssetDb` | `create`, `getByRecordId`, `update` |
+| `attestationNewAssetDb` | `create`, `getByRecordId` |
+| `attestationPendingInviteDb` | `create`, `getById`, `getByToken`, `getByEmail`, `getByCampaignId`, `getActiveByEmail`, `update`, `delete` |
+
+**When modifying database.js:**
+1. Add new methods to this index
+2. Remove deleted methods from this index
+3. Update method signatures if parameters change
+4. Update copilot-instructions.md with the same changes
+
 ### Common Patterns
 
 **Reading Data:**

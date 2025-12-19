@@ -123,6 +123,35 @@ import {
 } from './database.js';
 ```
 
+### Database Method Index
+
+**⚠️ CRITICAL: Verify method names before using. Update this index when modifying database.js.**
+
+| Database Object | Methods |
+|-----------------|---------|
+| `assetDb` | `init`, `create`, `getAll`, `getById`, `search`, `updateStatus`, `update`, `delete`, `getByEmployeeEmail`, `getByManagerEmail`, `getRegisteredOwnersByCompanyIds`, `linkAssetsToUser`, `updateManagerForEmployee`, `updateManagerIdForOwner`, `getByIds`, `bulkUpdateStatus`, `bulkDelete`, `bulkUpdateManager`, `getEmployeeEmailsByManager`, `getScopedForUser`, `getUnregisteredOwners`, `getUnregisteredOwnersByCompanyIds` |
+| `userDb` | `create`, `getByEmail`, `getById`, `getAll`, `getByManagerEmail`, `updateRole`, `updateLastLogin`, `delete`, `updateProfile`, `updatePassword`, `getByOIDCSub`, `createFromOIDC`, `linkOIDC`, `enableMFA`, `disableMFA`, `getMFAStatus`, `completeProfile`, `useBackupCode`, `getByEmails`, `getByRole` |
+| `companyDb` | `create`, `createWithHubSpotId`, `getAll`, `getById`, `getByName`, `getByHubSpotId`, `update`, `updateByHubSpotId`, `setHubSpotId`, `delete`, `hasAssets`, `getAssetCount` |
+| `auditDb` | `log`, `getAll`, `getByEntity`, `getRecent`, `getStats` |
+| `passkeyDb` | `listByUser`, `getByCredentialId`, `getById`, `create`, `delete`, `updateCounter` |
+| `passwordResetTokenDb` | `create(userId, token, expiresAt)`, `findByToken`, `markAsUsed`, `deleteExpired`, `deleteByUserId` |
+| `oidcSettingsDb` | `get`, `update` |
+| `brandingSettingsDb` | `get`, `update`, `delete` |
+| `passkeySettingsDb` | `get`, `update` |
+| `hubspotSettingsDb` | `get`, `getAccessToken`, `update`, `updateSyncStatus` |
+| `hubspotSyncLogDb` | `log`, `getHistory` |
+| `smtpSettingsDb` | `get`, `getPassword`, `update` |
+| `systemSettingsDb` | `get`, `update`, `clear` |
+| `assetTypeDb` | `getAll`, `getActive`, `getById`, `getByName`, `create`, `update`, `delete`, `getUsageCount`, `reorder` |
+| `emailTemplateDb` | `getAll`, `getByKey`, `update`, `reset` |
+| `attestationCampaignDb` | `create`, `getAll`, `getById`, `update`, `delete` |
+| `attestationRecordDb` | `create`, `getByCampaignId`, `getById`, `getByUserAndCampaign`, `getByUserId`, `update` |
+| `attestationAssetDb` | `create`, `getByRecordId`, `update` |
+| `attestationNewAssetDb` | `create`, `getByRecordId` |
+| `attestationPendingInviteDb` | `create`, `getById`, `getByToken`, `getByEmail`, `getByCampaignId`, `getActiveByEmail`, `update`, `delete` |
+
+**When modifying database.js:** Update this index AND CLAUDE.md's Database Method Index.
+
 ## CI/CD & Validation
 
 ### GitHub Workflows
@@ -260,3 +289,5 @@ if (user.role === 'employee') {
 8. **Never skip auth** - Always use authenticate/authorize middleware
 9. **Verify API contracts** - Check frontend expects the exact property names you return
 10. **Document API changes** - Update CLAUDE.md "API Response Contracts" table when adding/modifying endpoints
+11. **Verify database methods** - Check the Database Method Index before calling db methods to avoid "is not a function" errors
+12. **Update method indexes** - When adding/removing database methods, update both CLAUDE.md and copilot-instructions.md

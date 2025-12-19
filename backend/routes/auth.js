@@ -403,11 +403,27 @@ export default function createAuthRouter(deps) {
 
   router.put('/profile', authenticate, requireFields('first_name', 'last_name'), async (req, res) => {
     try {
-      const { first_name, last_name, manager_first_name, manager_last_name, manager_email } = req.body;
+      const { first_name, last_name, manager_first_name, manager_last_name, manager_email, profile_image } = req.body;
 
       const user = await userDb.getById(req.user.id);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Handle profile_image - validate if provided
+      let normalizedProfileImage = user.profile_image;
+      if (Object.prototype.hasOwnProperty.call(req.body, 'profile_image')) {
+        if (!profile_image) {
+          normalizedProfileImage = null;
+        } else if (typeof profile_image !== 'string' || !profile_image.startsWith('data:image/')) {
+          return res.status(400).json({ error: 'Invalid profile image format' });
+        } else {
+          const base64Payload = profile_image.split(',')[1] || '';
+          if (base64Payload.length > 500000) {
+            return res.status(400).json({ error: 'Profile image too large (max 500KB)' });
+          }
+          normalizedProfileImage = profile_image;
+        }
       }
 
       // Build profile object, preserving existing values for optional fields
@@ -418,7 +434,7 @@ export default function createAuthRouter(deps) {
         manager_first_name: manager_first_name !== undefined ? manager_first_name : user.manager_first_name,
         manager_last_name: manager_last_name !== undefined ? manager_last_name : user.manager_last_name,
         manager_email: manager_email !== undefined ? manager_email : user.manager_email,
-        profile_image: user.profile_image
+        profile_image: normalizedProfileImage
       };
 
       await userDb.updateProfile(user.id, profile);
@@ -435,6 +451,7 @@ export default function createAuthRouter(deps) {
       if (manager_first_name !== undefined) updatedFields.push('manager_first_name');
       if (manager_last_name !== undefined) updatedFields.push('manager_last_name');
       if (manager_email !== undefined) updatedFields.push('manager_email');
+      if (Object.prototype.hasOwnProperty.call(req.body, 'profile_image')) updatedFields.push('profile_image');
 
       await auditDb.log(
         'UPDATE_PROFILE',
@@ -456,6 +473,7 @@ export default function createAuthRouter(deps) {
           manager_first_name: updatedUser.manager_first_name,
           manager_last_name: updatedUser.manager_last_name,
           manager_email: updatedUser.manager_email,
+          profile_image: updatedUser.profile_image,
           profile_complete: Boolean(updatedUser.first_name && updatedUser.last_name && updatedUser.manager_email)
         }
       });

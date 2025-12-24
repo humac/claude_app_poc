@@ -228,7 +228,8 @@ export default function createOIDCRouter(deps) {
           manager_first_name: user.manager_first_name,
           manager_last_name: user.manager_last_name,
           manager_email: user.manager_email,
-          profile_complete: user.profile_complete
+          profile_complete: user.profile_complete,
+          profile_image: user.profile_image
         },
         redirectToAttestations: hasActiveAttestation
       });

@@ -379,7 +379,7 @@ const CompanyManagementNew = () => {
                       <TableHead>Company Name</TableHead>
                       <TableHead className="hidden md:table-cell">Description</TableHead>
                       <TableHead className="hidden md:table-cell text-center">Assets</TableHead>
-                      <TableHead className="hidden md:table-cell">Created</TableHead>
+                      <TableHead className="hidden xl:table-cell">Created</TableHead>
                       {canManageCompanies && <TableHead className="text-right">Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
@@ -401,7 +401,7 @@ const CompanyManagementNew = () => {
                         <TableCell className="font-medium">{company.name}</TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground">{company.description || '-'}</TableCell>
                         <TableCell className="hidden md:table-cell text-center">{assetCountByCompany[company.name] || 0}</TableCell>
-                        <TableCell className="hidden md:table-cell">{formatDate(company.created_date)}</TableCell>
+                        <TableCell className="hidden xl:table-cell">{formatDate(company.created_date)}</TableCell>
                         {canManageCompanies && (
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">

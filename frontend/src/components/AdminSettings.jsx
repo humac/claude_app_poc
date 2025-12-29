@@ -249,7 +249,7 @@ const AdminSettingsNew = () => {
         </CardHeader>
         <CardContent className="pt-2">
           <Tabs value={activeView} onValueChange={setActiveView}>
-            <TabsList className="mb-3">
+            <TabsList className="mb-3 w-full overflow-x-auto flex-nowrap justify-start">
               <TabsTrigger value="branding" className="gap-2"><Image className="h-4 w-4" />Branding</TabsTrigger>
               <TabsTrigger value="asset-types" className="gap-2"><Laptop className="h-4 w-4" />Asset Types</TabsTrigger>
               <TabsTrigger value="security" className="gap-2"><Shield className="h-4 w-4" />Security</TabsTrigger>

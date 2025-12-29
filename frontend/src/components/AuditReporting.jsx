@@ -214,7 +214,7 @@ const AuditReportingNew = () => {
         </CardHeader>
         <CardContent className="px-4 sm:px-6">
           <Tabs value={activeView} onValueChange={setActiveView}>
-            <TabsList className="mb-6">
+            <TabsList className="mb-6 w-full overflow-x-auto flex-nowrap justify-start">
               <TabsTrigger value="summary" className="gap-2"><BarChart3 className="h-4 w-4" />Summary</TabsTrigger>
               {canAccessReports && <TabsTrigger value="stats" className="gap-2"><Activity className="h-4 w-4" />Statistics</TabsTrigger>}
               {canAccessReports && <TabsTrigger value="compliance" className="gap-2"><Shield className="h-4 w-4" />Compliance</TabsTrigger>}

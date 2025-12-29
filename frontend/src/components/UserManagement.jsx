@@ -253,12 +253,12 @@ const UserManagement = () => {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
+                      <div className="flex items-start flex-col gap-2">
+                        <div className="w-full">
                           <h4 className="font-medium truncate">{u.name}</h4>
                           <p className="text-sm text-muted-foreground truncate">{u.email}</p>
                         </div>
-                        <Badge variant={getRoleBadgeProps(u.role).variant} className={cn("uppercase", getRoleBadgeProps(u.role).className)}>{u.role}</Badge>
+                        <Badge variant={getRoleBadgeProps(u.role).variant} className={cn("uppercase text-xs", getRoleBadgeProps(u.role).className)}>{u.role}</Badge>
                       </div>
                       <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                         <div>

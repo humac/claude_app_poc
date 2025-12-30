@@ -65,8 +65,8 @@ describe('AdminSettings', () => {
       expect(screen.getByText(/Access Denied/)).toBeInTheDocument();
     });
 
-    it('shows access denied for attestation_coordinator role', () => {
-      mockUserRole = 'attestation_coordinator';
+    it('shows access denied for coordinator role', () => {
+      mockUserRole = 'coordinator';
       renderSettings();
       expect(screen.getByText(/Access Denied/)).toBeInTheDocument();
     });

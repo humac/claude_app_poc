@@ -67,7 +67,7 @@ let OIDC_CONFIG = {
     admin: 'admin',
     manager: 'manager',
     employee: 'employee',
-    attestation_coordinator: 'attestation_coordinator',
+    coordinator: 'coordinator',
   },
   defaultRole: 'employee',
 };
@@ -100,7 +100,7 @@ async function initializeOIDC(settings = null) {
         admin: 'admin',
         manager: 'manager',
         employee: 'employee',
-        attestation_coordinator: 'attestation_coordinator',
+        coordinator: 'coordinator',
       },
       defaultRole: settings.default_role || 'employee',
     };
@@ -333,9 +333,9 @@ function mapRole(oidcRoles) {
     return 'admin';
   }
 
-  // Check for attestation_coordinator role (second priority)
-  if (oidcRoles.some(r => mapping.attestation_coordinator && r.toLowerCase() === mapping.attestation_coordinator.toLowerCase())) {
-    return 'attestation_coordinator';
+  // Check for coordinator role (second priority)
+  if (oidcRoles.some(r => mapping.coordinator && r.toLowerCase() === mapping.coordinator.toLowerCase())) {
+    return 'coordinator';
   }
 
   // Check for manager role

@@ -2483,8 +2483,8 @@ export const assetDb = {
     `;
     let params = [];
 
-    if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
-      // Admin, Manager, and Attestation Coordinator see all assets
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'coordinator') {
+      // Admin, Manager, and Coordinator see all assets
       baseQuery += ' ORDER BY assets.registration_date DESC';
     } else {
       // Employee sees only own (check both owner_id and employee_email)

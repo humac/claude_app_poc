@@ -9,7 +9,7 @@ declare global {
     interface User {
       id: number;
       email: string;
-      role: 'employee' | 'manager' | 'admin' | 'attestation_coordinator';
+      role: 'employee' | 'manager' | 'admin' | 'coordinator';
       first_name?: string;
       last_name?: string;
     }

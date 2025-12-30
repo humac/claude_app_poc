@@ -20,7 +20,7 @@ export const DEFAULT_ASSET_TYPES = ['laptop', 'mobile_phone'];
  * Valid user roles in the system
  * Ordered from lowest to highest privilege
  */
-export const VALID_ROLES = ['employee', 'manager', 'attestation_coordinator', 'admin'];
+export const VALID_ROLES = ['employee', 'manager', 'coordinator', 'admin'];
 
 /**
  * Role hierarchy for permission checks
@@ -29,14 +29,14 @@ export const VALID_ROLES = ['employee', 'manager', 'attestation_coordinator', 'a
 export const ROLE_HIERARCHY = {
   employee: 1,
   manager: 2,
-  attestation_coordinator: 3,
+  coordinator: 3,
   admin: 4,
 };
 
 /**
  * Roles that can view all assets (not just their own)
  */
-export const ASSET_VIEW_ALL_ROLES = ['admin', 'manager', 'attestation_coordinator'];
+export const ASSET_VIEW_ALL_ROLES = ['admin', 'manager', 'coordinator'];
 
 /**
  * Roles that can manage users
@@ -46,17 +46,17 @@ export const USER_MANAGEMENT_ROLES = ['admin'];
 /**
  * Roles that can view audit logs
  */
-export const AUDIT_VIEW_ROLES = ['admin', 'manager', 'attestation_coordinator'];
+export const AUDIT_VIEW_ROLES = ['admin', 'manager', 'coordinator'];
 
 /**
  * Roles that can manage attestation campaigns
  */
-export const ATTESTATION_ADMIN_ROLES = ['admin', 'attestation_coordinator'];
+export const ATTESTATION_ADMIN_ROLES = ['admin', 'coordinator'];
 
 /**
  * Roles that can view attestation campaigns
  */
-export const ATTESTATION_VIEW_ROLES = ['admin', 'attestation_coordinator', 'manager'];
+export const ATTESTATION_VIEW_ROLES = ['admin', 'coordinator', 'manager'];
 
 /**
  * Required fields for asset creation

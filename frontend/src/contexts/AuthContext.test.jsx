@@ -564,12 +564,12 @@ describe('AuthContext', () => {
       });
     });
 
-    it('correctly identifies attestation_coordinator user', async () => {
+    it('correctly identifies coordinator user', async () => {
       localStorage.setItem('token', 'coordinator-token');
 
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ email: 'coord@test.com', role: 'attestation_coordinator' }),
+        json: async () => ({ email: 'coord@test.com', role: 'coordinator' }),
       });
 
       render(
@@ -579,7 +579,7 @@ describe('AuthContext', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('user-role')).toHaveTextContent('attestation_coordinator');
+        expect(screen.getByTestId('user-role')).toHaveTextContent('coordinator');
       });
     });
 

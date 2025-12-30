@@ -26,7 +26,7 @@ export default function createCompaniesRouter(deps) {
   } = deps;
 
   // Get all companies (admin and manager read-only - full details)
-  router.get('/', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
+  router.get('/', authenticate, authorize('admin', 'coordinator', 'manager'), async (req, res) => {
     try {
       const companies = await companyDb.getAll();
       res.json(companies);

@@ -155,7 +155,7 @@ Complete feature overview of the Asset Compliance System (ACS).
 
 The Attestation Workflow system enables administrators to create periodic campaigns where employees certify the assets in their possession, ensuring accurate records and supporting compliance requirements.
 
-**Campaign Management (Admin & Attestation Coordinator)**
+**Campaign Management (Admin & Coordinator)**
 - Create attestation campaigns with custom names and descriptions
 - Configure start and end dates for campaigns
 - Set reminder schedules (e.g., send reminder after 7 days)
@@ -168,7 +168,7 @@ The Attestation Workflow system enables administrators to create periodic campai
 - Export campaign results to CSV for audit evidence
 
 **Workflow Roles:**
-- **Attestation Coordinator/Admin**: Creates and manages campaigns, monitors overall compliance
+- **Coordinator/Admin**: Creates and manages campaigns, monitors overall compliance
 - **Manager**: Receives team dashboard, helps drive completion with direct reports
 - **Employee**: Completes attestations for assigned assets
 
@@ -218,18 +218,18 @@ The attestation scheduler runs daily automated tasks:
 
 **Four User Roles:**
 
-ACS implements a comprehensive role-based access control system with four distinct roles: **Employee**, **Manager**, **Attestation Coordinator**, and **Admin**. Each role has specific permissions designed to support different levels of system access and responsibility.
+ACS implements a comprehensive role-based access control system with four distinct roles: **Employee**, **Manager**, **Coordinator**, and **Admin**. Each role has specific permissions designed to support different levels of system access and responsibility.
 
 #### Role Descriptions
 
 - **Employee**: Self-service asset management and attestation submission. Can only view and manage their own assets.
 - **Manager**: Team oversight with read-only visibility to all assets and audit reports. Can help drive attestation completion for their team.
-- **Attestation Coordinator**: Compliance-focused role for managing attestation campaigns and generating compliance reports. Has read-only access to assets, users, and companies but cannot modify them.
+- **Coordinator**: Compliance-focused role for managing attestation campaigns and generating compliance reports. Has read-only access to assets, users, and companies but cannot modify them.
 - **Admin**: Full system administration including user management, company management, and system configuration.
 
 #### 📋 Role/Permissions Matrix
 
-| Feature | Employee | Manager | Attestation Coordinator | Admin |
+| Feature | Employee | Manager | Coordinator | Admin |
 |---------|:--------:|:-------:|:----------------------:|:-----:|
 | **Assets** | | | | |
 | View own assets | ✅ | ✅ | ✅ | ✅ |

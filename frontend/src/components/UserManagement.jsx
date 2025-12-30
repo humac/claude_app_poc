@@ -66,8 +66,8 @@ const UserManagement = () => {
 
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
-  const isAttestationCoordinator = user?.role === 'attestation_coordinator';
-  const isReadOnly = isManager || isAttestationCoordinator;
+  const isCoordinator = user?.role === 'coordinator';
+  const isReadOnly = isManager || isCoordinator;
 
   useEffect(() => {
     fetchUsers();
@@ -151,7 +151,7 @@ const UserManagement = () => {
       admin: { variant: 'destructive', className: '' },
       manager: { variant: 'default', className: 'bg-green-600 hover:bg-green-600' },
       employee: { variant: 'secondary', className: '' },
-      attestation_coordinator: { variant: 'outline', className: 'bg-purple-600 text-white border-purple-600 hover:bg-purple-600' }
+      coordinator: { variant: 'outline', className: 'bg-purple-600 text-white border-purple-600 hover:bg-purple-600' }
     };
     return styles[role] || { variant: 'secondary', className: '' };
   };
@@ -333,7 +333,7 @@ const UserManagement = () => {
                               <SelectContent>
                                 <SelectItem value="employee">Employee</SelectItem>
                                 <SelectItem value="manager">Manager</SelectItem>
-                                <SelectItem value="attestation_coordinator">Attestation Coord.</SelectItem>
+                                <SelectItem value="coordinator">Coordinator</SelectItem>
                                 <SelectItem value="admin">Admin</SelectItem>
                               </SelectContent>
                             </Select>
@@ -393,7 +393,7 @@ const UserManagement = () => {
             <CardContent className="grid gap-3 sm:gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 pt-2 px-4 sm:px-6">
               <div><Badge variant="destructive" className="uppercase text-xs">Admin</Badge><p className="text-sm text-muted-foreground mt-1">Full system access, can manage all users and settings.</p></div>
               <div><Badge variant="default" className="uppercase text-xs bg-green-600">Manager</Badge><p className="text-sm text-muted-foreground mt-1">View own + team assets, access team audit reports.</p></div>
-              <div><Badge variant="outline" className="uppercase text-xs bg-purple-600 text-white border-purple-600">Attestation Coordinator</Badge><p className="text-sm text-muted-foreground mt-1">Manage attestation campaigns and compliance reporting.</p></div>
+              <div><Badge variant="outline" className="uppercase text-xs bg-purple-600 text-white border-purple-600">Coordinator</Badge><p className="text-sm text-muted-foreground mt-1">Manage attestation campaigns and compliance reporting.</p></div>
               <div><Badge variant="secondary" className="uppercase text-xs">Employee</Badge><p className="text-sm text-muted-foreground mt-1">Can only view and manage own asset registrations.</p></div>
             </CardContent>
           </Card>

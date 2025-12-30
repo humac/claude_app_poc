@@ -28,7 +28,7 @@ export default function createUsersRouter(deps) {
 
   // ===== Get All Users =====
 
-  router.get('/', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
+  router.get('/', authenticate, authorize('admin', 'coordinator', 'manager'), async (req, res) => {
     try {
       const users = await userDb.getAll();
       res.json(users);

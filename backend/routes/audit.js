@@ -23,7 +23,7 @@ export default function createAuditRouter(deps) {
   } = deps;
 
   // Get all audit logs (with role-based filtering)
-  router.get('/logs', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+  router.get('/logs', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => {
     try {
       const user = await userDb.getById(req.user.id);
 
@@ -86,7 +86,7 @@ export default function createAuditRouter(deps) {
   });
 
   // Export audit logs as CSV
-  router.get('/export', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+  router.get('/export', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => {
     try {
       const user = await userDb.getById(req.user.id);
 

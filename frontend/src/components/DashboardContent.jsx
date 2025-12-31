@@ -549,7 +549,7 @@ export function DashboardContent({ campaign, compact = false, onClose = null }) 
       )}
 
       {/* Company Filter */}
-      {['manager', 'admin', 'attestation_coordinator'].includes(user?.role) && availableCompanies.length > 0 && (
+      {['manager', 'admin', 'coordinator'].includes(user?.role) && availableCompanies.length > 0 && (
         <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
           <Label htmlFor="company-filter" className="text-sm font-medium">
             Filter by Company

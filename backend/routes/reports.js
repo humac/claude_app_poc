@@ -34,8 +34,8 @@ export default function createReportsRouter(deps) {
 
       // Filter assets based on role
       let assets;
-      if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
-        // Admin, Manager, and Attestation Coordinator see all assets
+      if (user.role === 'admin' || user.role === 'manager' || user.role === 'coordinator') {
+        // Admin, Manager, and Coordinator see all assets
         assets = allAssets;
       } else {
         // Employee sees only own assets
@@ -93,7 +93,7 @@ export default function createReportsRouter(deps) {
 
       // Filter assets based on role
       let assets;
-      if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
+      if (user.role === 'admin' || user.role === 'manager' || user.role === 'coordinator') {
         assets = allAssets;
       } else {
         assets = allAssets.filter(asset => asset.employee_email === user.email);
@@ -181,7 +181,7 @@ export default function createReportsRouter(deps) {
   });
 
   // Enhanced statistics with time series data
-  router.get('/statistics-enhanced', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+  router.get('/statistics-enhanced', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => {
     try {
       const period = parseInt(req.query.period) || 30;
       const startDate = new Date(Date.now() - period * 24 * 60 * 60 * 1000);
@@ -253,14 +253,14 @@ export default function createReportsRouter(deps) {
   });
 
   // Compliance metrics
-  router.get('/compliance', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+  router.get('/compliance', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => {
     try {
       const user = await userDb.getById(req.user.id);
       const allAssets = await assetDb.getAll();
 
       // Filter assets based on role
       let assets;
-      if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
+      if (user.role === 'admin' || user.role === 'manager' || user.role === 'coordinator') {
         assets = allAssets;
       } else {
         assets = allAssets.filter(asset => asset.employee_email === user.email);
@@ -399,7 +399,7 @@ export default function createReportsRouter(deps) {
   });
 
   // Trend data with period comparison
-  router.get('/trends', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+  router.get('/trends', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => {
     try {
       const user = await userDb.getById(req.user.id);
       const period = parseInt(req.query.period) || 30;
@@ -408,7 +408,7 @@ export default function createReportsRouter(deps) {
 
       // Filter assets based on role
       let assets;
-      if (user.role === 'admin' || user.role === 'manager' || user.role === 'attestation_coordinator') {
+      if (user.role === 'admin' || user.role === 'manager' || user.role === 'coordinator') {
         assets = allAssets;
       } else {
         assets = allAssets.filter(asset => asset.employee_email === user.email);

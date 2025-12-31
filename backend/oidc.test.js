@@ -516,7 +516,7 @@ describe('LRUCache - Memory Leak Prevention', () => {
   });
 });
 
-describe('OIDC Role Mapping for attestation_coordinator', () => {
+describe('OIDC Role Mapping for coordinator', () => {
   // Import the extractUserData function which internally uses mapRole
   let extractUserData;
 
@@ -527,79 +527,79 @@ describe('OIDC Role Mapping for attestation_coordinator', () => {
   });
 
   describe('Role extraction and mapping', () => {
-    it('should map OIDC attestation_coordinator claim to app role', () => {
+    it('should map OIDC coordinator claim to app role', () => {
       const claims = {
         email: 'coordinator@example.com',
         name: 'Test Coordinator',
         sub: 'oidc-sub-123',
-        roles: ['attestation_coordinator']
+        roles: ['coordinator']
       };
 
       const result = extractUserData(claims);
-      expect(result.role).toBe('attestation_coordinator');
+      expect(result.role).toBe('coordinator');
     });
 
-    it('should prioritize admin over attestation_coordinator', () => {
+    it('should prioritize admin over coordinator', () => {
       const claims = {
         email: 'admin@example.com',
         name: 'Test Admin',
         sub: 'oidc-sub-456',
-        roles: ['admin', 'attestation_coordinator']
+        roles: ['admin', 'coordinator']
       };
 
       const result = extractUserData(claims);
       expect(result.role).toBe('admin');
     });
 
-    it('should prioritize attestation_coordinator over manager', () => {
+    it('should prioritize coordinator over manager', () => {
       const claims = {
         email: 'coordinator@example.com',
         name: 'Test Coordinator',
         sub: 'oidc-sub-789',
-        roles: ['attestation_coordinator', 'manager']
+        roles: ['coordinator', 'manager']
       };
 
       const result = extractUserData(claims);
-      expect(result.role).toBe('attestation_coordinator');
+      expect(result.role).toBe('coordinator');
     });
 
-    it('should prioritize attestation_coordinator over employee', () => {
+    it('should prioritize coordinator over employee', () => {
       const claims = {
         email: 'coordinator@example.com',
         name: 'Test Coordinator',
         sub: 'oidc-sub-abc',
-        roles: ['attestation_coordinator', 'employee']
+        roles: ['coordinator', 'employee']
       };
 
       const result = extractUserData(claims);
-      expect(result.role).toBe('attestation_coordinator');
+      expect(result.role).toBe('coordinator');
     });
 
-    it('should handle case-insensitive attestation_coordinator matching', () => {
+    it('should handle case-insensitive coordinator matching', () => {
       const claims = {
         email: 'coordinator@example.com',
         name: 'Test Coordinator',
         sub: 'oidc-sub-def',
-        roles: ['Attestation_Coordinator']
+        roles: ['Coordinator']
       };
 
       const result = extractUserData(claims);
-      expect(result.role).toBe('attestation_coordinator');
+      expect(result.role).toBe('coordinator');
     });
 
-    it('should handle uppercase ATTESTATION_COORDINATOR', () => {
+    it('should handle uppercase COORDINATOR', () => {
       const claims = {
         email: 'coordinator@example.com',
         name: 'Test Coordinator',
         sub: 'oidc-sub-ghi',
-        roles: ['ATTESTATION_COORDINATOR']
+        roles: ['COORDINATOR']
       };
 
       const result = extractUserData(claims);
-      expect(result.role).toBe('attestation_coordinator');
+      expect(result.role).toBe('coordinator');
     });
 
-    it('should fall back to default role when attestation_coordinator is not present', () => {
+    it('should fall back to default role when coordinator is not present', () => {
       const claims = {
         email: 'user@example.com',
         name: 'Test User',
@@ -617,20 +617,20 @@ describe('OIDC Role Mapping for attestation_coordinator', () => {
         email: 'multi@example.com',
         name: 'Multi Role',
         sub: 'oidc-sub-mno',
-        roles: ['employee', 'manager', 'attestation_coordinator', 'admin']
+        roles: ['employee', 'manager', 'coordinator', 'admin']
       };
       expect(extractUserData(allRolesClaims).role).toBe('admin');
 
-      // Test that when admin is absent, attestation_coordinator wins over manager and employee
+      // Test that when admin is absent, coordinator wins over manager and employee
       const threeRolesClaims = {
         email: 'multi2@example.com',
         name: 'Multi Role 2',
         sub: 'oidc-sub-pqr',
-        roles: ['employee', 'manager', 'attestation_coordinator']
+        roles: ['employee', 'manager', 'coordinator']
       };
-      expect(extractUserData(threeRolesClaims).role).toBe('attestation_coordinator');
+      expect(extractUserData(threeRolesClaims).role).toBe('coordinator');
 
-      // Test that when admin and attestation_coordinator are absent, manager wins
+      // Test that when admin and coordinator are absent, manager wins
       const twoRolesClaims = {
         email: 'multi3@example.com',
         name: 'Multi Role 3',

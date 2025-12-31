@@ -108,7 +108,7 @@ export default function UserBulkActions({
           <SelectContent>
             <SelectItem value="employee">Employee</SelectItem>
             <SelectItem value="manager">Manager</SelectItem>
-            <SelectItem value="attestation_coordinator">Attestation Coordinator</SelectItem>
+            <SelectItem value="coordinator">Coordinator</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
         </Select>

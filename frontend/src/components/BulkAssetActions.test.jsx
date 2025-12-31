@@ -235,10 +235,10 @@ describe('BulkAssetActions', () => {
     });
   });
 
-  describe('RBAC - Attestation Coordinator', () => {
-    const coordUser = { role: 'attestation_coordinator', email: 'coord@test.com' };
+  describe('RBAC - Coordinator', () => {
+    const coordUser = { role: 'coordinator', email: 'coord@test.com' };
 
-    it('hides delete button for attestation_coordinator', () => {
+    it('hides delete button for coordinator', () => {
       render(
         <BulkAssetActions
           {...defaultProps}
@@ -249,7 +249,7 @@ describe('BulkAssetActions', () => {
       expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
     });
 
-    it('hides bulk edit button for attestation_coordinator (read-only)', () => {
+    it('hides bulk edit button for coordinator (read-only)', () => {
       render(
         <BulkAssetActions
           {...defaultProps}
@@ -261,7 +261,7 @@ describe('BulkAssetActions', () => {
       expect(screen.queryByRole('button', { name: /^edit$/i })).not.toBeInTheDocument();
     });
 
-    it('still shows export dropdown for attestation_coordinator', () => {
+    it('still shows export dropdown for coordinator', () => {
       render(
         <BulkAssetActions
           {...defaultProps}

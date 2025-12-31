@@ -98,7 +98,7 @@ Total user count displayed at top right.
 3. Select new role:
    - Employee (default)
    - Manager
-   - Attestation Coordinator
+   - Coordinator
    - Admin
 4. Change is saved automatically
 
@@ -113,7 +113,7 @@ Understanding the permissions for each role is crucial for effective user manage
 
 #### 📋 Role/Permissions Matrix
 
-| Feature | Employee | Manager | Attestation Coordinator | Admin |
+| Feature | Employee | Manager | Coordinator | Admin |
 |---------|:--------:|:-------:|:----------------------:|:-----:|
 | **Assets** | | | | |
 | View own assets | ✅ | ✅ | ✅ | ✅ |
@@ -168,19 +168,19 @@ Understanding the permissions for each role is crucial for effective user manage
 - If a newly registered user already has employees pointing to their email as manager, their role is automatically promoted to **Manager**.
 - All auto-promotions are logged in the audit trail so admins can review and adjust roles if needed.
 
-## Attestation Coordinator Role
+## Coordinator Role
 
-The **Attestation Coordinator** role is designed for compliance officers and team members responsible for managing attestation campaigns without requiring full administrative access.
+The **Coordinator** role is designed for compliance officers and team members responsible for managing attestation campaigns without requiring full administrative access.
 
 ### When to Use This Role
 
-Assign the attestation_coordinator role to users who need to:
+Assign the coordinator role to users who need to:
 - Create and manage attestation campaigns
 - Monitor attestation completion across the organization
 - Export attestation records for compliance reporting
 - View asset and user information for campaign planning
 
-### What Attestation Coordinators Can Do
+### What Coordinators Can Do
 
 ✅ **Attestation Management**
 - Create, edit, start, and cancel attestation campaigns
@@ -203,12 +203,12 @@ Assign the attestation_coordinator role to users who need to:
 
 ### Assigning the Role
 
-To assign the attestation_coordinator role:
+To assign the coordinator role:
 
 1. Navigate to **Users** page (admin only)
 2. Find the user you want to promote
 3. Click **Edit** on their row
-4. Select **Attestation Coordinator** from the role dropdown
+4. Select **Coordinator** from the role dropdown
 5. Click **Save Changes**
 
 The user will immediately gain access to the Attestation page and can begin managing campaigns.
@@ -217,11 +217,11 @@ The user will immediately gain access to the Attestation page and can begin mana
 
 The attestation coordinator role works in conjunction with other roles:
 
-1. **Attestation Coordinator** creates a campaign
+1. **Coordinator** creates a campaign
 2. System notifies all employees
 3. **Managers** receive team dashboards and help drive completion
 4. **Employees** complete their attestations
-5. **Attestation Coordinator** monitors progress and exports results for compliance
+5. **Coordinator** monitors progress and exports results for compliance
 6. **Admin** handles any user/system configuration needs
 
 ### Deleting Users

@@ -10,21 +10,21 @@ const app = express();
 app.use(express.json());
 
 // Mock report endpoints with authorization
-app.get('/api/reports/statistics-enhanced', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+app.get('/api/reports/statistics-enhanced', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => {
   res.json({ success: true, data: { activityByDay: [], actionBreakdown: [], topUsers: [] } });
 });
 
-app.get('/api/reports/compliance', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+app.get('/api/reports/compliance', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => {
   res.json({ success: true, data: { score: 85, overdueAttestations: 0 } });
 });
 
-app.get('/api/reports/trends', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => {
+app.get('/api/reports/trends', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => {
   res.json({ success: true, data: { assetGrowth: [], statusChanges: [] } });
 });
 
 describe('Reports Authorization', () => {
-  let adminUser, managerUser, employeeUser, attestationCoordinatorUser;
-  let adminToken, managerToken, employeeToken, attestationCoordinatorToken;
+  let adminUser, managerUser, employeeUser, coordinatorUser;
+  let adminToken, managerToken, employeeToken, coordinatorToken;
   let timestamp;
 
   beforeAll(async () => {
@@ -63,13 +63,13 @@ describe('Reports Authorization', () => {
     employeeToken = generateToken(employeeUser);
 
     await userDb.create({
-      email: `attcoord-reports-${timestamp}@test.com`,
-      name: 'Attestation Coordinator User',
+      email: `coord-reports-${timestamp}@test.com`,
+      name: 'Coordinator User',
       password_hash: 'dummy-hash',
-      role: 'attestation_coordinator'
+      role: 'coordinator'
     });
-    attestationCoordinatorUser = await userDb.getByEmail(`attcoord-reports-${timestamp}@test.com`);
-    attestationCoordinatorToken = generateToken(attestationCoordinatorUser);
+    coordinatorUser = await userDb.getByEmail(`coord-reports-${timestamp}@test.com`);
+    coordinatorToken = generateToken(coordinatorUser);
   });
 
   afterAll(async () => {
@@ -78,7 +78,7 @@ describe('Reports Authorization', () => {
       if (adminUser?.id) await userDb.delete(adminUser.id);
       if (managerUser?.id) await userDb.delete(managerUser.id);
       if (employeeUser?.id) await userDb.delete(employeeUser.id);
-      if (attestationCoordinatorUser?.id) await userDb.delete(attestationCoordinatorUser.id);
+      if (coordinatorUser?.id) await userDb.delete(coordinatorUser.id);
     } catch (error) {
       // Ignore cleanup errors
     }
@@ -106,7 +106,7 @@ describe('Reports Authorization', () => {
     it('should allow attestation coordinator access', async () => {
       const response = await request(app)
         .get('/api/reports/statistics-enhanced?period=30')
-        .set('Authorization', `Bearer ${attestationCoordinatorToken}`);
+        .set('Authorization', `Bearer ${coordinatorToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -151,7 +151,7 @@ describe('Reports Authorization', () => {
     it('should allow attestation coordinator access', async () => {
       const response = await request(app)
         .get('/api/reports/compliance')
-        .set('Authorization', `Bearer ${attestationCoordinatorToken}`);
+        .set('Authorization', `Bearer ${coordinatorToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -196,7 +196,7 @@ describe('Reports Authorization', () => {
     it('should allow attestation coordinator access', async () => {
       const response = await request(app)
         .get('/api/reports/trends?period=30')
-        .set('Authorization', `Bearer ${attestationCoordinatorToken}`);
+        .set('Authorization', `Bearer ${coordinatorToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);

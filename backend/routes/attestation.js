@@ -52,7 +52,7 @@ export default function createAttestationRouter(deps) {
   // ===== Campaign Management =====
 
   // Create new attestation campaign
-  router.post('/campaigns', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.post('/campaigns', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const { name, description, start_date, end_date, reminder_days, escalation_days, target_type, target_user_ids, target_company_ids } = req.body;
 
@@ -115,7 +115,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Get all attestation campaigns
-  router.get('/campaigns', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
+  router.get('/campaigns', authenticate, authorize('admin', 'coordinator', 'manager'), async (req, res) => {
     try {
       const campaigns = await attestationCampaignDb.getAll();
 
@@ -134,7 +134,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Get specific campaign details with stats
-  router.get('/campaigns/:id', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
+  router.get('/campaigns/:id', authenticate, authorize('admin', 'coordinator', 'manager'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
 
@@ -163,7 +163,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Update campaign
-  router.put('/campaigns/:id', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.put('/campaigns/:id', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const { name, description, start_date, end_date, reminder_days, escalation_days, status, target_type, target_user_ids, target_company_ids } = req.body;
 
@@ -203,7 +203,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Start campaign - creates records for all employees and sends emails
-  router.post('/campaigns/:id/start', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.post('/campaigns/:id/start', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
 
@@ -356,7 +356,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Cancel campaign
-  router.post('/campaigns/:id/cancel', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.post('/campaigns/:id/cancel', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
       await attestationCampaignDb.update(req.params.id, { status: 'cancelled' });
@@ -378,7 +378,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Delete campaign
-  router.delete('/campaigns/:id', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.delete('/campaigns/:id', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
 
@@ -405,7 +405,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Get campaign dashboard with detailed employee records
-  router.get('/campaigns/:id/dashboard', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
+  router.get('/campaigns/:id/dashboard', authenticate, authorize('admin', 'coordinator', 'manager'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
 
@@ -482,7 +482,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Export campaign report as CSV
-  router.get('/campaigns/:id/export', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.get('/campaigns/:id/export', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
 
@@ -873,7 +873,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Get pending invites for campaign
-  router.get('/campaigns/:id/pending-invites', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
+  router.get('/campaigns/:id/pending-invites', authenticate, authorize('admin', 'coordinator', 'manager'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
 
@@ -905,7 +905,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Resend invites for campaign
-  router.post('/campaigns/:id/resend-invites', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.post('/campaigns/:id/resend-invites', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
 
@@ -981,7 +981,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Resend single pending invite
-  router.post('/pending-invites/:id/resend', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.post('/pending-invites/:id/resend', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const invite = await attestationPendingInviteDb.getById(req.params.id);
 
@@ -1044,7 +1044,7 @@ export default function createAttestationRouter(deps) {
   // ===== Reminders & Escalations =====
 
   // Manual reminder for specific attestation record
-  router.post('/records/:id/remind', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
+  router.post('/records/:id/remind', authenticate, authorize('admin', 'coordinator', 'manager'), async (req, res) => {
     try {
       const record = await attestationRecordDb.getById(req.params.id);
       if (!record) {
@@ -1084,7 +1084,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Bulk reminder for multiple attestation records
-  router.post('/campaigns/:id/bulk-remind', authenticate, authorize('admin', 'attestation_coordinator', 'manager'), async (req, res) => {
+  router.post('/campaigns/:id/bulk-remind', authenticate, authorize('admin', 'coordinator', 'manager'), async (req, res) => {
     try {
       const campaign = await attestationCampaignDb.getById(req.params.id);
       if (!campaign) {
@@ -1150,7 +1150,7 @@ export default function createAttestationRouter(deps) {
   });
 
   // Manual escalation for specific attestation record
-  router.post('/records/:id/escalate', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => {
+  router.post('/records/:id/escalate', authenticate, authorize('admin', 'coordinator'), async (req, res) => {
     try {
       const record = await attestationRecordDb.getById(req.params.id);
       if (!record) {

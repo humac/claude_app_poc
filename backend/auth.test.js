@@ -425,7 +425,7 @@ describe('Auth Module', () => {
     });
   });
 
-  describe('attestation_coordinator role', () => {
+  describe('coordinator role', () => {
     let req, res, next, jsonMock, statusMock;
 
     beforeEach(() => {
@@ -441,17 +441,17 @@ describe('Auth Module', () => {
       next = jest.fn();
     });
 
-    it('should allow attestation_coordinator to access attestation campaigns', () => {
-      req.user = { id: 5, email: 'coordinator@example.com', role: 'attestation_coordinator' };
-      const middleware = authorize('admin', 'attestation_coordinator');
+    it('should allow coordinator to access attestation campaigns', () => {
+      req.user = { id: 5, email: 'coordinator@example.com', role: 'coordinator' };
+      const middleware = authorize('admin', 'coordinator');
       middleware(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(statusMock).not.toHaveBeenCalled();
     });
 
-    it('should deny attestation_coordinator access to admin-only settings', () => {
-      req.user = { id: 5, email: 'coordinator@example.com', role: 'attestation_coordinator' };
+    it('should deny coordinator access to admin-only settings', () => {
+      req.user = { id: 5, email: 'coordinator@example.com', role: 'coordinator' };
       const middleware = authorize('admin');
       middleware(req, res, next);
 
@@ -460,17 +460,17 @@ describe('Auth Module', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('should allow attestation_coordinator to access with manager and admin', () => {
-      req.user = { id: 5, email: 'coordinator@example.com', role: 'attestation_coordinator' };
-      const middleware = authorize('admin', 'manager', 'attestation_coordinator');
+    it('should allow coordinator to access with manager and admin', () => {
+      req.user = { id: 5, email: 'coordinator@example.com', role: 'coordinator' };
+      const middleware = authorize('admin', 'manager', 'coordinator');
       middleware(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);
       expect(statusMock).not.toHaveBeenCalled();
     });
 
-    it('should deny attestation_coordinator when only manager is allowed', () => {
-      req.user = { id: 5, email: 'coordinator@example.com', role: 'attestation_coordinator' };
+    it('should deny coordinator when only manager is allowed', () => {
+      req.user = { id: 5, email: 'coordinator@example.com', role: 'coordinator' };
       const middleware = authorize('manager');
       middleware(req, res, next);
 
@@ -479,9 +479,9 @@ describe('Auth Module', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('should perform case-insensitive matching for attestation_coordinator', () => {
-      req.user = { id: 5, email: 'coordinator@example.com', role: 'Attestation_Coordinator' };
-      const middleware = authorize('admin', 'attestation_coordinator');
+    it('should perform case-insensitive matching for coordinator', () => {
+      req.user = { id: 5, email: 'coordinator@example.com', role: 'Coordinator' };
+      const middleware = authorize('admin', 'coordinator');
       middleware(req, res, next);
 
       expect(next).toHaveBeenCalledTimes(1);

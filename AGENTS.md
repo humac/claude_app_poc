@@ -19,7 +19,7 @@ This document provides AI agents with guidance for working with the ACS (Asset C
 
 - **Three-Tier**: React SPA → Express REST API → SQLite/PostgreSQL
 - **Database Abstraction**: Single interface supporting both SQLite and PostgreSQL
-- **RBAC**: Four roles (employee, manager, attestation_coordinator, admin) with scoped data access
+- **RBAC**: Four roles (employee, manager, coordinator, admin) with scoped data access
 
 ## Repository Structure
 
@@ -142,10 +142,10 @@ app.get('/api/profile', authenticate, async (req, res) => { ... });
 app.post('/api/companies', authenticate, authorize('admin'), async (req, res) => { ... });
 
 // Multiple roles
-app.get('/api/users', authenticate, authorize('admin', 'manager', 'attestation_coordinator'), async (req, res) => { ... });
+app.get('/api/users', authenticate, authorize('admin', 'manager', 'coordinator'), async (req, res) => { ... });
 
 // Attestation coordinator example
-app.post('/api/attestation/campaigns', authenticate, authorize('admin', 'attestation_coordinator'), async (req, res) => { ... });
+app.post('/api/attestation/campaigns', authenticate, authorize('admin', 'coordinator'), async (req, res) => { ... });
 ```
 
 ### Role-Based Data Filtering
@@ -153,7 +153,7 @@ app.post('/api/attestation/campaigns', authenticate, authorize('admin', 'attesta
 ```javascript
 // Use getScopedForUser for proper role-based filtering
 const assets = await assetDb.getScopedForUser(user);
-// Admin, Manager, and Attestation Coordinator see all assets
+// Admin, Manager, and Coordinator see all assets
 // Employee sees only own assets
 ```
 
@@ -162,7 +162,7 @@ const assets = await assetDb.getScopedForUser(user);
 | Role | Description |
 |------|-------------|
 | **admin** | Full access to all resources including admin settings, user management, company management |
-| **attestation_coordinator** | Manage attestation campaigns; read-only access to assets, users, companies, audit logs; no admin settings access |
+| **coordinator** | Manage attestation campaigns; read-only access to assets, users, companies, audit logs; no admin settings access |
 | **manager** | View all assets/audit logs, bulk import assets, read-only user access; cannot edit other users' assets |
 | **employee** | View/edit own assets and audit logs only |
 
@@ -171,13 +171,13 @@ const assets = await assetDb.getScopedForUser(user);
 // Attestation coordinator access
 app.get('/api/attestation/campaigns',
   authenticate,
-  authorize('admin', 'attestation_coordinator'),
+  authorize('admin', 'coordinator'),
   async (req, res) => { ... });
 
 // Read-only access for multiple roles
 app.get('/api/users',
   authenticate,
-  authorize('admin', 'manager', 'attestation_coordinator'),
+  authorize('admin', 'manager', 'coordinator'),
   async (req, res) => { ... });
 ```
 

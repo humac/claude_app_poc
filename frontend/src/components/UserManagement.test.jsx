@@ -32,7 +32,7 @@ vi.mock('@/components/TablePaginationControls', () => ({
   default: () => <div data-testid="table-pagination">Pagination</div>,
 }));
 
-describe('UserManagement - Attestation Coordinator Access', () => {
+describe('UserManagement - Coordinator Access', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     global.fetch.mockReset();
@@ -42,9 +42,9 @@ describe('UserManagement - Attestation Coordinator Access', () => {
     vi.clearAllMocks();
   });
 
-  it('should allow attestation_coordinator to access the Users page', async () => {
-    mockUser = { id: 1, email: 'coordinator@test.com', role: 'attestation_coordinator' };
-    
+  it('should allow coordinator to access the Users page', async () => {
+    mockUser = { id: 1, email: 'coordinator@test.com', role: 'coordinator' };
+
     global.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [
@@ -66,9 +66,9 @@ describe('UserManagement - Attestation Coordinator Access', () => {
     });
   });
 
-  it('should show read-only banner for attestation_coordinator', async () => {
-    mockUser = { id: 1, email: 'coordinator@test.com', role: 'attestation_coordinator' };
-    
+  it('should show read-only banner for coordinator', async () => {
+    mockUser = { id: 1, email: 'coordinator@test.com', role: 'coordinator' };
+
     global.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [
@@ -84,9 +84,9 @@ describe('UserManagement - Attestation Coordinator Access', () => {
     });
   });
 
-  it('should show read-only description for attestation_coordinator', async () => {
-    mockUser = { id: 1, email: 'coordinator@test.com', role: 'attestation_coordinator' };
-    
+  it('should show read-only description for coordinator', async () => {
+    mockUser = { id: 1, email: 'coordinator@test.com', role: 'coordinator' };
+
     global.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [

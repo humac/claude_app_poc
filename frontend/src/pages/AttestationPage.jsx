@@ -220,10 +220,10 @@ export default function AttestationPage() {
     }
   };
 
-  const canManageCampaigns = user?.role === 'admin' || user?.role === 'attestation_coordinator';
+  const canManageCampaigns = user?.role === 'admin' || user?.role === 'coordinator';
 
   useEffect(() => {
-    if (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'attestation_coordinator') {
+    if (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'coordinator') {
       loadCampaigns();
     }
   }, [user]);

@@ -114,7 +114,7 @@ Web application that supports organizational SOC2 compliance by tracking client 
 - **Database Abstraction**: Single interface (`database.js`) supporting both SQLite and PostgreSQL
 - **Middleware Chain**: Authentication → Authorization → Route Handler
 - **Audit Logging**: Automatic tracking of all CRUD operations
-- **Role-Based Access Control**: Four roles (employee, manager, attestation_coordinator, admin)
+- **Role-Based Access Control**: Four roles (employee, manager, coordinator, admin)
 
 **Frontend:**
 - **Context API**: Global state management (AuthContext, UsersContext)
@@ -490,7 +490,7 @@ ACS supports **four authentication methods**:
 |------|-------------|
 | **employee** | View/edit own assets only; view own audit logs; complete own attestations |
 | **manager** | View all assets and audit logs; bulk import assets; read-only users access; help team with attestations |
-| **attestation_coordinator** | Create/manage attestation campaigns; read-only access to assets, users, companies, audit logs |
+| **coordinator** | Create/manage attestation campaigns; read-only access to assets, users, companies, audit logs |
 | **admin** | Full access to all resources; system configuration; user management |
 
 ### Middleware Pattern
@@ -535,14 +535,14 @@ if (user.role === 'employee') {
   assets = await assetDb.getByEmployeeEmail(user.email);
 }
 
-// managers: all assets (same as admins and attestation_coordinator)
+// managers: all assets (same as admins and coordinator)
 else if (user.role === 'manager') {
   assets = await assetDb.getScopedForUser(user);
   // Returns: all assets
 }
 
-// attestation_coordinator: all assets (read-only)
-else if (user.role === 'attestation_coordinator') {
+// coordinator: all assets (read-only)
+else if (user.role === 'coordinator') {
   assets = await assetDb.getScopedForUser(user);
   // Returns: all assets (but cannot edit)
 }
@@ -557,7 +557,7 @@ else if (user.role === 'admin') {
 **Asset Edit Authorization:**
 ```javascript
 // Only admins and asset owners can edit
-// attestation_coordinator cannot edit assets
+// coordinator cannot edit assets
 if (user.role !== 'admin' && asset.employee_email !== user.email) {
   return res.status(403).json({
     success: false,

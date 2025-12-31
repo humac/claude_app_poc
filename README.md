@@ -67,12 +67,12 @@ ACS helps consulting organizations maintain accountability for client-owned asse
 - **Role-Based Access Control** - Four roles with distinct permissions (see detailed matrix below):
   - **Employee**: View/edit own assets and audit logs only
   - **Manager**: View all assets and audit logs; bulk import assets; read-only access to users page; cannot edit other users' assets or access admin settings
-  - **Attestation Coordinator**: Manage attestation campaigns; read-only access to assets, users, companies, and audit logs; cannot access admin settings
+  - **Coordinator**: Manage attestation campaigns; read-only access to assets, users, companies, and audit logs; cannot access admin settings
   - **Admin**: Full access to all resources including admin settings, user management, and company management
 
 ### 📋 Role/Permissions Matrix
 
-| Feature | Employee | Manager | Attestation Coordinator | Admin |
+| Feature | Employee | Manager | Coordinator | Admin |
 |---------|:--------:|:-------:|:----------------------:|:-----:|
 | **Assets** | | | | |
 | View own assets | ✅ | ✅ | ✅ | ✅ |

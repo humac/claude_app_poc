@@ -38,7 +38,7 @@ export interface User {
   name: string | null;
   first_name: string | null;
   last_name: string | null;
-  role: 'employee' | 'manager' | 'admin' | 'attestation_coordinator';
+  role: 'employee' | 'manager' | 'admin' | 'coordinator';
   manager_first_name: string | null;
   manager_last_name: string | null;
   manager_email: string | null;

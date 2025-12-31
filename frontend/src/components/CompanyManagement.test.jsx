@@ -214,7 +214,7 @@ describe('CompanyManagement', () => {
     });
 
     it('hides checkboxes for bulk selection from non-admins', async () => {
-      renderWithAuth('attestation_coordinator');
+      renderWithAuth('coordinator');
 
       await waitFor(() => {
         expect(screen.getByText('Company Management (3)')).toBeInTheDocument();

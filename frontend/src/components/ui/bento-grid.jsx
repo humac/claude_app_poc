@@ -72,7 +72,7 @@ const BentoCard = React.forwardRef(
           transition: { duration: 0.2 },
         }}
         whileTap={{ scale: 0.98 }}
-        className={cn(spanClasses)}
+        className={cn(spanClasses, className)}
         {...props}
       >
         <div
@@ -81,8 +81,7 @@ const BentoCard = React.forwardRef(
             "bg-card text-card-foreground",
             "border border-border",
             "shadow-soft hover:shadow-elevated",
-            "transition-shadow duration-300",
-            className
+            "transition-shadow duration-300"
           )}
         >
           {children}

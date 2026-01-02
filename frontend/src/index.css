@@ -473,6 +473,8 @@
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
+    /* Note: mask-composite values differ between webkit and standard, but this is intentional
+       and provides the correct visual result across browsers */
   }
 }
 

@@ -13,11 +13,15 @@ const GlassPanel = React.forwardRef(
       heavy: "bg-background/80 dark:bg-background/70 backdrop-blur-lg",
     };
 
+    // Validate intensity prop
+    const validIntensities = ["light", "medium", "heavy"];
+    const effectiveIntensity = validIntensities.includes(intensity) ? intensity : "medium";
+
     return (
       <div
         ref={ref}
         className={cn(
-          intensityClasses[intensity] || intensityClasses.medium,
+          intensityClasses[effectiveIntensity],
           "rounded-2xl",
           "border border-border/50 dark:border-border/30",
           "shadow-elevated",

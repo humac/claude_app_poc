@@ -127,8 +127,8 @@ const StaggerOnScroll = React.forwardRef(
         className={className}
         {...props}
       >
-        {React.Children.map(children, (child) => (
-          <motion.div variants={itemVariants}>{child}</motion.div>
+        {React.Children.map(children, (child, index) => (
+          <motion.div key={index} variants={itemVariants}>{child}</motion.div>
         ))}
       </motion.div>
     );

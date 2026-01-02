@@ -1,6 +1,6 @@
-# KARS to ACS Replacement Plan
+# ACS to ACS Replacement Plan
 
-**Project**: Replace all references to "KARS" (KeyData Asset Registration System) with "ACS" (Asset Compliance System)
+**Project**: Replace all references to "ACS" (Asset Compliance System) with "ACS" (Asset Compliance System)
 
 **Total Scope**: 65 files, 121+ references
 
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This plan replaces all instances of "KARS" across the codebase with "ACS" in a phased approach, prioritizing:
+This plan replaces all instances of "ACS" across the codebase with "ACS" in a phased approach, prioritizing:
 1. **Critical Runtime Code** (database defaults, API responses, email templates)
 2. **User-Facing UI** (branding, registration/login screens)
 3. **Infrastructure Configuration** (environment files, Docker configs)
@@ -20,16 +20,16 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Old Value | New Value | Context |
 |-----------|-----------|---------|
-| `KARS` | `ACS` | Default site names, UI branding |
-| `KeyData Asset Registration System` | `Asset Compliance System` | Full product name |
-| `KARS Notifications` | `ACS Notifications` | Email from names |
-| `KARS - KeyData Asset Registration System` | `ACS - Asset Compliance System` | Passkey RP names |
-| `KARS API is running` | `ACS API is running` | Health check messages |
-| `KARS team` | `ACS team` | Documentation references |
-| `github.com/humac/kars` | `github.com/humac/acs` | Repository URLs |
+| `ACS` | `ACS` | Default site names, UI branding |
+| `Asset Compliance System` | `Asset Compliance System` | Full product name |
+| `ACS Notifications` | `ACS Notifications` | Email from names |
+| `ACS - Asset Compliance System` | `ACS - Asset Compliance System` | Passkey RP names |
+| `ACS API is running` | `ACS API is running` | Health check messages |
+| `ACS team` | `ACS team` | Documentation references |
+| `github.com/humac/acs` | `github.com/humac/acs` | Repository URLs |
 | `kars.jvhlabs.com` | *(Keep as-is or update separately)* | Domain names |
 | `kars-test-` | `acs-test-` | Test temp directories |
-| `/home/user/kars/` | `/home/user/acs/` | File path references |
+| `/home/user/acs/` | `/home/user/acs/` | File path references |
 
 **Note on Domain Names**: The `kars.jvhlabs.com` domain references (93 instances) are marked as **DEFER** - these require DNS/infrastructure changes and should be handled separately after code deployment.
 
@@ -48,12 +48,12 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 | Line(s) | Current Value | New Value | Context |
 |---------|---------------|-----------|---------|
 | 768, 786 | `'KARS'` | `'ACS'` | DEFAULT site_name in branding_settings table |
-| 804, 814 | `'KARS - KeyData Asset Registration System'` | `'ACS - Asset Compliance System'` | DEFAULT rp_name in passkey_settings |
-| 884, 900 | `'KARS Notifications'` | `'ACS Notifications'` | DEFAULT from_name in smtp_settings |
+| 804, 814 | `'ACS - Asset Compliance System'` | `'ACS - Asset Compliance System'` | DEFAULT rp_name in passkey_settings |
+| 884, 900 | `'ACS Notifications'` | `'ACS Notifications'` | DEFAULT from_name in smtp_settings |
 | 1369, 1378 | `'KARS'` | `'ACS'` | INSERT site_name initialization (SQLite) |
 | 1554 | `'KARS'` | `'ACS'` | INSERT site_name initialization (PostgreSQL) |
-| 3104, 3139, 3160 | `'KARS Notifications'` | `'ACS Notifications'` | UPDATE from_name fallback (SQLite) |
-| 3178, 3372 | `'KARS Notifications'` | `'ACS Notifications'` | UPDATE from_name fallback (PostgreSQL) |
+| 3104, 3139, 3160 | `'ACS Notifications'` | `'ACS Notifications'` | UPDATE from_name fallback (SQLite) |
+| 3178, 3372 | `'ACS Notifications'` | `'ACS Notifications'` | UPDATE from_name fallback (PostgreSQL) |
 
 **Implementation Steps**:
 1. Search for all `'KARS'` string literals in database.js
@@ -78,7 +78,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line(s) | Current Value | New Value | Context |
 |---------|---------------|-----------|---------|
-| 82, 130, 180, 313, 417, 507, 592, 690, 772, 937, 1071 | `'KARS Notifications'` | `'ACS Notifications'` | Default from_name in email functions |
+| 82, 130, 180, 313, 417, 507, 592, 690, 772, 937, 1071 | `'ACS Notifications'` | `'ACS Notifications'` | Default from_name in email functions |
 
 **Email Functions Affected**:
 - `sendPasswordResetEmail()`
@@ -94,7 +94,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 - `sendAttestationInviteEmail()`
 
 **Implementation Steps**:
-1. Search for `'KARS Notifications'` in smtpMailer.js
+1. Search for `'ACS Notifications'` in smtpMailer.js
 2. Replace all default from_name values
 3. Test email sending with default and custom from_name
 
@@ -102,7 +102,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 - [ ] Send test emails for each email type
 - [ ] Verify from_name defaults to "ACS Notifications"
 - [ ] Verify custom from_name still works (admin override)
-- [ ] Check email subject lines don't reference KARS
+- [ ] Check email subject lines don't reference ACS
 - [ ] Run email tests: `npm test -- smtpMailer.test.js`
 
 **Risk**: 🟡 **MEDIUM** - Only affects new emails; existing sent emails unchanged
@@ -115,7 +115,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line | Current Value | New Value | Context |
 |------|---------------|-----------|---------|
-| 250 | `"KARS API is running"` | `"ACS API is running"` | Health check endpoint message |
+| 250 | `"ACS API is running"` | `"ACS API is running"` | Health check endpoint message |
 
 **Implementation Steps**:
 1. Update health check message in server.js
@@ -135,11 +135,11 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line(s) | Current Value | New Value | Context |
 |---------|---------------|-----------|---------|
-| 262, 753, 931 | References to KARS in error messages, variable names, defaults | Update to ACS | Error messages and fallback values |
+| 262, 753, 931 | References to ACS in error messages, variable names, defaults | Update to ACS | Error messages and fallback values |
 
 **Implementation Steps**:
 1. Review each reference for context
-2. Update error messages that mention KARS
+2. Update error messages that mention ACS
 3. Update variable names if they use 'kars' prefix
 
 **Testing**:
@@ -157,8 +157,8 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line | Current Value | New Value | Context |
 |------|---------------|-----------|---------|
-| 4 | `"Backend API for KARS - KeyData Asset Registration System"` | `"Backend API for ACS - Asset Compliance System"` | Description field |
-| 24 | `"https://github.com/humac/kars.git"` | `"https://github.com/humac/acs.git"` | Repository URL |
+| 4 | `"Backend API for ACS - Asset Compliance System"` | `"Backend API for ACS - Asset Compliance System"` | Description field |
+| 24 | `"https://github.com/humac/acs.git"` | `"https://github.com/humac/acs.git"` | Repository URL |
 
 **Implementation Steps**:
 1. Update description field
@@ -206,10 +206,10 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line | Current Value | New Value | Context |
 |------|---------------|-----------|---------|
-| 150 | `KARS` | `ACS` | Hardcoded site name in registration header |
+| 150 | `ACS` | `ACS` | Hardcoded site name in registration header |
 
 **Implementation Steps**:
-1. Replace hardcoded "KARS" with "ACS"
+1. Replace hardcoded "ACS" with "ACS"
 2. Consider fetching from branding API instead of hardcoding
 
 **Testing**:
@@ -251,7 +251,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line | Current Value | New Value | Context |
 |------|---------------|-----------|---------|
-| 203 | `https://github.com/humac/kars/blob/main/PASSKEY-TROUBLESHOOTING.md` | `https://github.com/humac/acs/blob/main/PASSKEY-TROUBLESHOOTING.md` | Documentation link |
+| 203 | `https://github.com/humac/acs/blob/main/PASSKEY-TROUBLESHOOTING.md` | `https://github.com/humac/acs/blob/main/PASSKEY-TROUBLESHOOTING.md` | Documentation link |
 
 **Implementation Steps**:
 1. Update GitHub documentation URL
@@ -271,7 +271,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line(s) | Current Value | New Value | Context |
 |---------|---------------|-----------|---------|
-| 26, 58, 228, 334, 389 | `'KARS Notifications'` | `'ACS Notifications'` | Default from_name, KARS_MASTER_KEY references |
+| 26, 58, 228, 334, 389 | `'ACS Notifications'` | `'ACS Notifications'` | Default from_name, KARS_MASTER_KEY references |
 
 **Implementation Steps**:
 1. Update default from_name values
@@ -294,7 +294,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line | Current Value | New Value | Context |
 |------|---------------|-----------|---------|
-| 8 | `"https://github.com/humac/kars.git"` | `"https://github.com/humac/acs.git"` | Repository URL |
+| 8 | `"https://github.com/humac/acs.git"` | `"https://github.com/humac/acs.git"` | Repository URL |
 
 **Implementation Steps**:
 1. Update repository URL
@@ -313,7 +313,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | Line | Current Value | New Value | Context |
 |------|---------------|-----------|---------|
-| 2 | `"Shared constants for the KARS application"` | `"Shared constants for the ACS application"` | File comment |
+| 2 | `"Shared constants for the ACS application"` | `"Shared constants for the ACS application"` | File comment |
 
 **Implementation Steps**:
 1. Update comment to reference ACS
@@ -335,7 +335,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 | File | References | Changes Needed |
 |------|-----------|----------------|
-| `backend/attestation-email.test.js` | 16 | Update test fixtures: `from_name: 'KARS'` → `'ACS'`, `site_name: 'KARS Test'` → `'ACS Test'` |
+| `backend/attestation-email.test.js` | 16 | Update test fixtures: `from_name: 'KARS'` → `'ACS'`, `site_name: 'ACS Test'` → `'ACS Test'` |
 | `backend/footer-label-migration.test.js` | 1 | Update SQL DEFAULT: `site_name 'KARS'` → `'ACS'` |
 | `backend/database-column-validation.test.js` | 1 | Update temp dir: `kars-test-` → `acs-test-` |
 
@@ -347,7 +347,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 **Testing**:
 - [ ] Run: `cd backend && npm test`
 - [ ] Verify all tests pass
-- [ ] Check test output for any remaining KARS references
+- [ ] Check test output for any remaining ACS references
 
 **Risk**: 🟢 **LOW** - Only affects tests
 
@@ -368,7 +368,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 **Testing**:
 - [ ] Run: `cd frontend && npm test`
 - [ ] Verify all tests pass
-- [ ] Check test output for any remaining KARS references
+- [ ] Check test output for any remaining ACS references
 
 **Risk**: 🟢 **LOW** - Only affects tests
 
@@ -441,9 +441,9 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 | `ATTESTATION-FEATURE.md` | 1 | Update cron job path example |
 
 **Implementation Steps**:
-1. Replace all `github.com/humac/kars` → `github.com/humac/acs`
-2. Replace all `KeyData Asset Registration System` → `Asset Compliance System`
-3. Replace file path `/home/user/kars/` → `/home/user/acs/`
+1. Replace all `github.com/humac/acs` → `github.com/humac/acs`
+2. Replace all `Asset Compliance System` → `Asset Compliance System`
+3. Replace file path `/home/user/acs/` → `/home/user/acs/`
 4. **DEFER**: Domain name changes (`kars.jvhlabs.com` → TBD)
 
 **Testing**:
@@ -522,7 +522,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 **Testing**:
 - [ ] Verify Copilot picks up new instructions
-- [ ] Test Copilot suggestions reference ACS not KARS
+- [ ] Test Copilot suggestions reference ACS not ACS
 
 **Risk**: 🟢 **LOW** - Developer tooling only
 
@@ -571,7 +571,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 ### 6.2 Environment Variable Renames
 
 **Potential Breaking Changes**:
-- `KARS_MASTER_KEY` → `ACS_MASTER_KEY` (SMTP password encryption)
+- `ACS_MASTER_KEY` → `ACS_MASTER_KEY` (SMTP password encryption)
 
 **Implementation Requirements**:
 1. Add backward compatibility (check both old and new var names)
@@ -603,7 +603,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 - [ ] Run backend tests: `cd backend && npm test`
 - [ ] Fix any failing tests
 - [ ] Manual API testing (health check, branding endpoints, email sending)
-- [ ] Commit: `git commit -m "refactor: Replace KARS with ACS in backend code"`
+- [ ] Commit: `git commit -m "refactor: Replace ACS with ACS in backend code"`
 
 ### Phase 2: User-Facing UI (Day 1)
 
@@ -617,7 +617,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 - [ ] Run frontend tests: `cd frontend && npm test`
 - [ ] Fix any failing tests
 - [ ] Manual UI testing (login, registration, admin settings)
-- [ ] Commit: `git commit -m "refactor: Replace KARS with ACS in frontend UI"`
+- [ ] Commit: `git commit -m "refactor: Replace ACS with ACS in frontend UI"`
 
 ### Phase 3: Test Files (Day 1)
 
@@ -725,7 +725,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 
 - **Database Migrations**: If new databases were initialized with "ACS", rollback won't affect them
 - **Sent Emails**: Already-sent emails with "ACS Notifications" can't be recalled
-- **User Confusion**: Users may see both "KARS" and "ACS" during transition period
+- **User Confusion**: Users may see both "ACS" and "ACS" during transition period
 
 ---
 
@@ -743,7 +743,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 **Frontend** (`cd frontend && npm test`):
 - [ ] Component tests pass (Login, Register, AdminSettings)
 - [ ] Branding tests verify "ACS" defaults
-- [ ] No hardcoded "KARS" in test expectations
+- [ ] No hardcoded "ACS" in test expectations
 
 **Coverage Requirements**:
 - Backend: >80% coverage maintained
@@ -860,7 +860,7 @@ This plan replaces all instances of "KARS" across the codebase with "ACS" in a p
 - ✅ New user registration shows "ACS" branding
 - ✅ Login page shows "ACS" branding
 - ✅ Emails send with "ACS Notifications" from name
-- ✅ No KARS references in user-facing UI
+- ✅ No ACS references in user-facing UI
 - ✅ Docker images published to new repository
 - ✅ Staging environment validates successfully
 
@@ -921,7 +921,7 @@ The domain names (`kars.jvhlabs.com`) are kept in Phase 6 (DEFERRED) because:
 
 ### Environment Variable Backward Compatibility
 
-For `KARS_MASTER_KEY` → `ACS_MASTER_KEY`:
+For `ACS_MASTER_KEY` → `ACS_MASTER_KEY`:
 
 ```javascript
 // Suggested implementation in backend code
@@ -942,26 +942,26 @@ This allows gradual migration without breaking existing deployments.
 
 **Backend Files**:
 ```bash
-# Replace KARS with ACS in JavaScript files
+# Replace ACS with ACS in JavaScript files
 find backend -name "*.js" -type f -exec sed -i "s/'KARS'/'ACS'/g" {} +
-find backend -name "*.js" -type f -exec sed -i 's/"KARS"/"ACS"/g' {} +
+find backend -name "*.js" -type f -exec sed -i 's/"ACS"/"ACS"/g' {} +
 
-# Replace KARS Notifications
-find backend -name "*.js" -type f -exec sed -i "s/'KARS Notifications'/'ACS Notifications'/g" {} +
+# Replace ACS Notifications
+find backend -name "*.js" -type f -exec sed -i "s/'ACS Notifications'/'ACS Notifications'/g" {} +
 ```
 
 **Frontend Files**:
 ```bash
-# Replace KARS with ACS in JSX files
+# Replace ACS with ACS in JSX files
 find frontend/src -name "*.jsx" -type f -exec sed -i "s/'KARS'/'ACS'/g" {} +
-find frontend/src -name "*.jsx" -type f -exec sed -i 's/"KARS"/"ACS"/g' {} +
+find frontend/src -name "*.jsx" -type f -exec sed -i 's/"ACS"/"ACS"/g' {} +
 ```
 
 **Documentation**:
 ```bash
 # Replace in all markdown files
 find . -name "*.md" -type f -exec sed -i 's/github.com\/humac\/kars/github.com\/humac\/acs/g' {} +
-find . -name "*.md" -type f -exec sed -i 's/KeyData Asset Registration System/Asset Compliance System/g' {} +
+find . -name "*.md" -type f -exec sed -i 's/Asset Compliance System/Asset Compliance System/g' {} +
 find . -name "*.md" -type f -exec sed -i 's/KARS/ACS/g' {} +
 ```
 

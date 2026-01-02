@@ -1,6 +1,6 @@
-# KARS Weekly Release Checklist
+# ACS Weekly Release Checklist
 
-This checklist ensures consistent, safe, and high-quality releases of KARS to production.
+This checklist ensures consistent, safe, and high-quality releases of ACS to production.
 
 ## Release Overview
 
@@ -30,7 +30,7 @@ This checklist ensures consistent, safe, and high-quality releases of KARS to pr
   - [ ] No work-in-progress commits
 
 - [ ] **Check CI/CD Pipeline**
-  - [ ] All tests passing on `develop`: https://github.com/humac/kars/actions
+  - [ ] All tests passing on `develop`: https://github.com/humac/acs/actions
   - [ ] Frontend build successful
   - [ ] Backend build successful
   - [ ] No security audit failures (npm audit)
@@ -396,7 +396,7 @@ This checklist ensures consistent, safe, and high-quality releases of KARS to pr
   - [ ] Update API documentation if endpoints changed
 
 - [ ] **Create GitHub Release**
-  - [ ] Go to: https://github.com/humac/kars/releases
+  - [ ] Go to: https://github.com/humac/acs/releases
   - [ ] Click "Draft a new release"
   - [ ] Select tag: v1.x.x
   - [ ] Release title: "v1.x.x - [Brief description]"
@@ -668,7 +668,7 @@ railway status
 
 - **Production:** https://kars.jvhlabs.com
 - **Staging:** https://staging.kars.jvhlabs.com
-- **GitHub Actions:** https://github.com/humac/kars/actions
+- **GitHub Actions:** https://github.com/humac/acs/actions
 - **Railway Dashboard:** https://railway.app/project/[project-id]
 
 ### Contacts

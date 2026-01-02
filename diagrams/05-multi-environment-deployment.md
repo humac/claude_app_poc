@@ -10,7 +10,7 @@ Shows how code flows through different Railway environments with resource alloca
 - Onboarding infrastructure engineers
 
 ## Architecture Overview
-KARS uses three distinct Railway environments, each with different resource allocations and purposes.
+ACS uses three distinct Railway environments, each with different resource allocations and purposes.
 
 ```mermaid
 graph LR

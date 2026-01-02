@@ -1,6 +1,6 @@
 # Portainer Deployment Flow
 
-This diagram shows the deployment process for KARS on Portainer (staging environment).
+This diagram shows the deployment process for ACS on Portainer (staging environment).
 
 ## Deployment Architecture
 
@@ -189,7 +189,7 @@ https://portainer.example.com/api/stacks/webhooks/<webhook-id>?pullImage=true
 **Monitoring:**
 ```bash
 # Watch GitHub Actions
-https://github.com/humac/kars/actions
+https://github.com/humac/acs/actions
 
 # Watch Portainer logs
 docker logs -f asset-registration-backend

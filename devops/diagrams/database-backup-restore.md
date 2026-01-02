@@ -1,6 +1,6 @@
 # Database Backup & Restore Workflow
 
-This diagram shows the backup and restore procedures for KARS databases (SQLite and PostgreSQL).
+This diagram shows the backup and restore procedures for ACS databases (SQLite and PostgreSQL).
 
 ## Backup & Restore Architecture
 

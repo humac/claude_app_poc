@@ -1,6 +1,6 @@
-# KARS Deployment Runbook
+# ACS Deployment Runbook
 
-This runbook provides step-by-step procedures for deploying and managing KARS across all environments.
+This runbook provides step-by-step procedures for deploying and managing ACS across all environments.
 
 ## Table of Contents
 
@@ -80,7 +80,7 @@ Each environment requires the following variables (see `.env.example`):
 
 ```bash
 # Clone repository
-git clone https://github.com/humac/kars.git
+git clone https://github.com/humac/acs.git
 cd kars
 
 # Install Node.js 22 LTS (if not installed)
@@ -184,7 +184,7 @@ git merge feature/your-feature
 git push origin develop
 
 # 2. Monitor GitHub Actions
-# Go to: https://github.com/humac/kars/actions
+# Go to: https://github.com/humac/acs/actions
 # Watch "Deploy (Staging)" workflow
 
 # 3. Verify build completion
@@ -203,7 +203,7 @@ git push origin develop
 
 ```bash
 # 1. Trigger GitHub Actions manually
-# Go to: https://github.com/humac/kars/actions
+# Go to: https://github.com/humac/acs/actions
 # Click "Deploy (Staging)" → "Run workflow" → Select "develop"
 
 # 2. Or trigger Portainer webhook directly
@@ -220,7 +220,7 @@ curl -X POST "$PORTAINER_WEBHOOK_URL"
    - Build method: Git repository or Web editor
 
 2. **Configure Git Repository** (if using Git method)
-   - Repository URL: `https://github.com/humac/kars`
+   - Repository URL: `https://github.com/humac/acs`
    - Reference: `refs/heads/develop`
    - Compose path: `docker-compose.portainer.yml`
 
@@ -303,7 +303,7 @@ git checkout main
 git pull origin main
 
 # Check CI status
-# All tests must pass: https://github.com/humac/kars/actions
+# All tests must pass: https://github.com/humac/acs/actions
 
 # Create release tag
 git tag -a v1.x.x -m "Release v1.x.x - Description"
@@ -496,7 +496,7 @@ git revert <commit-hash>
 git push origin develop
 
 # 2. GitHub Actions will auto-deploy reverted version
-# Monitor: https://github.com/humac/kars/actions
+# Monitor: https://github.com/humac/acs/actions
 ```
 
 #### Option 2: Portainer Manual Rollback
@@ -770,7 +770,7 @@ railway run psql $DATABASE_URL -c "SELECT 1;"
 
 ```bash
 # Check workflow logs
-# Go to: https://github.com/humac/kars/actions
+# Go to: https://github.com/humac/acs/actions
 
 # Common causes:
 # - npm audit failures (high/critical vulnerabilities)

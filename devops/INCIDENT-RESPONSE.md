@@ -1,6 +1,6 @@
-# KARS Incident Response Guide
+# ACS Incident Response Guide
 
-This document outlines procedures for responding to incidents affecting KARS (KeyData Asset Registration System).
+This document outlines procedures for responding to incidents affecting ACS (Asset Compliance System).
 
 ## Table of Contents
 
@@ -207,7 +207,7 @@ docker logs asset-registration-frontend --tail=500
 git log -n 10 --oneline
 
 # Review GitHub Actions
-# https://github.com/humac/kars/actions
+# https://github.com/humac/acs/actions
 
 # Check infrastructure status
 railway status
@@ -628,7 +628,7 @@ railway run psql $DATABASE_URL -c "\
 **Diagnosis:**
 ```bash
 # Check GitHub Actions
-# https://github.com/humac/kars/actions
+# https://github.com/humac/acs/actions
 
 # Check Railway deployment logs
 railway logs --deployment latest
@@ -837,7 +837,7 @@ RESOLVED: The issue has been resolved. Service is fully operational.
 ```
 Subject: [RESOLVED] Service Disruption - [Date]
 
-Dear KARS Users,
+Dear ACS Users,
 
 We experienced a service disruption on [Date] from [Start Time] to [End Time] UTC.
 
@@ -855,7 +855,7 @@ Prevention:
 
 We apologize for any inconvenience caused.
 
-KARS Team
+ACS Team
 ```
 
 ---

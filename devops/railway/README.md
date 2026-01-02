@@ -1,6 +1,6 @@
 # Railway Platform Documentation
 
-Railway.app is KARS's production deployment platform, providing managed infrastructure with zero-configuration deployment.
+Railway.app is ACS's production deployment platform, providing managed infrastructure with zero-configuration deployment.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ Railway.app is KARS's production deployment platform, providing managed infrastr
 
 **Railway** is a modern Platform-as-a-Service (PaaS) that simplifies application deployment and infrastructure management.
 
-### KARS on Railway
+### ACS on Railway
 
 - **Environment:** Production
 - **Services:** Frontend, Backend, PostgreSQL
@@ -34,10 +34,10 @@ Railway.app is KARS's production deployment platform, providing managed infrastr
 - **Project:** https://railway.app/project/[project-id]
 - **Documentation:** https://docs.railway.app/
 
-### KARS Production
+### ACS Production
 - **Application:** https://kars.jvhlabs.com
 - **API Health:** https://kars.jvhlabs.com/api/health
-- **Repository:** https://github.com/humac/kars
+- **Repository:** https://github.com/humac/acs
 
 ### Internal Documentation
 - **Setup Guide:** [SETUP.md](SETUP.md)
@@ -295,7 +295,7 @@ railway run npm start
 ### Service Structure
 
 ```
-Railway Project: KARS Production
+Railway Project: ACS Production
 ├── Backend Service
 │   ├── Build: Nixpacks (Node.js 22)
 │   ├── Start: node server.js
@@ -355,7 +355,7 @@ PostgreSQL Database (internal)
 
 ### Resource Usage
 
-**Typical KARS Usage:**
+**Typical ACS Usage:**
 - Backend: ~512 MB RAM, 0.5 vCPU
 - Frontend: ~128 MB RAM (nginx)
 - Database: ~256 MB RAM, 1 GB storage
@@ -372,7 +372,7 @@ PostgreSQL Database (internal)
 - **Twitter:** @railway
 - **Email:** team@railway.app
 
-### KARS Team
+### ACS Team
 
 - **DevOps Lead:** [Contact]
 - **On-Call:** PagerDuty rotation

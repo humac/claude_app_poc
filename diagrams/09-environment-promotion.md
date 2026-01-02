@@ -1,7 +1,7 @@
 # Environment Promotion Flow
 
 ## Description
-Shows how code is promoted through environments from local development to production. This diagram illustrates the complete journey of code through the KARS deployment pipeline.
+Shows how code is promoted through environments from local development to production. This diagram illustrates the complete journey of code through the ACS deployment pipeline.
 
 ## When to Reference
 - Understanding the complete deployment flow

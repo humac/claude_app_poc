@@ -1,10 +1,10 @@
-# KARS DevOps & CI/CD Documentation
+# ACS DevOps & CI/CD Documentation
 
-This directory contains comprehensive workflow diagrams documenting the KARS (KeyData Asset Registration System) deployment process, branch strategy, and release workflows using Mermaid diagrams.
+This directory contains comprehensive workflow diagrams documenting the ACS (Asset Compliance System) deployment process, branch strategy, and release workflows using Mermaid diagrams.
 
 ## 📋 Overview
 
-KARS uses **Railway** for deployment with automatic CI/CD pipelines that support multiple environments (PR Preview, Development, Production). Our workflow follows a modified GitFlow strategy with weekly release cycles and emergency hotfix support.
+ACS uses **Railway** for deployment with automatic CI/CD pipelines that support multiple environments (PR Preview, Development, Production). Our workflow follows a modified GitFlow strategy with weekly release cycles and emergency hotfix support.
 
 ### Key Components:
 - **Platform**: Railway (auto-deploy from GitHub)
@@ -140,4 +140,4 @@ If you notice any discrepancies between these diagrams and actual processes:
 ---
 
 **Last Updated**: December 2024  
-**Maintained By**: KARS Development Team
+**Maintained By**: ACS Development Team

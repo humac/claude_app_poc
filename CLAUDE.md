@@ -54,7 +54,7 @@ Web application that supports organizational SOC2 compliance by tracking client 
 ### Repository Structure
 
 ```
-/home/user/kars/
+/home/user/acs/
 ├── backend/                    # Node.js Express API (21 files)
 │   ├── server.js              # Main Express server (107k lines - comprehensive)
 │   ├── database.js            # Database abstraction layer (69k lines)
@@ -155,7 +155,7 @@ PostgreSQL 14+ with database created
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/humac/kars.git
+git clone https://github.com/humac/acs.git
 cd kars
 
 # 2. Backend setup
@@ -1762,5 +1762,5 @@ When in doubt, **read existing code** for patterns and follow them consistently.
 ---
 
 **Last Updated**: 2025-12-25
-**Repository**: https://github.com/humac/kars
+**Repository**: https://github.com/humac/acs
 **Live Demo**: https://kars.jvhlabs.com

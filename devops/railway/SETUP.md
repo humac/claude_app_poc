@@ -1,6 +1,6 @@
 # Railway Setup Guide
 
-Complete guide for initial Railway setup and KARS deployment.
+Complete guide for initial Railway setup and ACS deployment.
 
 ## Prerequisites
 

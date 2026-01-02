@@ -1,6 +1,6 @@
 # ACS (Asset Compliance System)
 
-[![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/humac/kars/actions)
+[![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/humac/acs/actions)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -241,7 +241,7 @@ Enable MFA or register a passkey from your profile
 
 ```bash
 # 1. Clone and install dependencies
-git clone https://github.com/humac/kars.git
+git clone https://github.com/humac/acs.git
 cd kars
 
 # 2. Backend setup
@@ -670,7 +670,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📚 DevOps Documentation
 
-Comprehensive operational documentation for deploying, monitoring, and maintaining KARS in production.
+Comprehensive operational documentation for deploying, monitoring, and maintaining ACS in production.
 
 ### 📖 Core Documentation
 - **[DevOps Hub](/devops/README.md)** - Main documentation index

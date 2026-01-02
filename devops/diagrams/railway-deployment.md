@@ -1,6 +1,6 @@
 # Railway Deployment Flow
 
-This diagram shows the deployment process for KARS on Railway (production environment).
+This diagram shows the deployment process for ACS on Railway (production environment).
 
 ## Railway Deployment Architecture
 

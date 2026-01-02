@@ -1,6 +1,6 @@
 # Railway Configuration
 
-Detailed configuration options for KARS on Railway.
+Detailed configuration options for ACS on Railway.
 
 ## Environment Variables
 
@@ -26,7 +26,7 @@ Detailed configuration options for KARS on Railway.
 ```bash
 # WebAuthn/Passkeys
 railway variables set PASSKEY_RP_ID=kars.jvhlabs.com
-railway variables set PASSKEY_RP_NAME="KARS"
+railway variables set PASSKEY_RP_NAME="ACS"
 railway variables set PASSKEY_ORIGIN=https://kars.jvhlabs.com
 
 # OIDC/SSO (configure via admin UI after deployment)

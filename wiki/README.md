@@ -17,7 +17,7 @@ This directory contains all the documentation pages for the GitHub Wiki.
 
 ```bash
 # 1. Clone the wiki repository
-git clone https://github.com/humac/kars.wiki.git
+git clone https://github.com/humac/acs.wiki.git
 
 # 2. Copy wiki files
 cp wiki/*.md kars.wiki/
@@ -31,7 +31,7 @@ git push origin master
 
 ### Method 2: Manual Upload via GitHub UI
 
-1. Go to your repository's Wiki tab: `https://github.com/humac/kars/wiki`
+1. Go to your repository's Wiki tab: `https://github.com/humac/acs/wiki`
 2. Click "New Page" for each wiki page
 3. Copy the content from each `.md` file
 4. Paste into the wiki editor
@@ -51,7 +51,7 @@ git push origin master
 gh repo edit humac/kars --enable-wiki
 
 # Clone wiki
-git clone https://github.com/humac/kars.wiki.git
+git clone https://github.com/humac/acs.wiki.git
 
 # Copy files
 cp wiki/*.md kars.wiki/

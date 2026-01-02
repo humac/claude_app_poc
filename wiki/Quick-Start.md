@@ -42,7 +42,7 @@ Get the Asset Compliance System (ACS) running in minutes. Pick the section that 
 ### Local Development
 ```bash
 # Clone repository
-git clone https://github.com/humac/kars.git
+git clone https://github.com/humac/acs.git
 cd kars
 
 # Backend

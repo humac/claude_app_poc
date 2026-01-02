@@ -1,6 +1,6 @@
 # Release Process Workflow
 
-This diagram shows the complete weekly release process for KARS, from code freeze to production deployment.
+This diagram shows the complete weekly release process for ACS, from code freeze to production deployment.
 
 ## Release Workflow
 
@@ -426,7 +426,7 @@ git push origin main
 ```
 
 **Create GitHub Release:**
-1. Go to: https://github.com/humac/kars/releases
+1. Go to: https://github.com/humac/acs/releases
 2. Click "Draft a new release"
 3. Select tag: v1.x.x
 4. Release title: "v1.x.x - Brief Description"

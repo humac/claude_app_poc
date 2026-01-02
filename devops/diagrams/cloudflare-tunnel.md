@@ -1,6 +1,6 @@
 # Cloudflare Tunnel Architecture
 
-This diagram shows how Cloudflare Tunnel provides secure external access to KARS without exposing public IPs or opening firewall ports.
+This diagram shows how Cloudflare Tunnel provides secure external access to ACS without exposing public IPs or opening firewall ports.
 
 ## Tunnel Architecture
 

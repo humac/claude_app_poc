@@ -97,9 +97,11 @@ const StatCard = ({ icon: Icon, value, label, trend, trendValue, colorClass = 'p
       whileHover={{ y: -4, transition: { duration: 0.2, ease: 'easeOut' } }}
       className="soft-stat-card group"
     >
-      {/* Icon with gradient */}
-      <div className={`${iconGradientClass} mb-6 group-hover:scale-105 transition-transform duration-300`}>
-        <Icon className="w-6 h-6" strokeWidth={1.5} />
+      {/* Icon header with glass mask for blur fade-out */}
+      <div className="glass-mask pb-6 mb-6">
+        <div className={`${iconGradientClass} group-hover:scale-105 transition-transform duration-300`}>
+          <Icon className="w-6 h-6" strokeWidth={1.5} />
+        </div>
       </div>
       
       {/* Value - Fluid Typography */}
@@ -264,8 +266,9 @@ const Dashboard = () => {
           transition={{ type: 'spring', ...{ ease: 'var(--ease-spring)' } }}
           className="bento-span-full"
         >
-          <div className="liquid-glass-card glass-mask p-6 @md:p-8 @container">
-            <div className="flex items-center justify-between mb-6">
+          <div className="liquid-glass-card p-6 @md:p-8 @container">
+            {/* Header with glass mask for blur fade-out */}
+            <div className="glass-mask flex items-center justify-between mb-6 pb-6">
               <div>
                 <h2 className="text-fluid-h3 text-foreground">
                   Quick Actions

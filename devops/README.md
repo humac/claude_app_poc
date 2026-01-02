@@ -109,7 +109,7 @@ curl http://localhost:3001/api/health
 curl http://localhost:3000
 
 # Production health check
-curl https://kars.jvhlabs.com/api/health
+curl https://acs.jvhlabs.com/api/health
 ```
 
 ### Database Operations

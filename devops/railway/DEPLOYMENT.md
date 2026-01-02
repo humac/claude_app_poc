@@ -42,7 +42,7 @@ railway rollback
 
 ```bash
 # Verify deployment
-curl https://kars.jvhlabs.com/api/health
+curl https://acs.jvhlabs.com/api/health
 
 # Check logs
 railway logs --tail=100

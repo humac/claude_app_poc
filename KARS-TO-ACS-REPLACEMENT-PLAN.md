@@ -27,11 +27,11 @@ This plan replaces all instances of "ACS" across the codebase with "ACS" in a ph
 | `ACS API is running` | `ACS API is running` | Health check messages |
 | `ACS team` | `ACS team` | Documentation references |
 | `github.com/humac/acs` | `github.com/humac/acs` | Repository URLs |
-| `kars.jvhlabs.com` | *(Keep as-is or update separately)* | Domain names |
+| `acs.jvhlabs.com` | *(Keep as-is or update separately)* | Domain names |
 | `kars-test-` | `acs-test-` | Test temp directories |
 | `/home/user/acs/` | `/home/user/acs/` | File path references |
 
-**Note on Domain Names**: The `kars.jvhlabs.com` domain references (93 instances) are marked as **DEFER** - these require DNS/infrastructure changes and should be handled separately after code deployment.
+**Note on Domain Names**: The `acs.jvhlabs.com` domain references (93 instances) are marked as **DEFER** - these require DNS/infrastructure changes and should be handled separately after code deployment.
 
 ---
 
@@ -444,7 +444,7 @@ This plan replaces all instances of "ACS" across the codebase with "ACS" in a ph
 1. Replace all `github.com/humac/acs` → `github.com/humac/acs`
 2. Replace all `Asset Compliance System` → `Asset Compliance System`
 3. Replace file path `/home/user/acs/` → `/home/user/acs/`
-4. **DEFER**: Domain name changes (`kars.jvhlabs.com` → TBD)
+4. **DEFER**: Domain name changes (`acs.jvhlabs.com` → TBD)
 
 **Testing**:
 - [ ] Validate all markdown links
@@ -535,10 +535,10 @@ This plan replaces all instances of "ACS" across the codebase with "ACS" in a ph
 ### 6.1 Domain Name Changes (93 references)
 
 **Current Domains**:
-- Production: `kars.jvhlabs.com`
-- Staging: `staging.kars.jvhlabs.com`
-- PR Previews: `kars-pr-X.up.railway.app`
-- Development: `kars-dev.up.railway.app`
+- Production: `acs.jvhlabs.com`
+- Staging: `staging.acs.jvhlabs.com`
+- PR Previews: `acs-pr-X.up.railway.app`
+- Development: `acs-dev.up.railway.app`
 
 **Proposed New Domains** (TBD):
 - Production: `acs.jvhlabs.com` or similar
@@ -903,7 +903,7 @@ This plan replaces all instances of "ACS" across the codebase with "ACS" in a ph
 
 ### Why Keep Domain Names Separate
 
-The domain names (`kars.jvhlabs.com`) are kept in Phase 6 (DEFERRED) because:
+The domain names (`acs.jvhlabs.com`) are kept in Phase 6 (DEFERRED) because:
 
 1. **DNS Propagation Time**: DNS changes take 24-48 hours to propagate globally
 2. **SSL Certificate Provisioning**: New domains need new SSL certs

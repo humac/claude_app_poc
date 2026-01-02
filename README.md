@@ -6,7 +6,7 @@
 
 A web application that supports organizational SOC2 compliance by tracking client assets assigned to consultants, with full authentication, role-based access control, and automated deployment.
 
-🌐 **Live Demo:** [https://kars.jvhlabs.com](https://kars.jvhlabs.com)
+🌐 **Live Demo:** [https://acs.jvhlabs.com](https://acs.jvhlabs.com)
 
 📖 **Documentation:** [View Wiki](../../wiki)
 
@@ -225,7 +225,7 @@ Docker images are automatically built for both platforms during CI/CD.
 
 ```bash
 # 1. Access the application
-https://kars.jvhlabs.com
+https://acs.jvhlabs.com
 
 # 2. Register (first user becomes admin!)
 Click "Register" → Fill form → Auto-login
@@ -242,7 +242,7 @@ Enable MFA or register a passkey from your profile
 ```bash
 # 1. Clone and install dependencies
 git clone https://github.com/humac/acs.git
-cd kars
+cd acs
 
 # 2. Backend setup
 cd backend

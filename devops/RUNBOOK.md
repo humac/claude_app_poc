@@ -48,8 +48,8 @@ This runbook provides step-by-step procedures for deploying and managing ACS acr
 | Environment | Branch | Platform | Database | URL | Auto-Deploy |
 |-------------|--------|----------|----------|-----|-------------|
 | **Development** | feature/* | Local | SQLite | localhost:3000 | No |
-| **Staging** | develop | Portainer | SQLite/PostgreSQL | staging.kars.jvhlabs.com | Yes |
-| **Production** | main | Railway | PostgreSQL | kars.jvhlabs.com | Manual |
+| **Staging** | develop | Portainer | SQLite/PostgreSQL | staging.acs.jvhlabs.com | Yes |
+| **Production** | main | Railway | PostgreSQL | acs.jvhlabs.com | Manual |
 
 ### Environment Variables
 
@@ -81,7 +81,7 @@ Each environment requires the following variables (see `.env.example`):
 ```bash
 # Clone repository
 git clone https://github.com/humac/acs.git
-cd kars
+cd acs
 
 # Install Node.js 22 LTS (if not installed)
 nvm install 22
@@ -256,10 +256,10 @@ curl -X POST "$PORTAINER_WEBHOOK_URL"
 docker ps | grep asset-registration
 
 # 2. Test backend health
-curl https://staging.kars.jvhlabs.com/api/health
+curl https://staging.acs.jvhlabs.com/api/health
 
 # 3. Test frontend
-curl -I https://staging.kars.jvhlabs.com
+curl -I https://staging.acs.jvhlabs.com
 
 # 4. Verify logs
 docker logs asset-registration-backend
@@ -368,10 +368,10 @@ psql $DATABASE_URL -c "\dt"
 railway status
 
 # 2. Check application health
-curl https://kars.jvhlabs.com/api/health
+curl https://acs.jvhlabs.com/api/health
 
 # 3. Test critical paths
-curl -X POST https://kars.jvhlabs.com/api/auth/login \
+curl -X POST https://acs.jvhlabs.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"test123"}'
 
@@ -379,7 +379,7 @@ curl -X POST https://kars.jvhlabs.com/api/auth/login \
 railway logs | grep -i "database"
 
 # 5. Test frontend
-# - Open https://kars.jvhlabs.com
+# - Open https://acs.jvhlabs.com
 # - Verify login works
 # - Check asset registration
 # - Verify audit logs
@@ -401,7 +401,7 @@ railway logs --tail=100 | grep -i "error"
 # Railway: Built-in health check monitoring
 
 # Manual verification
-curl https://kars.jvhlabs.com/api/health
+curl https://acs.jvhlabs.com/api/health
 
 # Expected response:
 # {"status":"ok","timestamp":"2024-12-18T15:30:00.000Z"}
@@ -453,7 +453,7 @@ Use this checklist after any deployment:
 #!/bin/bash
 # verify-deployment.sh
 
-BASE_URL="${1:-https://kars.jvhlabs.com}"
+BASE_URL="${1:-https://acs.jvhlabs.com}"
 
 echo "Verifying deployment at $BASE_URL..."
 
@@ -541,7 +541,7 @@ git push origin main
 # Or manually trigger: railway up
 
 # 3. Verify rollback
-curl https://kars.jvhlabs.com/api/health
+curl https://acs.jvhlabs.com/api/health
 ```
 
 #### Option 3: Tag-Based Rollback

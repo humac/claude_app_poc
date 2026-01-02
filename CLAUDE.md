@@ -156,7 +156,7 @@ PostgreSQL 14+ with database created
 ```bash
 # 1. Clone repository
 git clone https://github.com/humac/acs.git
-cd kars
+cd acs
 
 # 2. Backend setup
 cd backend
@@ -1216,7 +1216,7 @@ services:
 
 **Staging:**
 - Portainer deployment
-- Domain: kars.jvhlabs.com
+- Domain: acs.jvhlabs.com
 - Cloudflare Tunnel for SSL
 
 **Production:**
@@ -1763,4 +1763,4 @@ When in doubt, **read existing code** for patterns and follow them consistently.
 
 **Last Updated**: 2025-12-25
 **Repository**: https://github.com/humac/acs
-**Live Demo**: https://kars.jvhlabs.com
+**Live Demo**: https://acs.jvhlabs.com

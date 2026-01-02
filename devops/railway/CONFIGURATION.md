@@ -17,17 +17,17 @@ Detailed configuration options for ACS on Railway.
 | Variable | Example | Description |
 |----------|---------|-------------|
 | `ADMIN_EMAIL` | `admin@example.com` | Auto-admin email |
-| `BASE_URL` | `https://kars.jvhlabs.com` | App base URL |
-| `FRONTEND_URL` | `https://kars.jvhlabs.com` | Frontend URL |
+| `BASE_URL` | `https://acs.jvhlabs.com` | App base URL |
+| `FRONTEND_URL` | `https://acs.jvhlabs.com` | Frontend URL |
 | `ACS_MASTER_KEY` | `<base64>` | Email encryption |
 
 ### Optional Features
 
 ```bash
 # WebAuthn/Passkeys
-railway variables set PASSKEY_RP_ID=kars.jvhlabs.com
+railway variables set PASSKEY_RP_ID=acs.jvhlabs.com
 railway variables set PASSKEY_RP_NAME="ACS"
-railway variables set PASSKEY_ORIGIN=https://kars.jvhlabs.com
+railway variables set PASSKEY_ORIGIN=https://acs.jvhlabs.com
 
 # OIDC/SSO (configure via admin UI after deployment)
 railway variables set OIDC_ENABLED=false

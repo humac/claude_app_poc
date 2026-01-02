@@ -74,8 +74,8 @@ If you're building documentation with MkDocs, Docusaurus, or similar, they typic
 
 | Environment | Branch | Purpose | Resources | URL Pattern |
 |-------------|--------|---------|-----------|-------------|
-| **PR Preview** | feature/* | Testing PRs | 256MB RAM, Ephemeral DB | `kars-pr-X.up.railway.app` |
-| **Development** | develop | Integration testing | 512MB RAM, 1GB DB | `kars-dev.up.railway.app` |
+| **PR Preview** | feature/* | Testing PRs | 256MB RAM, Ephemeral DB | `acs-pr-X.up.railway.app` |
+| **Development** | develop | Integration testing | 512MB RAM, 1GB DB | `acs-dev.up.railway.app` |
 | **Production** | main | Live application | 1GB RAM, 5GB DB | `kars.up.railway.app` |
 
 ### Branch Strategy

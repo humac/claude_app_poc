@@ -169,7 +169,7 @@ This document outlines procedures for responding to incidents affecting ACS (Ass
 5. What is the current state? (down / degraded / intermittent)
 
 # Check monitoring
-curl https://kars.jvhlabs.com/api/health
+curl https://acs.jvhlabs.com/api/health
 railway status
 docker ps  # if Portainer
 ```
@@ -233,7 +233,7 @@ docker ps
 2. **Quick Health Check**
    ```bash
    # Backend health
-   curl https://kars.jvhlabs.com/api/health
+   curl https://acs.jvhlabs.com/api/health
    
    # Container status
    railway status
@@ -271,7 +271,7 @@ docker ps
    docker-compose restart
    
    # Monitor recovery
-   watch -n 5 curl https://kars.jvhlabs.com/api/health
+   watch -n 5 curl https://acs.jvhlabs.com/api/health
    ```
 
 5. **Database Failure**
@@ -338,7 +338,7 @@ Impact: [Current user impact]
 8. **Verify Service Recovery**
    ```bash
    # Comprehensive health check
-   curl https://kars.jvhlabs.com/api/health
+   curl https://acs.jvhlabs.com/api/health
    
    # Test critical paths
    # - Login
@@ -350,13 +350,13 @@ Impact: [Current user impact]
    railway logs | grep -i error | wc -l
    
    # Check performance
-   time curl https://kars.jvhlabs.com/api/assets
+   time curl https://acs.jvhlabs.com/api/assets
    ```
 
 9. **Monitor Stability (30-60 minutes)**
    ```bash
    # Continuous monitoring
-   watch -n 30 'curl -s https://kars.jvhlabs.com/api/health && echo "OK"'
+   watch -n 30 'curl -s https://acs.jvhlabs.com/api/health && echo "OK"'
    
    # Watch logs for errors
    railway logs --follow | grep -i error
@@ -394,7 +394,7 @@ Impact: [Current user impact]
    
    # Test specific features
    # Example: Asset registration
-   curl -X POST https://kars.jvhlabs.com/api/assets \
+   curl -X POST https://acs.jvhlabs.com/api/assets \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer $JWT_TOKEN" \
      -d '{"test":"data"}'
@@ -538,7 +538,7 @@ docker-compose restart
 railway run env | grep JWT_SECRET
 
 # Test login endpoint
-curl -X POST https://kars.jvhlabs.com/api/auth/login \
+curl -X POST https://acs.jvhlabs.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"test"}'
 
@@ -1009,7 +1009,7 @@ ACS Team
 
 ```bash
 # Health check
-curl https://kars.jvhlabs.com/api/health
+curl https://acs.jvhlabs.com/api/health
 
 # View logs
 railway logs --tail=100

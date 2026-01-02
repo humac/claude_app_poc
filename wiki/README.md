@@ -20,10 +20,10 @@ This directory contains all the documentation pages for the GitHub Wiki.
 git clone https://github.com/humac/acs.wiki.git
 
 # 2. Copy wiki files
-cp wiki/*.md kars.wiki/
+cp wiki/*.md acs.wiki/
 
 # 3. Commit and push
-cd kars.wiki
+cd acs.wiki
 git add .
 git commit -m "Add comprehensive documentation"
 git push origin master
@@ -54,10 +54,10 @@ gh repo edit humac/kars --enable-wiki
 git clone https://github.com/humac/acs.wiki.git
 
 # Copy files
-cp wiki/*.md kars.wiki/
+cp wiki/*.md acs.wiki/
 
 # Push
-cd kars.wiki
+cd acs.wiki
 git add .
 git commit -m "Add documentation"
 git push
@@ -130,8 +130,8 @@ When updating documentation:
 ```bash
 # Quick update script
 cd wiki
-cp *.md ../kars.wiki/
-cd ../kars.wiki
+cp *.md ../acs.wiki/
+cd ../acs.wiki
 git add .
 git commit -m "Update documentation"
 git push

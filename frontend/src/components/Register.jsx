@@ -235,7 +235,6 @@ const RegisterNew = ({ onSwitchToLogin }) => {
                     <p className="text-sm text-muted-foreground mb-3">Sign in with SSO to automatically create your account</p>
                     <Button
                       type="button"
-                      className="btn-interactive"
                       onClick={async () => {
                         setOidcLoading(true);
                         setError(null);
@@ -262,7 +261,7 @@ const RegisterNew = ({ onSwitchToLogin }) => {
                         }
                       }}
                       variant={oidcConfig?.button_variant || 'outline'}
-                      className="w-full"
+                      className="w-full btn-interactive"
                       size="lg"
                       disabled={oidcLoading || loading}
                     >

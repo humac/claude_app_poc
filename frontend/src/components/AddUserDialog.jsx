@@ -128,74 +128,77 @@ export default function AddUserDialog({ open, onOpenChange, onUserAdded }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="glass-overlay max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">Add New User</DialogTitle>
           <DialogDescription className="text-sm">Create a new user account with specified role and details.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="add-email">Email *</Label>
-              <Input
-                id="add-email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="user@company.com"
-                className="text-base"
-              />
+          <div className="glass-panel rounded-xl p-4 space-y-4">
+            <h3 className="caption-label">User Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="add-email">Email *</Label>
+                <Input
+                  id="add-email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="user@company.com"
+                  className="text-base"
+                />
+              </div>
+              <div>
+                <Label htmlFor="add-password">Password *</Label>
+                <Input
+                  id="add-password"
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="At least 6 characters"
+                  className="text-base"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="add-first-name">First Name *</Label>
+                <Input
+                  id="add-first-name"
+                  value={form.first_name}
+                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                  placeholder="John"
+                  className="text-base"
+                />
+              </div>
+              <div>
+                <Label htmlFor="add-last-name">Last Name *</Label>
+                <Input
+                  id="add-last-name"
+                  value={form.last_name}
+                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                  placeholder="Doe"
+                  className="text-base"
+                />
+              </div>
             </div>
             <div>
-              <Label htmlFor="add-password">Password *</Label>
-              <Input
-                id="add-password"
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="At least 6 characters"
-                className="text-base"
-              />
+              <Label htmlFor="add-role">Role *</Label>
+              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                <SelectTrigger id="add-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Employee</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="coordinator">Coordinator</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="add-first-name">First Name *</Label>
-              <Input
-                id="add-first-name"
-                value={form.first_name}
-                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                placeholder="John"
-                className="text-base"
-              />
-            </div>
-            <div>
-              <Label htmlFor="add-last-name">Last Name *</Label>
-              <Input
-                id="add-last-name"
-                value={form.last_name}
-                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                placeholder="Doe"
-                className="text-base"
-              />
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="add-role">Role *</Label>
-            <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
-              <SelectTrigger id="add-role">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="employee">Employee</SelectItem>
-                <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="coordinator">Coordinator</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="border-t pt-4">
-            <p className="text-sm font-medium mb-3">Manager Information (Optional)</p>
+          <div className="glass-panel rounded-xl p-4 space-y-4">
+            <h3 className="caption-label">Manager Information (Optional)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="add-manager-first">Manager First Name</Label>
@@ -218,7 +221,7 @@ export default function AddUserDialog({ open, onOpenChange, onUserAdded }) {
                 />
               </div>
             </div>
-            <div className="mt-4">
+            <div>
               <Label htmlFor="add-manager-email">Manager Email</Label>
               <Input
                 id="add-manager-email"
@@ -232,8 +235,8 @@ export default function AddUserDialog({ open, onOpenChange, onUserAdded }) {
           </div>
         </div>
         <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
-          <Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full sm:w-auto">Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto">
+          <Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full sm:w-auto btn-interactive">Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto btn-interactive">
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Create User
           </Button>
         </DialogFooter>

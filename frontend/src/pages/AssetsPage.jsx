@@ -109,18 +109,21 @@ export default function AssetsPage() {
       <Card>
         <CardHeader className="space-y-3 md:space-y-4 px-4 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <Laptop className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg sm:text-xl">Asset Management ({assets.length})</CardTitle>
+            <div className="flex items-center gap-3">
+              <Laptop className="h-6 w-6 text-primary" />
+              <CardTitle className="text-xl sm:text-2xl">
+                <span className="text-gradient">Asset Management</span>
+                <span className="text-muted-foreground ml-2 font-normal text-base">({assets.length})</span>
+              </CardTitle>
             </div>
             {canRegister() && (
               <div className="flex gap-2 flex-wrap">
                 {canBulkImport() && (
-                  <Button variant="outline" onClick={() => setShowBulkImportModal(true)} className="flex-1 sm:flex-none">
+                  <Button variant="outline" onClick={() => setShowBulkImportModal(true)} className="flex-1 sm:flex-none btn-interactive">
                     <Upload className="h-4 w-4 mr-2" />Bulk Import
                   </Button>
                 )}
-                <Button onClick={() => setShowRegisterModal(true)} className="flex-1 sm:flex-none">
+                <Button onClick={() => setShowRegisterModal(true)} className="flex-1 sm:flex-none btn-interactive">
                   <Plus className="h-4 w-4 mr-2" />Register Asset
                 </Button>
               </div>

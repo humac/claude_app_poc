@@ -241,7 +241,7 @@ export default function AssetRegisterModal({ onClose, onRegistered }) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[500px] max-h-[90vh] flex flex-col p-0">
+      <DialogContent className="glass-overlay max-w-[95vw] sm:max-w-[500px] max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
           <DialogTitle className="text-lg sm:text-xl">Register New Asset</DialogTitle>
           <DialogDescription className="text-sm">
@@ -252,8 +252,8 @@ export default function AssetRegisterModal({ onClose, onRegistered }) {
         <form onSubmit={save} className="flex flex-col flex-1 min-h-0">
           <div className="overflow-y-auto px-4 sm:px-6 space-y-4 flex-1">
             {/* Employee Information */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-muted-foreground">Employee Information</h4>
+            <div className="glass-panel rounded-xl p-4 space-y-3">
+              <h4 className="caption-label">Employee Information</h4>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
@@ -349,8 +349,8 @@ export default function AssetRegisterModal({ onClose, onRegistered }) {
           </div>
 
             {/* Manager Information */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-muted-foreground">Manager Information</h4>
+            <div className="glass-panel rounded-xl p-4 space-y-3">
+              <h4 className="caption-label">Manager Information</h4>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -406,8 +406,8 @@ export default function AssetRegisterModal({ onClose, onRegistered }) {
           </div>
 
             {/* Asset Information */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-muted-foreground">Asset Information</h4>
+            <div className="glass-panel rounded-xl p-4 space-y-3">
+              <h4 className="caption-label">Asset Information</h4>
               
               <div className="space-y-2">
                 <Label htmlFor="asset_type">Asset Type *</Label>
@@ -563,13 +563,13 @@ export default function AssetRegisterModal({ onClose, onRegistered }) {
           </div>
 
           <DialogFooter className="px-4 sm:px-6 py-3 sm:py-4 border-t mt-auto flex-col-reverse sm:flex-row gap-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={saving} className="w-full sm:w-auto">
+            <Button type="button" variant="outline" onClick={onClose} disabled={saving} className="w-full sm:w-auto btn-interactive">
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={saving || !!emailError}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto btn-interactive"
             >
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {saving ? 'Registering...' : 'Register Asset'}

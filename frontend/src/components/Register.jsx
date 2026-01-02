@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { UserPlus, Loader2, AlertCircle, Laptop, User, Briefcase, Lock, CheckCircle, KeyRound } from 'lucide-react';
+import { UserPlus, Loader2, AlertCircle, Laptop, User, Briefcase, Lock, CheckCircle, KeyRound, Moon, Sun } from 'lucide-react';
 
 const RegisterNew = ({ onSwitchToLogin }) => {
   const { register } = useAuth();
@@ -27,6 +27,22 @@ const RegisterNew = ({ onSwitchToLogin }) => {
   const [loadingInvite, setLoadingInvite] = useState(false);
   const [oidcLoading, setOidcLoading] = useState(false);
   const [footerLabel, setFooterLabel] = useState('SOC2 Compliance - KeyData Asset Registration System');
+
+  // Dark mode state - default to light mode
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
+
+  useEffect(() => {
+    // Apply theme
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     // Fetch branding settings
@@ -129,9 +145,29 @@ const RegisterNew = ({ onSwitchToLogin }) => {
     }
   };
 
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative overflow-hidden bg-dot-pattern">
       <div className="w-full max-w-lg relative z-10 animate-fade-in">
+        {/* Dark Mode Toggle */}
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className="rounded-full shadow-sm hover:shadow-md btn-interactive"
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+        
         {/* Logo/Brand */}
         <div className="text-center mb-8 animate-slide-up">
           {brandingLogo ? (
@@ -153,11 +189,11 @@ const RegisterNew = ({ onSwitchToLogin }) => {
           )}
         </div>
 
-        <Card className="shadow-xl backdrop-blur-sm bg-card/95 border-border/50 animate-scale-in">
+        <Card className="glass-panel rounded-2xl shadow-2xl animate-scale-in">
           <CardHeader className="space-y-2 pb-4">
             <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
               <UserPlus className="h-6 w-6" />
-              Create an account
+              <span className="text-gradient">Create an account</span>
             </CardTitle>
             <CardDescription className="text-center text-base">
               Enter your information to get started
@@ -179,12 +215,12 @@ const RegisterNew = ({ onSwitchToLogin }) => {
             )}
 
             {inviteData && (
-              <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 animate-slide-up">
+              <div className="glass-panel rounded-xl p-4 glow-info animate-slide-up">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
                   <div className="flex-1">
-                    <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Asset Attestation Required</h4>
-                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <h4 className="font-semibold mb-1">Asset Attestation Required</h4>
+                    <p className="text-sm opacity-90">
                       You have <strong>{inviteData.assetCount}</strong> {inviteData.assetCount === 1 ? 'asset' : 'assets'} awaiting attestation for "{inviteData.campaignName}"
                     </p>
                   </div>
@@ -199,6 +235,7 @@ const RegisterNew = ({ onSwitchToLogin }) => {
                     <p className="text-sm text-muted-foreground mb-3">Sign in with SSO to automatically create your account</p>
                     <Button
                       type="button"
+                      className="btn-interactive"
                       onClick={async () => {
                         setOidcLoading(true);
                         setError(null);
@@ -258,8 +295,8 @@ const RegisterNew = ({ onSwitchToLogin }) => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Personal Information */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <div className="glass-panel rounded-xl p-4 space-y-4">
+                <h4 className="caption-label flex items-center gap-2">
                   <User className="h-4 w-4" /> Your Information
                 </h4>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -300,7 +337,7 @@ const RegisterNew = ({ onSwitchToLogin }) => {
                     autoComplete="email"
                     readOnly={!!inviteData}
                     disabled={!!inviteData}
-                    className={inviteData ? 'bg-muted cursor-not-allowed' : ''}
+                    className={inviteData ? 'bg-muted cursor-not-allowed' : 'bg-surface/50 border-white/10'}
                     required
                   />
                 </div>
@@ -309,8 +346,8 @@ const RegisterNew = ({ onSwitchToLogin }) => {
               <Separator className="my-6" />
 
               {/* Manager Information */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <div className="glass-panel rounded-xl p-4 space-y-4">
+                <h4 className="caption-label flex items-center gap-2">
                   <Briefcase className="h-4 w-4" /> Manager Information
                 </h4>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -354,8 +391,8 @@ const RegisterNew = ({ onSwitchToLogin }) => {
               <Separator className="my-6" />
 
               {/* Password */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <div className="glass-panel rounded-xl p-4 space-y-4">
+                <h4 className="caption-label flex items-center gap-2">
                   <Lock className="h-4 w-4" /> Set Password
                 </h4>
                 <div className="space-y-2">
@@ -388,7 +425,7 @@ const RegisterNew = ({ onSwitchToLogin }) => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full mt-2" disabled={loading}>
+              <Button type="submit" className="w-full mt-2 btn-interactive" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />

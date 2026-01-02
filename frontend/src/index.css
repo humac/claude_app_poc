@@ -75,6 +75,18 @@
   body {
     @apply bg-background text-foreground font-sans antialiased selection:bg-primary/30;
   }
+
+  /* Keyframes for slideUp animation */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer components {
@@ -95,5 +107,10 @@
   /* Shimmer effect for loading states */
   .shimmer {
     @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent;
+  }
+
+  /* Slide-up animation for staggered entrances */
+  .animate-slide-up {
+    @apply animate-[slideUp_0.5s_ease-out_forwards];
   }
 }

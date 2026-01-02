@@ -118,49 +118,66 @@
 
 @layer base {
   :root {
-    /* Light mode - Softer, warmer tones with subtle blue tint */
-    --background: 220 20% 97%;           /* Soft warm gray instead of pure white */
-    --foreground: 224 30% 20%;           /* Softer dark, not pure black */
-    --card: 0 0% 100%;                   /* Pure white for cards (creates layering) */
-    --card-foreground: 224 30% 20%;
+    /* ═══════════════════════════════════════════════════════════════
+       SOFT BRUTALISM - WARM LIGHT PALETTE (2026)
+       Avoid pure white (#fff) and pure black (#000)
+       Use warm zinc tones with subtle blue undertones
+    ═══════════════════════════════════════════════════════════════ */
+    
+    /* Base - Warm zinc tones */
+    --background: 240 10% 96%;           /* zinc-50 equivalent - warm off-white */
+    --foreground: 240 10% 20%;           /* zinc-800 equivalent - soft dark */
+    
+    /* Cards - Pure white with subtle warmth for layering */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 20%;
+    
+    /* Popovers - Slightly elevated */
     --popover: 0 0% 100%;
-    --popover-foreground: 224 30% 20%;
+    --popover-foreground: 240 10% 20%;
     
-    /* Primary - Softer, more approachable blue */
-    --primary: 220 70% 55%;              /* Less saturated, warmer blue */
+    /* Primary - Muted indigo/blue (not saturated) */
+    --primary: 230 50% 50%;              /* Softer, more muted blue */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 70% 48%;
+    --primary-hover: 230 50% 45%;
     
-    /* Secondary - Warm neutral */
-    --secondary: 220 15% 94%;            /* Subtle warm gray */
-    --secondary-foreground: 220 20% 30%;
+    /* Secondary - Warm gray */
+    --secondary: 240 8% 92%;             /* Barely tinted gray */
+    --secondary-foreground: 240 10% 30%;
     
-    /* Muted - Softer with warmth */
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 50%;     /* More readable muted text */
+    /* Muted - For secondary text, reduce visual noise */
+    --muted: 240 8% 94%;
+    --muted-foreground: 240 6% 45%;      /* zinc-500 equivalent - softer secondary text */
     
-    /* Accent - Gentle highlight */
-    --accent: 220 50% 95%;               /* Soft blue tint for hovers */
-    --accent-foreground: 220 70% 45%;
+    /* Accent - Very subtle highlight */
+    --accent: 240 10% 95%;
+    --accent-foreground: 230 50% 45%;
     
-    /* Destructive - Less aggressive red */
-    --destructive: 0 65% 55%;            /* Softer red */
+    /* Destructive - Muted coral/red */
+    --destructive: 0 55% 55%;
     --destructive-foreground: 0 0% 100%;
     
-    /* Status Colors - More balanced saturation */
-    --success: 152 55% 42%;              /* Softer green */
+    /* Status Colors - Muted, premium feel */
+    --success: 160 45% 45%;              /* Muted teal-green */
     --success-foreground: 0 0% 100%;
-    --warning: 40 85% 50%;               /* Warmer amber */
-    --warning-foreground: 40 90% 15%;    /* Dark text for better contrast */
-    --info: 205 75% 50%;                 /* Softer cyan-blue */
+    --warning: 35 75% 55%;               /* Warm amber */
+    --warning-foreground: 35 90% 15%;
+    --info: 210 55% 55%;                 /* Soft blue */
     --info-foreground: 0 0% 100%;
     
-    /* Borders & Inputs - Subtle but visible */
-    --border: 220 15% 88%;               /* Softer border */
-    --input: 220 15% 90%;                /* Subtle input background */
-    --ring: 220 70% 55%;
+    /* Borders - Ultra subtle */
+    --border: 240 8% 90%;                /* zinc-200 equivalent */
+    --input: 240 8% 92%;
+    --ring: 230 50% 50%;
     
-    --radius: 0.5rem;
+    /* Radius - Soft brutalism uses very rounded corners */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-2xl: 2rem;
+    --radius-3xl: 2.5rem;                /* New: extra soft corners */
     
     /* Font variables */
     --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -168,47 +185,57 @@
   }
 
   .dark {
-    /* Dark mode - Rich, layered darks with subtle blue undertone */
-    --background: 225 25% 8%;            /* Rich dark blue-gray, not pure black */
-    --foreground: 220 15% 90%;           /* Soft off-white, easier on eyes */
-    --card: 225 25% 11%;                 /* Slightly elevated surface */
-    --card-foreground: 220 15% 90%;
-    --popover: 225 25% 13%;              /* Even more elevated for popovers */
-    --popover-foreground: 220 15% 90%;
+    /* ═══════════════════════════════════════════════════════════════
+       SOFT BRUTALISM - SOFT DARK PALETTE (2026)
+       Rich, layered darks - NOT pure black
+       Use zinc-950/zinc-900 with subtle blue warmth
+    ═══════════════════════════════════════════════════════════════ */
     
-    /* Primary - Brighter in dark mode for visibility */
-    --primary: 220 70% 60%;
+    /* Base - Rich dark zinc, not pure black */
+    --background: 240 10% 6%;            /* zinc-950 equivalent */
+    --foreground: 240 8% 85%;            /* zinc-200 equivalent - warm off-white */
+    
+    /* Cards - Elevated surface (zinc-900) */
+    --card: 240 10% 10%;                 /* zinc-900 equivalent */
+    --card-foreground: 240 8% 85%;
+    
+    /* Popovers - Even more elevated */
+    --popover: 240 10% 12%;
+    --popover-foreground: 240 8% 85%;
+    
+    /* Primary - Slightly brighter for dark mode */
+    --primary: 230 55% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 70% 68%;
+    --primary-hover: 230 55% 65%;
     
     /* Secondary - Subtle elevation */
-    --secondary: 225 20% 16%;
-    --secondary-foreground: 220 15% 88%;
+    --secondary: 240 8% 14%;
+    --secondary-foreground: 240 8% 80%;
     
-    /* Muted - Softer contrast */
-    --muted: 225 20% 14%;
-    --muted-foreground: 220 10% 60%;     /* More readable in dark mode */
+    /* Muted - Softer secondary text */
+    --muted: 240 8% 12%;
+    --muted-foreground: 240 6% 55%;      /* zinc-400/500 - more readable */
     
-    /* Accent - Subtle glow effect */
-    --accent: 225 30% 18%;
-    --accent-foreground: 220 15% 95%;
+    /* Accent - Subtle glow base */
+    --accent: 240 10% 15%;
+    --accent-foreground: 240 8% 90%;
     
-    /* Destructive - Visible but not harsh */
-    --destructive: 0 55% 45%;
-    --destructive-foreground: 0 0% 98%;
+    /* Destructive */
+    --destructive: 0 50% 50%;
+    --destructive-foreground: 0 0% 95%;
     
     /* Status Colors */
-    --success: 152 50% 45%;
+    --success: 160 40% 50%;
     --success-foreground: 0 0% 100%;
-    --warning: 40 80% 55%;
-    --warning-foreground: 40 90% 10%;
-    --info: 205 70% 55%;
+    --warning: 35 70% 55%;
+    --warning-foreground: 35 90% 10%;
+    --info: 210 50% 55%;
     --info-foreground: 0 0% 100%;
     
-    /* Borders & Inputs - Subtle but defined */
-    --border: 225 20% 18%;
-    --input: 225 20% 15%;
-    --ring: 220 70% 60%;
+    /* Borders - Ultra subtle in dark mode */
+    --border: 240 8% 16%;                /* zinc-800 equivalent */
+    --input: 240 8% 14%;
+    --ring: 230 55% 60%;
   }
 
   * {
@@ -228,7 +255,170 @@
 }
 
 @layer components {
-  /* Enhanced Stat Card */
+  /* ═══════════════════════════════════════════════════════════════
+     LIQUID GLASS / GLASSMORPHISM - 2026 Style
+  ═══════════════════════════════════════════════════════════════ */
+  
+  .glass-panel {
+    @apply backdrop-blur-xl;
+    @apply bg-white/60 dark:bg-zinc-900/60;
+    @apply border border-white/20 dark:border-white/10;
+    @apply shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)];
+    @apply rounded-3xl;
+  }
+  
+  .glass-card {
+    @apply backdrop-blur-md;
+    @apply bg-white/70 dark:bg-zinc-900/70;
+    @apply border border-zinc-200/50 dark:border-zinc-700/30;
+    @apply shadow-lg shadow-zinc-900/5 dark:shadow-black/20;
+    @apply rounded-3xl;
+    @apply transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply shadow-xl shadow-zinc-900/10 dark:shadow-black/30;
+    @apply border-zinc-200/70 dark:border-zinc-600/40;
+  }
+  
+  /* ═══════════════════════════════════════════════════════════════
+     SOFT BRUTALISM CARDS - Premium feel
+  ═══════════════════════════════════════════════════════════════ */
+  
+  .soft-card {
+    @apply bg-card rounded-3xl;
+    @apply border border-zinc-200/80 dark:border-zinc-800/80;
+    @apply shadow-sm shadow-zinc-900/5 dark:shadow-black/10;
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .soft-card:hover {
+    @apply shadow-md shadow-zinc-900/8 dark:shadow-black/20;
+  }
+  
+  /* ═══════════════════════════════════════════════════════════════
+     BENTO GRID - Premium dashboard layout
+  ═══════════════════════════════════════════════════════════════ */
+  
+  .bento-grid {
+    @apply grid gap-4 md:gap-6;
+    @apply auto-rows-[minmax(120px,auto)];
+  }
+  
+  .bento-item {
+    @apply rounded-3xl overflow-hidden;
+    @apply bg-card;
+    @apply border border-zinc-200/60 dark:border-zinc-800/60;
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .bento-item-lg {
+    @apply col-span-1 md:col-span-2;
+    @apply row-span-1 md:row-span-2;
+  }
+  
+  /* ═══════════════════════════════════════════════════════════════
+     RADIAL GLOW - Dark mode accent
+  ═══════════════════════════════════════════════════════════════ */
+  
+  .radial-glow {
+    @apply relative;
+  }
+  
+  .radial-glow::before {
+    content: '';
+    @apply absolute inset-0 -z-10;
+    @apply opacity-0 dark:opacity-100;
+    background: radial-gradient(
+      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      hsl(var(--primary) / 0.06),
+      transparent 40%
+    );
+    @apply transition-opacity duration-500;
+  }
+  
+  /* ═══════════════════════════════════════════════════════════════
+     PREMIUM TYPOGRAPHY - Geist optimizations
+  ═══════════════════════════════════════════════════════════════ */
+  
+  .heading-display {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+    @apply font-semibold tracking-tighter;
+    @apply text-foreground;
+  }
+  
+  .heading-section {
+    @apply text-2xl md:text-3xl;
+    @apply font-semibold tracking-tight;
+    @apply text-foreground;
+  }
+  
+  .text-secondary {
+    @apply text-zinc-500 dark:text-zinc-400;
+    @apply font-medium;
+  }
+  
+  .text-tertiary {
+    @apply text-zinc-400 dark:text-zinc-500;
+    @apply font-normal;
+  }
+  
+  /* ═══════════════════════════════════════════════════════════════
+     STAT CARD - 2026 Premium Style
+  ═══════════════════════════════════════════════════════════════ */
+  
+  .stat-card-premium {
+    @apply relative overflow-hidden;
+    @apply bg-card rounded-[2rem];
+    @apply border border-zinc-200/60 dark:border-zinc-800/50;
+    @apply p-6 md:p-8;
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .stat-card-premium:hover {
+    @apply border-zinc-300/80 dark:border-zinc-700/60;
+  }
+  
+  .stat-card-premium::before {
+    content: '';
+    @apply absolute inset-0 -z-10;
+    @apply opacity-0 dark:opacity-100;
+    background: radial-gradient(
+      300px circle at 80% 20%,
+      hsl(var(--primary) / 0.04),
+      transparent 50%
+    );
+  }
+  
+  /* ═══════════════════════════════════════════════════════════════
+     ICON CONTAINER - Premium icon treatment
+  ═══════════════════════════════════════════════════════════════ */
+  
+  .icon-container {
+    @apply flex items-center justify-center;
+    @apply w-12 h-12 md:w-14 md:h-14;
+    @apply rounded-2xl;
+    @apply bg-zinc-100 dark:bg-zinc-800/80;
+    @apply text-zinc-600 dark:text-zinc-300;
+    @apply transition-all duration-300;
+  }
+  
+  .icon-container-primary {
+    @apply bg-primary/10 dark:bg-primary/15;
+    @apply text-primary;
+  }
+  
+  .icon-container-success {
+    @apply bg-success/10 dark:bg-success/15;
+    @apply text-success;
+  }
+  
+  .icon-container-warning {
+    @apply bg-warning/10 dark:bg-warning/15;
+    @apply text-warning;
+  }
+
+  /* Enhanced Stat Card (Legacy - keeping for backwards compatibility) */
   .stat-card {
     @apply bg-card border border-border/40 rounded-xl p-6;
     @apply shadow-sm shadow-black/5 dark:shadow-black/20;

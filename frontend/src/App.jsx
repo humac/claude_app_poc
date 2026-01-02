@@ -97,7 +97,7 @@ function App() {
   return (
     <Routes>
       {/* 5. The Master Layout Wrapper */}
-      <Route element={<Layout />}>
+      <Route element={<Layout theme={theme} setTheme={setTheme} />}>
         {/* All routes inside here will render inside the Layout's <Outlet /> */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/assets" element={<AssetsPage />} />

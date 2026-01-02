@@ -8,14 +8,14 @@ const Card = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-3xl bg-card text-card-foreground",
+      "rounded-[2.5rem] bg-card text-card-foreground",  /* Squircle radius */
       "border border-zinc-200/60 dark:border-zinc-800/50",
-      "shadow-sm shadow-zinc-900/5 dark:shadow-black/10",
-      "transition-all duration-300",
-      "hover:shadow-md hover:shadow-zinc-900/8 dark:hover:shadow-black/20",
-      "hover:border-zinc-300/80 dark:hover:border-zinc-700/60",
+      "transition-all duration-300 antialiased",
       className
     )}
+    style={{
+      boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.03), 0 1px 2px -1px rgb(0 0 0 / 0.03)'
+    }}
     {...props}
   />
 ));

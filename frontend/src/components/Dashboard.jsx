@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { Loader2, Package, Users, Building2, TrendingUp, ArrowUpRight } from 'lucide-react';
 
-// Animation variants for staggered fade-in
+// Animation variants for staggered fade-in with "unfold" effect
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
+      staggerChildren: 0.15,              // Increased from 0.1 for unfold effect
+      delayChildren: 0.15,                // Increased from 0.1
     },
   },
 };
@@ -26,6 +26,58 @@ const itemVariants = {
       damping: 30,
     },
   },
+};
+
+// Magnetic Button Component with cursor following
+const MagneticButton = ({ children, onClick, className = '' }) => {
+  const buttonRef = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  // Smooth spring animation for magnetic effect
+  const springX = useSpring(x, { stiffness: 150, damping: 15 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15 });
+
+  const handleMouseMove = (e) => {
+    if (!buttonRef.current) return;
+    
+    const rect = buttonRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const distanceX = e.clientX - centerX;
+    const distanceY = e.clientY - centerY;
+    const distance = Math.sqrt(distanceX ** 2 + distanceY ** 2);
+    
+    // Apply magnetic effect within 20px radius
+    if (distance < 80) {
+      const strength = (80 - distance) / 80;
+      x.set(distanceX * strength * 0.3);
+      y.set(distanceY * strength * 0.3);
+    } else {
+      x.set(0);
+      y.set(0);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.button
+      ref={buttonRef}
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: springX, y: springY }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={className}
+    >
+      {children}
+    </motion.button>
+  );
 };
 
 // Stat Card Component with Soft Brutalism + Liquid Glass
@@ -179,15 +231,15 @@ const Dashboard = () => {
         />
       </motion.div>
 
-      {/* Quick Actions - Glass Panel Style */}
+      {/* Quick Actions - Glass Panel Style with Magnetic Buttons */}
       <motion.div variants={itemVariants}>
         <div className="glass-card p-6 md:p-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-foreground">
+              <h2 className="text-lg font-semibold tracking-tight text-foreground antialiased">
                 Quick Actions
               </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 antialiased">
                 Frequently used operations
               </p>
             </div>
@@ -200,17 +252,15 @@ const Dashboard = () => {
               { label: 'View Reports', icon: TrendingUp },
               { label: 'Settings', icon: ArrowUpRight },
             ].map((action, index) => (
-              <motion.button
+              <MagneticButton
                 key={action.label}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/40 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all duration-200"
+                className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/40 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all duration-200 antialiased"
               >
                 <action.icon className="w-5 h-5 text-zinc-600 dark:text-zinc-300" strokeWidth={1.5} />
                 <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
                   {action.label}
                 </span>
-              </motion.button>
+              </MagneticButton>
             ))}
           </div>
         </div>

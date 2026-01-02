@@ -119,65 +119,72 @@
 @layer base {
   :root {
     /* ═══════════════════════════════════════════════════════════════
-       SOFT BRUTALISM - WARM LIGHT PALETTE (2026)
-       Avoid pure white (#fff) and pure black (#000)
-       Use warm zinc tones with subtle blue undertones
+       OKLCH PALETTE - PAPER WHITE (2026 PRO)
+       Perceptually uniform colors for natural, premium feel
+       "Paper White" base with subtle warmth
     ═══════════════════════════════════════════════════════════════ */
     
-    /* Base - Warm zinc tones */
-    --background: 240 10% 96%;           /* zinc-50 equivalent - warm off-white */
-    --foreground: 240 10% 20%;           /* zinc-800 equivalent - soft dark */
+    /* Base - Paper White (OKLCH) */
+    --background: 60 0.01 98%;           /* oklch(98% 0.01 60) - warm paper */
+    --foreground: 240 0.02 25%;          /* oklch(25% 0.02 240) - soft ink */
     
-    /* Cards - Pure white with subtle warmth for layering */
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 20%;
+    /* Cards - Elevated paper white */
+    --card: 60 0.005 99.5%;              /* Slightly brighter for layering */
+    --card-foreground: 240 0.02 25%;
     
     /* Popovers - Slightly elevated */
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 20%;
+    --popover: 60 0.005 99.5%;
+    --popover-foreground: 240 0.02 25%;
     
-    /* Primary - Muted indigo/blue (not saturated) */
-    --primary: 230 50% 50%;              /* Softer, more muted blue */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 230 50% 45%;
+    /* Primary - Perceptually uniform muted blue */
+    --primary: 250 0.12 55%;             /* oklch(55% 0.12 250) - balanced blue */
+    --primary-foreground: 0 0 100%;
+    --primary-hover: 250 0.13 50%;
     
-    /* Secondary - Warm gray */
-    --secondary: 240 8% 92%;             /* Barely tinted gray */
-    --secondary-foreground: 240 10% 30%;
+    /* Primary RGB for glow effects */
+    --primary-rgb: 77 114 205;
     
-    /* Muted - For secondary text, reduce visual noise */
-    --muted: 240 8% 94%;
-    --muted-foreground: 240 6% 45%;      /* zinc-500 equivalent - softer secondary text */
+    /* Secondary - Warm neutral */
+    --secondary: 60 0.01 92%;
+    --secondary-foreground: 240 0.02 32%;
     
-    /* Accent - Very subtle highlight */
-    --accent: 240 10% 95%;
-    --accent-foreground: 230 50% 45%;
+    /* Muted - Perceptually softer */
+    --muted: 60 0.008 94%;
+    --muted-foreground: 240 0.015 48%;
     
-    /* Destructive - Muted coral/red */
-    --destructive: 0 55% 55%;
-    --destructive-foreground: 0 0% 100%;
+    /* Accent - Subtle highlight */
+    --accent: 250 0.03 95%;
+    --accent-foreground: 250 0.12 50%;
     
-    /* Status Colors - Muted, premium feel */
-    --success: 160 45% 45%;              /* Muted teal-green */
-    --success-foreground: 0 0% 100%;
-    --warning: 35 75% 55%;               /* Warm amber */
-    --warning-foreground: 35 90% 15%;
-    --info: 210 55% 55%;                 /* Soft blue */
-    --info-foreground: 0 0% 100%;
+    /* Destructive - Perceptually balanced red */
+    --destructive: 20 0.15 58%;
+    --destructive-foreground: 0 0 100%;
+    
+    /* Status Colors - OKLCH for consistency */
+    --success: 160 0.12 48%;             /* Perceptually balanced green */
+    --success-foreground: 0 0 100%;
+    --success-rgb: 42 179 130;
+    --warning: 70 0.15 62%;              /* Warm amber */
+    --warning-foreground: 70 0.18 18%;
+    --warning-rgb: 230 162 45;
+    --info: 230 0.12 58%;                /* Soft blue */
+    --info-foreground: 0 0 100%;
+    --info-rgb: 88 148 220;
     
     /* Borders - Ultra subtle */
-    --border: 240 8% 90%;                /* zinc-200 equivalent */
-    --input: 240 8% 92%;
-    --ring: 230 50% 50%;
+    --border: 240 0.01 88%;
+    --input: 240 0.008 90%;
+    --ring: 250 0.12 55%;
     
-    /* Radius - Soft brutalism uses very rounded corners */
+    /* Squircle Radius - Organic feel */
     --radius: 0.75rem;
     --radius-sm: 0.5rem;
     --radius-md: 0.75rem;
     --radius-lg: 1rem;
     --radius-xl: 1.5rem;
     --radius-2xl: 2rem;
-    --radius-3xl: 2.5rem;                /* New: extra soft corners */
+    --radius-3xl: 2.5rem;
+    --radius-squircle: 2.5rem;           /* Squircle for bento */
     
     /* Font variables */
     --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -186,56 +193,62 @@
 
   .dark {
     /* ═══════════════════════════════════════════════════════════════
-       SOFT BRUTALISM - SOFT DARK PALETTE (2026)
-       Rich, layered darks - NOT pure black
-       Use zinc-950/zinc-900 with subtle blue warmth
+       OKLCH PALETTE - DEEP INK (2026 PRO)
+       Rich, perceptually uniform darks - NOT pure black
+       "Deep Ink" base with subtle blue warmth
     ═══════════════════════════════════════════════════════════════ */
     
-    /* Base - Rich dark zinc, not pure black */
-    --background: 240 10% 6%;            /* zinc-950 equivalent */
-    --foreground: 240 8% 85%;            /* zinc-200 equivalent - warm off-white */
+    /* Base - Deep Ink (OKLCH) */
+    --background: 240 0.02 18%;          /* oklch(18% 0.02 240) - rich ink */
+    --foreground: 240 0.01 88%;          /* oklch(88% 0.01 240) - soft paper */
     
-    /* Cards - Elevated surface (zinc-900) */
-    --card: 240 10% 10%;                 /* zinc-900 equivalent */
-    --card-foreground: 240 8% 85%;
+    /* Cards - Elevated ink surface */
+    --card: 240 0.02 22%;                /* oklch(22% 0.02 240) */
+    --card-foreground: 240 0.01 88%;
     
     /* Popovers - Even more elevated */
-    --popover: 240 10% 12%;
-    --popover-foreground: 240 8% 85%;
+    --popover: 240 0.02 24%;
+    --popover-foreground: 240 0.01 88%;
     
-    /* Primary - Slightly brighter for dark mode */
-    --primary: 230 55% 60%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 230 55% 65%;
+    /* Primary - Brighter for visibility */
+    --primary: 250 0.14 65%;             /* oklch(65% 0.14 250) */
+    --primary-foreground: 0 0 100%;
+    --primary-hover: 250 0.15 70%;
+    
+    /* Primary RGB for glow effects */
+    --primary-rgb: 115 147 255;
     
     /* Secondary - Subtle elevation */
-    --secondary: 240 8% 14%;
-    --secondary-foreground: 240 8% 80%;
+    --secondary: 240 0.015 26%;
+    --secondary-foreground: 240 0.01 85%;
     
-    /* Muted - Softer secondary text */
-    --muted: 240 8% 12%;
-    --muted-foreground: 240 6% 55%;      /* zinc-400/500 - more readable */
+    /* Muted - Perceptually balanced */
+    --muted: 240 0.015 24%;
+    --muted-foreground: 240 0.012 58%;
     
     /* Accent - Subtle glow base */
-    --accent: 240 10% 15%;
-    --accent-foreground: 240 8% 90%;
+    --accent: 240 0.02 28%;
+    --accent-foreground: 240 0.01 92%;
     
     /* Destructive */
-    --destructive: 0 50% 50%;
-    --destructive-foreground: 0 0% 95%;
+    --destructive: 20 0.14 55%;
+    --destructive-foreground: 0 0 98%;
     
-    /* Status Colors */
-    --success: 160 40% 50%;
-    --success-foreground: 0 0% 100%;
-    --warning: 35 70% 55%;
-    --warning-foreground: 35 90% 10%;
-    --info: 210 50% 55%;
-    --info-foreground: 0 0% 100%;
+    /* Status Colors - OKLCH consistency */
+    --success: 160 0.11 52%;
+    --success-foreground: 0 0 100%;
+    --success-rgb: 52 198 145;
+    --warning: 70 0.14 65%;
+    --warning-foreground: 70 0.16 15%;
+    --warning-rgb: 240 175 58;
+    --info: 230 0.11 62%;
+    --info-foreground: 0 0 100%;
+    --info-rgb: 105 162 235;
     
     /* Borders - Ultra subtle in dark mode */
-    --border: 240 8% 16%;                /* zinc-800 equivalent */
-    --input: 240 8% 14%;
-    --ring: 230 55% 60%;
+    --border: 240 0.015 28%;
+    --input: 240 0.015 26%;
+    --ring: 250 0.14 65%;
   }
 
   * {
@@ -243,8 +256,8 @@
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: oklch(var(--background));
+    color: oklch(var(--foreground));
     font-family: var(--font-sans);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     font-optical-sizing: auto;
@@ -252,11 +265,22 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  
+  /* Premium text rendering */
+  h1, h2, h3, h4, h5, h6 {
+    @apply antialiased;
+  }
+  
+  /* Geist Mono elements with reduced opacity for hierarchy */
+  code, pre, kbd, samp, .font-mono {
+    font-family: var(--font-mono);
+    @apply opacity-80;
+  }
 }
 
 @layer components {
   /* ═══════════════════════════════════════════════════════════════
-     LIQUID GLASS / GLASSMORPHISM - 2026 Style
+     LIQUID GLASS / GLASSMORPHISM - 2026 Style with Colored Glows
   ═══════════════════════════════════════════════════════════════ */
   
   .glass-panel {
@@ -264,40 +288,65 @@
     @apply bg-white/60 dark:bg-zinc-900/60;
     @apply border border-white/20 dark:border-white/10;
     @apply shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)];
-    @apply rounded-3xl;
+    @apply rounded-[2.5rem];             /* Squircle radius */
   }
   
   .glass-card {
     @apply backdrop-blur-md;
     @apply bg-white/70 dark:bg-zinc-900/70;
     @apply border border-zinc-200/50 dark:border-zinc-700/30;
-    @apply shadow-lg shadow-zinc-900/5 dark:shadow-black/20;
-    @apply rounded-3xl;
+    @apply rounded-[2.5rem];             /* Squircle radius */
     @apply transition-all duration-300;
   }
   
+  .glass-card {
+    /* Light mode: traditional shadow */
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  }
+  
+  .dark .glass-card {
+    /* Dark mode: colored glow instead of shadow */
+    filter: drop-shadow(0 0 15px rgba(var(--primary-rgb), 0.08));
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.06);
+  }
+  
   .glass-card:hover {
-    @apply shadow-xl shadow-zinc-900/10 dark:shadow-black/30;
     @apply border-zinc-200/70 dark:border-zinc-600/40;
   }
   
+  .dark .glass-card:hover {
+    filter: drop-shadow(0 0 20px rgba(var(--primary-rgb), 0.12));
+    box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.1);
+  }
+  
   /* ═══════════════════════════════════════════════════════════════
-     SOFT BRUTALISM CARDS - Premium feel
+     SOFT BRUTALISM CARDS - Premium with Colored Glows
   ═══════════════════════════════════════════════════════════════ */
   
   .soft-card {
-    @apply bg-card rounded-3xl;
+    @apply bg-card rounded-[2.5rem];    /* Squircle radius */
     @apply border border-zinc-200/80 dark:border-zinc-800/80;
-    @apply shadow-sm shadow-zinc-900/5 dark:shadow-black/10;
     @apply transition-all duration-300 ease-out;
   }
   
+  .soft-card {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+  }
+  
+  .dark .soft-card {
+    filter: drop-shadow(0 0 12px rgba(var(--primary-rgb), 0.04));
+  }
+  
   .soft-card:hover {
-    @apply shadow-md shadow-zinc-900/8 dark:shadow-black/20;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  }
+  
+  .dark .soft-card:hover {
+    filter: drop-shadow(0 0 18px rgba(var(--primary-rgb), 0.08));
   }
   
   /* ═══════════════════════════════════════════════════════════════
-     BENTO GRID - Premium dashboard layout
+     BENTO GRID - Premium dashboard with Squircle
   ═══════════════════════════════════════════════════════════════ */
   
   .bento-grid {
@@ -306,7 +355,7 @@
   }
   
   .bento-item {
-    @apply rounded-3xl overflow-hidden;
+    @apply rounded-[2.5rem] overflow-hidden;  /* Squircle radius */
     @apply bg-card;
     @apply border border-zinc-200/60 dark:border-zinc-800/60;
     @apply transition-all duration-300 ease-out;
@@ -318,7 +367,7 @@
   }
   
   /* ═══════════════════════════════════════════════════════════════
-     RADIAL GLOW - Dark mode accent
+     RADIAL GLOW - Dark mode colored accent
   ═══════════════════════════════════════════════════════════════ */
   
   .radial-glow {
@@ -331,52 +380,65 @@
     @apply opacity-0 dark:opacity-100;
     background: radial-gradient(
       600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      hsl(var(--primary) / 0.06),
+      rgba(var(--primary-rgb), 0.08),
       transparent 40%
     );
     @apply transition-opacity duration-500;
   }
   
   /* ═══════════════════════════════════════════════════════════════
-     PREMIUM TYPOGRAPHY - Geist optimizations
+     PREMIUM TYPOGRAPHY - Geist with antialiasing
   ═══════════════════════════════════════════════════════════════ */
   
   .heading-display {
     @apply text-4xl md:text-5xl lg:text-6xl;
     @apply font-semibold tracking-tighter;
-    @apply text-foreground;
+    @apply text-foreground antialiased;
   }
   
   .heading-section {
     @apply text-2xl md:text-3xl;
     @apply font-semibold tracking-tight;
-    @apply text-foreground;
+    @apply text-foreground antialiased;
   }
   
   .text-secondary {
     @apply text-zinc-500 dark:text-zinc-400;
-    @apply font-medium;
+    @apply font-medium antialiased;
   }
   
   .text-tertiary {
     @apply text-zinc-400 dark:text-zinc-500;
-    @apply font-normal;
+    @apply font-normal subpixel-antialiased;
   }
   
   /* ═══════════════════════════════════════════════════════════════
-     STAT CARD - 2026 Premium Style
+     STAT CARD - 2026 Premium with Colored Glow
   ═══════════════════════════════════════════════════════════════ */
   
   .stat-card-premium {
     @apply relative overflow-hidden;
-    @apply bg-card rounded-[2rem];
+    @apply bg-card rounded-[2rem];      /* Organic squircle */
     @apply border border-zinc-200/60 dark:border-zinc-800/50;
     @apply p-6 md:p-8;
     @apply transition-all duration-300 ease-out;
   }
   
+  .stat-card-premium {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+  }
+  
+  .dark .stat-card-premium {
+    filter: drop-shadow(0 0 12px rgba(var(--primary-rgb), 0.04));
+  }
+  
   .stat-card-premium:hover {
     @apply border-zinc-300/80 dark:border-zinc-700/60;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  }
+  
+  .dark .stat-card-premium:hover {
+    filter: drop-shadow(0 0 18px rgba(var(--primary-rgb), 0.08));
   }
   
   .stat-card-premium::before {
@@ -385,19 +447,19 @@
     @apply opacity-0 dark:opacity-100;
     background: radial-gradient(
       300px circle at 80% 20%,
-      hsl(var(--primary) / 0.04),
+      rgba(var(--primary-rgb), 0.06),
       transparent 50%
     );
   }
   
   /* ═══════════════════════════════════════════════════════════════
-     ICON CONTAINER - Premium icon treatment
+     ICON CONTAINER - Premium with Squircle
   ═══════════════════════════════════════════════════════════════ */
   
   .icon-container {
     @apply flex items-center justify-center;
     @apply w-12 h-12 md:w-14 md:h-14;
-    @apply rounded-2xl;
+    @apply rounded-2xl;                  /* Squircle feel */
     @apply bg-zinc-100 dark:bg-zinc-800/80;
     @apply text-zinc-600 dark:text-zinc-300;
     @apply transition-all duration-300;
@@ -408,14 +470,26 @@
     @apply text-primary;
   }
   
+  .dark .icon-container-primary {
+    filter: drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.2));
+  }
+  
   .icon-container-success {
     @apply bg-success/10 dark:bg-success/15;
     @apply text-success;
   }
   
+  .dark .icon-container-success {
+    filter: drop-shadow(0 0 8px rgba(var(--success-rgb), 0.2));
+  }
+  
   .icon-container-warning {
     @apply bg-warning/10 dark:bg-warning/15;
     @apply text-warning;
+  }
+  
+  .dark .icon-container-warning {
+    filter: drop-shadow(0 0 8px rgba(var(--warning-rgb), 0.2));
   }
 
   /* Enhanced Stat Card (Legacy - keeping for backwards compatibility) */

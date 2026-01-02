@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -21,26 +20,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import TablePaginationControls from '@/components/TablePaginationControls';
 import AssetTableRow from '@/components/AssetTableRow';
 import AssetCard from '@/components/AssetCard';
 import AssetTableFilters from '@/components/AssetTableFilters';
 import BulkAssetActions from '@/components/BulkAssetActions';
-import { Laptop, SearchX, Loader2 } from 'lucide-react';
+import { Laptop, SearchX } from 'lucide-react';
 
-export default function AssetTable({ assets = [], onEdit, onDelete, currentUser, onRefresh, onAssetAdded }) {
+export default function AssetTable({ assets = [], onEdit, onDelete, currentUser, onRefresh }) {
   const { getAuthHeaders } = useAuth();
   const { getFullName, getEmail } = useUsers();
   const { toast } = useToast();
   
-  // State management
   const [deleteDialog, setDeleteDialog] = useState({ open: false, asset: null });
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [companyFilter, setCompanyFilter] = useState('all');
-  const [employeeFilter, setEmployeeFilter] = useState('all');
-  const [managerFilter, setManagerFilter] = useState('all');
   const [assetTypeFilter, setAssetTypeFilter] = useState('all');
   const [companies, setCompanies] = useState([]);
   const [assetTypes, setAssetTypes] = useState([]);
@@ -49,7 +44,6 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
   const [pageSize, setPageSize] = useState(10);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  // Fetch filters on mount
   useEffect(() => {
     async function fetchData() {
       setIsInitialLoading(true);
@@ -69,7 +63,10 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
     fetchData();
   }, [getAuthHeaders]);
 
-  // Handle deletion
+  const handleStatusUpdated = () => {
+    if (onRefresh) onRefresh();
+  };
+
   async function handleDeleteConfirm() {
     const asset = deleteDialog.asset;
     setDeleteDialog({ open: false, asset: null });
@@ -86,7 +83,6 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
     }
   }
 
-  // Permissions & Data Mapping
   const canEdit = (asset) => currentUser?.role === 'admin' || (currentUser?.email?.toLowerCase() === asset.employee_email?.toLowerCase());
   const canDelete = (asset) => currentUser?.role === 'admin';
 
@@ -96,7 +92,6 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
     _managerEmail: asset.manager_email || getEmail(asset.manager_id)
   })), [assets, getFullName, getEmail]);
 
-  // Filtering Logic
   const filteredAssets = useMemo(() => {
     return assetsWithManagerData.filter(asset => {
       const matchesSearch = !searchTerm || [
@@ -111,13 +106,11 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
     });
   }, [assetsWithManagerData, searchTerm, statusFilter, companyFilter, assetTypeFilter]);
 
-  // Pagination
   const paginatedAssets = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filteredAssets.slice(start, start + pageSize);
   }, [filteredAssets, page, pageSize]);
 
-  // Selection Logic
   const toggleSelectAll = () => {
     const pageIds = paginatedAssets.map(a => a.id);
     const allSelected = pageIds.every(id => selectedIds.has(id));
@@ -139,7 +132,6 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Search & Filters Section */}
       <section className="glass-panel p-4 rounded-xl border-glass">
         <AssetTableFilters
           searchTerm={searchTerm} setSearchTerm={setSearchTerm}
@@ -151,7 +143,6 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
         />
       </section>
 
-      {/* Bulk Actions Shell */}
       <BulkAssetActions
         selectedIds={selectedIds}
         filteredAssets={filteredAssets}
@@ -160,7 +151,6 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
         currentUser={currentUser}
       />
 
-      {/* Main Table Container */}
       <div className="glass-panel overflow-hidden rounded-bento border-glass shadow-2xl">
         {filteredAssets.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-surface/20">
@@ -169,14 +159,21 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
           </div>
         ) : (
           <>
-            {/* Mobile View */}
             <div className="md:hidden space-y-4 p-4 bg-surface/10">
               {paginatedAssets.map(asset => (
-                <AssetCard key={asset.id} asset={asset} isSelected={selectedIds.has(asset.id)} />
+                <AssetCard 
+                  key={asset.id} 
+                  asset={asset} 
+                  isSelected={selectedIds.has(asset.id)}
+                  canEdit={canEdit(asset)}
+                  canDelete={canDelete(asset)}
+                  onEdit={() => onEdit(asset)}
+                  onDelete={() => setDeleteDialog({ open: true, asset })}
+                  onStatusUpdated={handleStatusUpdated}
+                />
               ))}
             </div>
 
-            {/* Desktop Modern Table */}
             <Table className="hidden md:table">
               <TableHeader className="bg-muted/30 border-b border-white/5">
                 <TableRow className="hover:bg-transparent">
@@ -195,62 +192,22 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
               </TableHeader>
               <TableBody>
                 {paginatedAssets.map((asset, index) => (
-                  <TableRow 
+                  <AssetTableRow 
                     key={asset.id} 
-                    className={cn(
-                      "group border-b border-white/5 transition-colors hover:bg-white/[0.02]",
-                      "animate-slide-up"
-                    )}
-                    style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
-                  >
-                    <TableCell className="px-6">
-                      <Checkbox 
-                        checked={selectedIds.has(asset.id)}
-                        onCheckedChange={() => {
-                          const next = new Set(selectedIds);
-                          next.has(asset.id) ? next.delete(asset.id) : next.add(asset.id);
-                          setSelectedIds(next);
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell className="py-5">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                          <Laptop size={18} className="text-primary" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-foreground leading-none mb-1">
-                            {asset.employee_first_name} {asset.employee_last_name}
-                          </div>
-                          <div className="text-xs text-muted-foreground">{asset.employee_email}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm font-medium">{asset.make} {asset.model}</div>
-                      <div className="text-xs text-muted-foreground italic">{asset.asset_type}</div>
-                    </TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-muted/50 px-2 py-1 rounded text-primary/80">
-                        {asset.serial_number || 'NO-SERIAL'}
-                      </code>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={cn(
-                        "rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest",
-                        asset.status === 'Active' ? "bg-success/15 text-success border-success/20" : 
-                        asset.status === 'Maintenance' ? "bg-warning/15 text-warning border-warning/20" : 
-                        "bg-muted/20 text-muted-foreground"
-                      )}>
-                        {asset.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                       <Button variant="ghost" size="sm" onClick={() => onEdit(asset)} className="hover:bg-primary/10 hover:text-primary">
-                         Edit
-                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    asset={asset}
+                    index={index}
+                    isSelected={selectedIds.has(asset.id)}
+                    canEdit={canEdit(asset)}
+                    canDelete={canDelete(asset)}
+                    onToggleSelect={() => {
+                      const next = new Set(selectedIds);
+                      next.has(asset.id) ? next.delete(asset.id) : next.add(asset.id);
+                      setSelectedIds(next);
+                    }}
+                    onEdit={() => onEdit(asset)}
+                    onDelete={() => setDeleteDialog({ open: true, asset })}
+                    onStatusUpdated={handleStatusUpdated}
+                  />
                 ))}
               </TableBody>
             </Table>
@@ -264,7 +221,6 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
         onPageChange={setPage} onPageSizeChange={setPageSize}
       />
 
-      {/* Delete Dialog Refactored for Glassmorphism */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, asset: null })}>
         <DialogContent className="glass-panel border-glass">
           <DialogHeader>

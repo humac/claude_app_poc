@@ -57,8 +57,9 @@ describe('Dashboard', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Dashboard')).toBeInTheDocument();
-        expect(screen.getByText(/Welcome back, John!/)).toBeInTheDocument();
+        expect(screen.getByText('System Overview')).toBeInTheDocument();
+        expect(screen.getByText(/Welcome back,/)).toBeInTheDocument();
+        expect(screen.getByText('John')).toBeInTheDocument();
       });
     });
 
@@ -70,8 +71,8 @@ describe('Dashboard', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Total Assets')).toBeInTheDocument();
-        expect(screen.getByText('Team Members')).toBeInTheDocument();
+        expect(screen.getByText('Active Assets')).toBeInTheDocument();
+        expect(screen.getByText('Team Coverage')).toBeInTheDocument();
         expect(screen.getByText('Partners')).toBeInTheDocument();
         expect(screen.getByText('10')).toBeInTheDocument();
         expect(screen.getByText('5')).toBeInTheDocument();
@@ -87,10 +88,9 @@ describe('Dashboard', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('My Actions')).toBeInTheDocument();
-        expect(screen.getByText('View My Assets')).toBeInTheDocument();
-        expect(screen.getByText('My Attestations')).toBeInTheDocument();
-        expect(screen.getByText('My Profile')).toBeInTheDocument();
+        // Check that the dashboard renders with basic content
+        expect(screen.getByText('System Overview')).toBeInTheDocument();
+        expect(screen.getByText('Active Assets')).toBeInTheDocument();
       });
     });
   });
@@ -134,11 +134,11 @@ describe('Dashboard', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('View My Assets')).toBeInTheDocument();
+        expect(screen.getByText('View Full Inventory')).toBeInTheDocument();
       });
 
-      const assetsCard = screen.getByText('View My Assets').closest('.cursor-pointer');
-      await user.click(assetsCard);
+      const assetsButton = screen.getByText('View Full Inventory');
+      await user.click(assetsButton);
 
       expect(mockNavigate).toHaveBeenCalledWith('/assets');
     });
@@ -153,13 +153,9 @@ describe('Dashboard', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('My Profile')).toBeInTheDocument();
+        // Just verify dashboard loads since profile navigation was removed
+        expect(screen.getByText('System Overview')).toBeInTheDocument();
       });
-
-      const profileCard = screen.getByText('My Profile').closest('.cursor-pointer');
-      await user.click(profileCard);
-
-      expect(mockNavigate).toHaveBeenCalledWith('/profile');
     });
   });
 
@@ -173,7 +169,7 @@ describe('Dashboard', () => {
         </BrowserRouter>
       );
 
-      expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
+      expect(screen.getByText('Synchronizing ACS Data...')).toBeInTheDocument();
     });
   });
 

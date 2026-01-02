@@ -228,7 +228,7 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
             <DialogDescription className="pt-2">
               You are about to remove <span className="font-bold text-foreground">"{deleteDialog.asset?.employee_first_name} {deleteDialog.asset?.employee_last_name}"'s</span> asset from the secure registry. This cannot be reversed.
             </DialogDescription>
-          </Header>
+          </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setDeleteDialog({ open: false, asset: null })}>Cancel</Button>
             <Button variant="destructive" className="shadow-glow-destructive" onClick={handleDeleteConfirm}>Delete Asset</Button>

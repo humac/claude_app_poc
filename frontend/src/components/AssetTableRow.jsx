@@ -122,6 +122,7 @@ const AssetTableRow = memo(function AssetTableRow({
             size="icon"
             className="h-8 w-8 hover:bg-primary/10 transition-colors"
             onClick={() => setIsExpanded(!isExpanded)}
+            aria-label={isExpanded ? "Collapse details" : "Expand details"}
           >
             {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </Button>

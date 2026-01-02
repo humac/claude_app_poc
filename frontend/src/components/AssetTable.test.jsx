@@ -309,18 +309,14 @@ describe('AssetTable Component', () => {
       expect(screen.getAllByText('John Doe')[0]).toBeInTheDocument();
     });
 
-    // Find and click the expand button (first button in the row, has chevron icon)
-    const expandButtons = screen.getAllByRole('button').filter(btn => 
-      btn.className.includes('h-8 w-8')
-    );
-    if (expandButtons.length > 0) {
-      await user.click(expandButtons[0]);
+    // Click the expand button to show manager details
+    const expandButtons = screen.getAllByRole('button', { name: /expand details/i });
+    await user.click(expandButtons[0]);
 
-      // Manager name should now be visible in expanded section
-      await waitFor(() => {
-        expect(screen.getByText('Bob Manager')).toBeInTheDocument();
-      });
-    }
+    // Manager name should now be visible in expanded section
+    await waitFor(() => {
+      expect(screen.getByText('Bob Manager')).toBeInTheDocument();
+    });
   });
 
   it('filters assets by manager name', async () => {
@@ -537,7 +533,7 @@ describe('AssetTable Component', () => {
     // Search by employee name (not manager name as that's not supported in refactored component)
     const searchInput = screen.getByPlaceholderText(/search by name/i);
     await user.clear(searchInput);
-    await user.type(searchInput, 'Employee One');
+    await user.type(searchInput, 'One');
 
     // Only the first employee should be visible
     await waitFor(() => {

@@ -11,7 +11,7 @@ export function useViewTransition() {
 
   const transitionTo = useCallback((to, options = {}) => {
     // Check if View Transitions API is supported
-    if (!document.startViewTransition) {
+    if (typeof document === 'undefined' || !document.startViewTransition) {
       navigate(to, options);
       return;
     }
@@ -23,7 +23,7 @@ export function useViewTransition() {
   }, [navigate]);
 
   const transitionBack = useCallback(() => {
-    if (!document.startViewTransition) {
+    if (typeof document === 'undefined' || !document.startViewTransition) {
       navigate(-1);
       return;
     }
@@ -33,10 +33,13 @@ export function useViewTransition() {
     });
   }, [navigate]);
 
+  // Safe feature detection inside the hook
+  const isSupported = typeof document !== 'undefined' && 'startViewTransition' in document;
+
   return {
     transitionTo,
     transitionBack,
-    isSupported: typeof document !== 'undefined' && 'startViewTransition' in document,
+    isSupported,
   };
 }
 
@@ -44,7 +47,7 @@ export function useViewTransition() {
  * Utility to wrap any async operation in a view transition
  */
 export function withViewTransition(callback) {
-  if (!document.startViewTransition) {
+  if (typeof document === 'undefined' || !document.startViewTransition) {
     return callback();
   }
 

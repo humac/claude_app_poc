@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -44,4 +45,34 @@ const Button = React.forwardRef(
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+// Animated button variant with Framer Motion for enhanced interactions
+// Note: asChild prop is not supported with motion animations.
+// When asChild is true, the component falls back to regular Button without animations.
+// For animated links, use motion.a directly or wrap Link component with MotionDiv.
+const MotionButton = React.forwardRef(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    if (asChild) {
+      // For asChild, fallback to regular Button since Slot doesn't work well with motion
+      console.warn('MotionButton: asChild prop disables motion animations. Use regular Button or motion.a for links.');
+      return <Button className={className} variant={variant} size={size} asChild ref={ref} {...props} />;
+    }
+    
+    return (
+      <motion.button
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{
+          type: "spring",
+          stiffness: 400,
+          damping: 25,
+        }}
+        {...props}
+      />
+    );
+  }
+);
+MotionButton.displayName = "MotionButton";
+
+export { Button, MotionButton, buttonVariants };

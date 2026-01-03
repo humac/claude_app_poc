@@ -64,17 +64,19 @@ describe('CompanyManagement', () => {
   });
 
   describe('rendering', () => {
-    it('shows loading spinner initially', () => {
+    it('shows loading skeleton initially', () => {
       global.fetch.mockImplementation(() => new Promise(() => {})); // Never resolves
       localStorage.setItem('token', 'test-token');
 
-      render(
+      const { container } = render(
         <AuthProvider>
           <CompanyManagement />
         </AuthProvider>
       );
 
-      expect(screen.getByText('Loading companies...')).toBeInTheDocument();
+      // Check for shimmer skeleton elements
+      const shimmerElements = container.querySelectorAll('.shimmer');
+      expect(shimmerElements.length).toBeGreaterThan(0);
     });
 
     it('renders company list after loading', async () => {

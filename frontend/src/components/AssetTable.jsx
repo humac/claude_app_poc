@@ -33,6 +33,7 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
   const { toast } = useToast();
   
   const [deleteDialog, setDeleteDialog] = useState({ open: false, asset: null });
+  const [bulkDeleteDialog, setBulkDeleteDialog] = useState({ open: false });
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [companyFilter, setCompanyFilter] = useState('all');
@@ -82,6 +83,49 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
       onDelete(asset.id);
     } catch (err) {
       toast({ title: "Error", description: 'Unable to delete asset.', variant: "destructive" });
+    }
+  }
+
+  async function handleBulkDelete() {
+    // Show confirmation dialog
+    setBulkDeleteDialog({ open: true });
+  }
+
+  async function handleBulkDeleteConfirm() {
+    setBulkDeleteDialog({ open: false });
+    const ids = Array.from(selectedIds);
+    
+    try {
+      const res = await fetch('/api/assets/bulk/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({ ids })
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Bulk delete failed');
+      }
+      
+      const data = await res.json();
+      toast({ 
+        title: "Success", 
+        description: data.message || `Deleted ${ids.length} asset${ids.length === 1 ? '' : 's'}`, 
+        variant: "success" 
+      });
+      
+      // Clear selection and refresh
+      setSelectedIds(new Set());
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      toast({ 
+        title: "Error", 
+        description: err.message || 'Unable to delete assets.', 
+        variant: "destructive" 
+      });
     }
   }
 
@@ -190,7 +234,10 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
       <BulkAssetActions
         selectedIds={selectedIds}
         filteredAssets={filteredAssets}
+        allAssets={assets}
+        hasActiveFilters={searchTerm !== '' || statusFilter !== 'all' || companyFilter !== 'all' || assetTypeFilter !== 'all' || employeeFilter !== 'all' || managerFilter !== 'all'}
         onClearSelection={() => setSelectedIds(new Set())}
+        onBulkDelete={handleBulkDelete}
         onRefresh={onRefresh}
         currentUser={currentUser}
       />
@@ -278,6 +325,21 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setDeleteDialog({ open: false, asset: null })}>Cancel</Button>
             <Button variant="destructive" className="shadow-glow-destructive" onClick={handleDeleteConfirm}>Delete Asset</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkDeleteDialog.open} onOpenChange={(open) => !open && setBulkDeleteDialog({ open: false })}>
+        <DialogContent className="glass-panel border-glass">
+          <DialogHeader>
+            <DialogTitle className="text-gradient text-2xl">Confirm Bulk Deletion</DialogTitle>
+            <DialogDescription className="pt-2">
+              You are about to permanently delete <span className="font-bold text-foreground">{selectedIds.size} asset{selectedIds.size === 1 ? '' : 's'}</span> from the secure registry. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setBulkDeleteDialog({ open: false })}>Cancel</Button>
+            <Button variant="destructive" className="shadow-glow-destructive" onClick={handleBulkDeleteConfirm}>Delete {selectedIds.size} Asset{selectedIds.size === 1 ? '' : 's'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

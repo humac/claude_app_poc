@@ -3,12 +3,15 @@
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/humac/acs/actions)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Design System](https://img.shields.io/badge/Design-2026%20System-7c3aed?logo=tailwindcss&logoColor=white)](#-2026-design-system)
 
-A web application that supports organizational SOC2 compliance by tracking client assets assigned to consultants, with full authentication, role-based access control, and automated deployment.
+A web application that supports organizational SOC2 compliance by tracking client assets assigned to consultants, with modern UI, full authentication, role-based access control, and automated deployment.
 
 🌐 **Live Demo:** [https://acs.jvhlabs.com](https://acs.jvhlabs.com)
 
 📖 **Documentation:** [View Wiki](../../wiki)
+
+🎨 **New in 2026:** [Modern UI Design System](UI-MODERNIZATION-SUMMARY.md) - Glass morphism, spatial depth, and bento layouts for a professional, modern interface.
 
 📊 **DevOps Documentation:** [View Diagrams](/diagrams) - Comprehensive CI/CD workflow diagrams including Railway deployment flows, branch strategy, release workflows, and monitoring procedures.
 
@@ -191,8 +194,47 @@ ACS helps consulting organizations maintain accountability for client-owned asse
 - **Cloudflare Tunnel** - Secure external access with SSL
 - **Health Checks** - Automated container monitoring
 - **Auto-Restart** - Self-healing containers
-- **Modern Material-UI Interface** - Professional design with responsive layout
+- **Modern 2026 Design System** - Professional UI with glass morphism, spatial depth, and bento layouts
 - **📖 DevOps Documentation** - Comprehensive guides in [/devops](devops/) folder
+
+---
+
+## 🎨 2026 Design System
+
+ACS features a modern design system emphasizing spatial depth, semantic opacity, and data-rich bento layouts.
+
+### Design Philosophy
+
+**Spatial Depth** - UI elements exist on three distinct layers:
+- **Floor** (z-index: 0): Ambient background with subtle gradients and `floor` class
+- **Surface** (z-index: 1-10): Glass-panel containers with backdrop blur using `glass-panel` or `bento-card` classes
+- **Overlay** (z-index: 50): Floating modals and popovers using `glass-overlay` class
+
+**Semantic Opacity** - Colors communicate meaning through alpha transparency with glowing status indicators:
+- `glow-success` - Active/positive states with green shadow
+- `glow-warning` - Caution states with orange shadow
+- `glow-destructive` - Error/lost states with red shadow
+- `glow-info` - Informational states with blue shadow
+- `glow-muted` - Inactive/returned states
+
+**Bento Grids** - Non-linear, modular layouts for data-heavy dashboards with interactive hover effects.
+
+**Micro-interactions** - Subtle animations provide feedback:
+- Buttons scale on hover (`btn-interactive`)
+- Cards lift with shadow elevation
+- Smooth transitions (200-300ms)
+- Entrance animations (`animate-fade-in`, `animate-slide-up`, `animate-scale-in`)
+
+### Key Components
+
+- **Glass Morphism**: Backdrop-blur cards and overlays for modern depth
+- **Gradient Text**: Large headings use `text-gradient` for visual hierarchy
+- **Icon Boxes**: Consistent icon containers (`icon-box-sm/md/lg`)
+- **Status Badges**: Pill-shaped with glowing shadows
+- **Loading States**: Shimmer effects for skeleton loading
+- **Typography**: Bold, condensed headings with `caption-label` for metadata
+
+See [UI-MODERNIZATION-SUMMARY.md](UI-MODERNIZATION-SUMMARY.md) and [UI-UX-DESIGN-SPEC.md](UI-UX-DESIGN-SPEC.md) for complete design documentation.
 
 ---
 
@@ -651,7 +693,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Automated Deployment
 - [x] Multi-Platform Support (ARM64 + AMD64)
 - [x] Portainer Webhook Auto-Pull
-- [x] Modern Material-UI Interface
+- [x] Modern 2026 Design System with Glass Morphism & Bento Layouts
 - [x] Cloudflare Tunnel Support
 - [x] Multi-Factor Authentication (MFA/2FA)
 - [x] OIDC/SSO Integration
@@ -665,6 +707,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Mobile App
 - [ ] API Rate Limiting
 - [ ] Database Encryption at Rest
+
+---
+
+## 🎨 UI/UX Documentation
+
+Complete design system documentation and implementation guides.
+
+### Design System References
+- **[UI Modernization Summary](UI-MODERNIZATION-SUMMARY.md)** - Overview of all design changes
+- **[UI/UX Design Specification](UI-UX-DESIGN-SPEC.md)** - Complete design system specification
+- **[Wireframes](WIREFRAMES.md)** - Visual mockups and layout examples
+
+### Key Design Resources
+- **Component Library**: shadcn/ui built on Radix UI primitives
+- **Styling Framework**: Tailwind CSS with custom design tokens
+- **Design Philosophy**: Spatial depth (3 layers), semantic opacity, bento grids
+- **Utility Classes**: Glass morphism (`glass-panel`, `glass-overlay`), glowing badges (`glow-*`), micro-interactions (`btn-interactive`)
+
+### For Developers
+See [CLAUDE.md](CLAUDE.md) and [.github/copilot-instructions.md](.github/copilot-instructions.md) for detailed component implementation patterns and CSS utility class usage.
 
 ---
 

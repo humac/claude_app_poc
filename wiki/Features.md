@@ -609,6 +609,14 @@ ACS implements a comprehensive role-based access control system with four distin
 
 ## 🔧 Developer Features
 
+**Tech Stack**
+- **Frontend**: React 18, Vite, Tailwind CSS, shadcn/ui (Radix UI primitives)
+- **Backend**: Node.js 22 LTS, Express.js, SQLite/PostgreSQL
+- **Design System**: 2026 design patterns with glass morphism, spatial depth, bento layouts
+- **Testing**: Vitest (frontend), Jest (backend)
+- **CI/CD**: GitHub Actions, Docker multi-platform builds
+- **Authentication**: JWT, WebAuthn/Passkeys, TOTP MFA, OIDC/SSO
+
 **API Design**
 - RESTful endpoints
 - JSON request/response
@@ -635,14 +643,14 @@ ACS implements a comprehensive role-based access control system with four distin
 ## 📈 Future Enhancement Possibilities
 
 While not currently implemented, the architecture supports:
-- Advanced reporting dashboards with charts
+- ~~Advanced reporting dashboards with charts~~ ✅ **Implemented** - Summary reports, trends, and dashboards available
+- ~~Automated email notifications~~ ✅ **Implemented** - SMTP-based notifications for passwords, attestations, etc.
+- ~~Bulk import/export capabilities~~ ✅ **Implemented** - CSV import/export for assets, companies, and audit logs
 - Asset lifecycle management workflows
-- Automated email notifications
-- Bulk import/export capabilities
 - Custom fields configuration
 - Asset photos/document attachments
 - Mobile app (React Native)
-- API rate limiting and throttling
+- API rate limiting and throttling (partial implementation available)
 - WebSocket real-time updates
 - Database encryption at rest
 - Asset barcode scanning

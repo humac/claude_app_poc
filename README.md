@@ -707,6 +707,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 🎨 UI/UX Documentation
+
+Complete design system documentation and implementation guides.
+
+### Design System References
+- **[UI Modernization Summary](UI-MODERNIZATION-SUMMARY.md)** - Overview of all design changes
+- **[UI/UX Design Specification](UI-UX-DESIGN-SPEC.md)** - Complete design system specification
+- **[Wireframes](WIREFRAMES.md)** - Visual mockups and layout examples
+
+### Key Design Resources
+- **Component Library**: shadcn/ui built on Radix UI primitives
+- **Styling Framework**: Tailwind CSS with custom design tokens
+- **Design Philosophy**: Spatial depth (3 layers), semantic opacity, bento grids
+- **Utility Classes**: Glass morphism (`glass-panel`, `glass-overlay`), glowing badges (`glow-*`), micro-interactions (`btn-interactive`)
+
+### For Developers
+See [CLAUDE.md](CLAUDE.md) and [.github/copilot-instructions.md](.github/copilot-instructions.md) for detailed component implementation patterns and CSS utility class usage.
+
+---
+
 ## 📚 DevOps Documentation
 
 Comprehensive operational documentation for deploying, monitoring, and maintaining ACS in production.

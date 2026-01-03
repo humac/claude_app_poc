@@ -268,7 +268,13 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="w-12 px-4">
                     <Checkbox
-                      checked={paginatedAssets.length > 0 && paginatedAssets.every(a => selectedIds.has(a.id))}
+                      checked={
+                        paginatedAssets.length > 0 && paginatedAssets.every(a => selectedIds.has(a.id))
+                          ? true
+                          : paginatedAssets.some(a => selectedIds.has(a.id))
+                            ? "indeterminate"
+                            : false
+                      }
                       onCheckedChange={toggleSelectAll}
                     />
                   </TableHead>

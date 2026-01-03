@@ -202,24 +202,21 @@ export default function BulkAssetActions({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
+                {selectedCount > 0 && (
+                  <DropdownMenuItem onClick={handleExportSelected}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export ({selectedCount})
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={handleExportAll}>
                   <Download className="h-4 w-4 mr-2" />
-                  Export All ({totalCount})
+                  Export All
                 </DropdownMenuItem>
                 {hasActiveFilters && filteredCount !== totalCount && (
                   <DropdownMenuItem onClick={handleExportFiltered}>
                     <Download className="h-4 w-4 mr-2" />
                     Export Filtered ({filteredCount})
                   </DropdownMenuItem>
-                )}
-                {selectedCount > 0 && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleExportSelected}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Selected ({selectedCount})
-                    </DropdownMenuItem>
-                  </>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>

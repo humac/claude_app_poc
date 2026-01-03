@@ -440,8 +440,8 @@ describe('BulkAssetActions', () => {
       // Open export dropdown
       await user.click(screen.getByRole('button', { name: /export/i }));
 
-      // Should show Export Selected option
-      expect(screen.getByText(/export selected/i)).toBeInTheDocument();
+      // Should show Export (n) option where n is selectedCount
+      expect(screen.getByText('Export (2)')).toBeInTheDocument();
     });
   });
 

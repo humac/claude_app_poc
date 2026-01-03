@@ -3,12 +3,15 @@
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/humac/acs/actions)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Design System](https://img.shields.io/badge/Design-2026%20System-7c3aed?logo=tailwindcss&logoColor=white)](#-2026-design-system)
 
-A web application that supports organizational SOC2 compliance by tracking client assets assigned to consultants, with full authentication, role-based access control, and automated deployment.
+A web application that supports organizational SOC2 compliance by tracking client assets assigned to consultants, with modern UI, full authentication, role-based access control, and automated deployment.
 
 🌐 **Live Demo:** [https://acs.jvhlabs.com](https://acs.jvhlabs.com)
 
 📖 **Documentation:** [View Wiki](../../wiki)
+
+🎨 **New in 2026:** [Modern UI Design System](UI-MODERNIZATION-SUMMARY.md) - Glass morphism, spatial depth, and bento layouts for a professional, modern interface.
 
 📊 **DevOps Documentation:** [View Diagrams](/diagrams) - Comprehensive CI/CD workflow diagrams including Railway deployment flows, branch strategy, release workflows, and monitoring procedures.
 

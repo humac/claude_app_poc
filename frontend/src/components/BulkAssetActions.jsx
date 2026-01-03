@@ -274,7 +274,7 @@ export default function BulkAssetActions({
 
       {/* Bulk Edit Dialog */}
       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[450px]">
+        <DialogContent className="glass-overlay max-w-[95vw] sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle>Bulk Edit Assets</DialogTitle>
             <DialogDescription>

@@ -204,12 +204,14 @@ const AuditReportingNew = () => {
   }, [logs, logsPage, logsPageSize]);
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <Card>
+    <div className="space-y-6 p-1 md:p-2 animate-fade-in bg-surface/30 min-h-screen rounded-2xl">
+      <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 sm:px-6">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg sm:text-xl">Audit & Reporting</CardTitle>
+            <div className="icon-box icon-box-sm bg-primary/10 border-primary/20">
+              <FileText className="h-4 w-4 text-primary" />
+            </div>
+            <CardTitle className="text-gradient text-lg sm:text-xl">Audit & Reporting</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="px-4 sm:px-6">

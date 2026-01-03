@@ -227,24 +227,28 @@ const AdminSettingsNew = () => {
 
   if (user?.role !== 'admin') {
     return (
-      <Card className="border-destructive">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
-            <span className="font-semibold">Access Denied - Admin access required</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6 p-1 md:p-2 animate-fade-in bg-surface/30 min-h-screen rounded-2xl">
+        <Card className="glass-panel rounded-2xl border-destructive">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="font-semibold">Access Denied - Admin access required</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <Card>
+    <div className="space-y-6 p-1 md:p-2 animate-fade-in bg-surface/30 min-h-screen rounded-2xl">
+      <Card className="glass-panel rounded-2xl">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-primary" />
-            <CardTitle>Admin Settings</CardTitle>
+            <div className="icon-box icon-box-sm bg-primary/10 border-primary/20">
+              <Settings className="h-4 w-4 text-primary" />
+            </div>
+            <CardTitle className="text-gradient">Admin Settings</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="pt-2">

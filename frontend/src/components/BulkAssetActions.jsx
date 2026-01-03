@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Download, Loader2, Edit, Trash2, X, ChevronDown } from 'lucide-react';
+import { Download, Loader2, ChevronDown, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -225,47 +225,38 @@ export default function BulkAssetActions({
 
         {/* Right side: Selection actions */}
         {selectedCount > 0 && (
-          <div
-            className={cn(
-              "flex items-center gap-2 rounded-lg border px-3 py-1.5",
-              "bg-primary/5 border-primary/30"
-            )}
-          >
-            <span className="text-sm font-medium">
-              {selectedCount} selected
-            </span>
-            <div className="h-4 w-px bg-border" />
-            <div className="flex items-center gap-1">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 rounded-lg border px-3 py-2 bg-muted/50">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">{selectedCount} selected</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               {canBulkEdit && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 gap-1.5"
                   onClick={() => setBulkDialogOpen(true)}
                 >
-                  <Edit className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Edit</span>
+                  Bulk edit
                 </Button>
               )}
               {isAdmin && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="text-destructive hover:text-destructive"
                   onClick={handleBulkDelete}
                   disabled={formLoading}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Delete</span>
+                  Delete
                 </Button>
               )}
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2"
                 onClick={onClearSelection}
               >
-                <X className="h-3.5 w-3.5" />
+                Clear
               </Button>
             </div>
           </div>

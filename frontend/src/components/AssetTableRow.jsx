@@ -105,9 +105,9 @@ const AssetTableRow = memo(function AssetTableRow({
   return (
     <>
       <TableRow
+        data-state={isSelected ? "selected" : undefined}
         className={cn(
-          "group border-b border-white/5 transition-all duration-base hover:bg-white/[0.02] animate-slide-up",
-          isSelected && 'bg-primary/5 border-primary/20',
+          "group transition-all duration-base animate-slide-up",
           isExpanded && 'bg-surface/30'
         )}
         style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}

@@ -68,7 +68,10 @@ const Dashboard = () => {
         if (attestRes.ok) {
           const attestData = await attestRes.json();
           const attestations = attestData.attestations || [];
-          stats.pendingAttestationsCount = attestations.filter(a => a.status === 'pending').length;
+          // Count attestations that need action (pending OR in_progress)
+          stats.pendingAttestationsCount = attestations.filter(a => 
+            a.status === 'pending' || a.status === 'in_progress'
+          ).length;
           stats.completedAttestationsCount = attestations.filter(a => a.status === 'completed').length;
         }
       }
@@ -176,14 +179,32 @@ const Dashboard = () => {
           </Card>
 
           {/* Medium Stat: Pending Attestations */}
-          <Card className="bento-card md:col-span-2 md:row-span-1 group">
+          <Card 
+            className="bento-card md:col-span-2 md:row-span-1 group relative cursor-pointer"
+            onClick={() => navigate('/my-attestations')}
+          >
+            {/* Add notification pulse when there are pending items */}
+            {dashboardStats.pendingAttestationsCount > 0 && (
+              <div className="absolute top-4 right-4">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-warning"></span>
+                </span>
+              </div>
+            )}
             <CardContent className="p-6 flex items-center justify-between h-full">
               <div className="space-y-1">
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Pending Attestations</p>
-                <div className="text-4xl font-bold">{dashboardStats.pendingAttestationsCount}</div>
+                <div className="text-4xl font-bold">
+                  {dashboardStats.pendingAttestationsCount > 0 ? (
+                    <span className="text-warning">{dashboardStats.pendingAttestationsCount}</span>
+                  ) : (
+                    <span className="text-success">0</span>
+                  )}
+                </div>
                 {dashboardStats.pendingAttestationsCount === 0 ? (
                   <p className="text-xs text-success font-medium flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> All complete
+                    <CheckCircle2 className="h-3 w-3" /> All attestations complete
                   </p>
                 ) : (
                   <p className="text-xs text-warning font-medium flex items-center gap-1">
@@ -193,9 +214,15 @@ const Dashboard = () => {
               </div>
               <div className={cn(
                 "h-16 w-16 rounded-3xl flex items-center justify-center border group-hover:scale-110 transition-transform",
-                dashboardStats.pendingAttestationsCount === 0 ? "bg-success/10 border-success/20" : "bg-warning/10 border-warning/20"
+                dashboardStats.pendingAttestationsCount > 0 
+                  ? "bg-warning/10 border-warning/20" 
+                  : "bg-success/10 border-success/20"
               )}>
-                <ClipboardCheck className={dashboardStats.pendingAttestationsCount === 0 ? "text-success h-8 w-8" : "text-warning h-8 w-8"} />
+                {dashboardStats.pendingAttestationsCount > 0 ? (
+                  <AlertCircle className="text-warning h-8 w-8" />
+                ) : (
+                  <CheckCircle2 className="text-success h-8 w-8" />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -452,7 +479,7 @@ const Dashboard = () => {
           
           {[
             { label: 'Register New Asset', icon: Plus, path: '/assets', color: 'text-primary', bg: 'bg-primary/10' },
-            { label: 'My Attestations', icon: ClipboardCheck, path: '/attestation', color: 'text-info', bg: 'bg-info/10' },
+            { label: 'My Attestations', icon: ClipboardCheck, path: '/my-attestations', color: 'text-info', bg: 'bg-info/10' },
             { label: 'My Profile', icon: User, path: '/profile', color: 'text-success', bg: 'bg-success/10' }
           ].map((item) => (
             <Card 

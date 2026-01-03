@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Edit, Trash2, ChevronDown, ChevronRight, Loader2, Laptop, User, Calendar, Hash, FileText } from 'lucide-react';
+import { Edit, Trash2, ChevronDown, ChevronRight, Loader2, Laptop, User, Calendar, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatEmployeeName } from '@/utils/user';
 import { ASSET_STATUS_OPTIONS } from '@/lib/constants';

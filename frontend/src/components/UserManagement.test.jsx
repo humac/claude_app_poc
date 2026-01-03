@@ -60,9 +60,9 @@ describe('UserManagement - Coordinator Access', () => {
       expect(screen.queryByText(/Access Denied/i)).not.toBeInTheDocument();
     });
 
-    // Should show User Management title
+    // Should show User Management title with count
     await waitFor(() => {
-      expect(screen.getByText('User Management')).toBeInTheDocument();
+      expect(screen.getByText('User Management (2)')).toBeInTheDocument();
     });
   });
 
@@ -84,7 +84,7 @@ describe('UserManagement - Coordinator Access', () => {
     });
   });
 
-  it('should show read-only description for coordinator', async () => {
+  it('should show user count in title for coordinator', async () => {
     mockUser = { id: 1, email: 'coordinator@test.com', role: 'coordinator' };
 
     global.fetch.mockResolvedValueOnce({
@@ -96,9 +96,9 @@ describe('UserManagement - Coordinator Access', () => {
 
     render(<UserManagement />);
 
-    // Should show read-only description
+    // Should show user count in title
     await waitFor(() => {
-      expect(screen.getByText('View user information (read-only access)')).toBeInTheDocument();
+      expect(screen.getByText('User Management (1)')).toBeInTheDocument();
     });
   });
 
@@ -148,9 +148,9 @@ describe('UserManagement - Coordinator Access', () => {
       expect(screen.queryByText(/You have read-only access to user information/i)).not.toBeInTheDocument();
     });
 
-    // Should show full management description
+    // Should show user count in title
     await waitFor(() => {
-      expect(screen.getByText('Manage user accounts, roles, and permissions')).toBeInTheDocument();
+      expect(screen.getByText('User Management (1)')).toBeInTheDocument();
     });
   });
 });

@@ -183,5 +183,153 @@ describe('Dashboard', () => {
         });
       });
     });
+
+    it('fetches my attestations for employee role', async () => {
+      render(
+        <BrowserRouter>
+          <Dashboard />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith('/api/attestation/my-attestations', {
+          headers: { 'Authorization': 'Bearer test-token' },
+        });
+      });
+    });
+  });
+
+  describe('attestation counting', () => {
+    it('counts both pending and in_progress attestations as pending', async () => {
+      const mockAttestations = {
+        attestations: [
+          { id: 1, status: 'pending' },
+          { id: 2, status: 'in_progress' },
+          { id: 3, status: 'completed' },
+          { id: 4, status: 'pending' },
+        ]
+      };
+
+      global.fetch.mockImplementation((url) => {
+        if (url === '/api/stats') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockStats,
+          });
+        }
+        if (url === '/api/assets') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => [],
+          });
+        }
+        if (url === '/api/attestation/my-attestations') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockAttestations,
+          });
+        }
+        return Promise.resolve({
+          ok: false,
+        });
+      });
+
+      render(
+        <BrowserRouter>
+          <Dashboard />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        // Should show count of 3 (2 pending + 1 in_progress)
+        const pendingCount = screen.getByText('3');
+        expect(pendingCount).toBeInTheDocument();
+      });
+    });
+
+    it('shows 0 when all attestations are completed', async () => {
+      const mockAttestations = {
+        attestations: [
+          { id: 1, status: 'completed' },
+          { id: 2, status: 'completed' },
+        ]
+      };
+
+      global.fetch.mockImplementation((url) => {
+        if (url === '/api/stats') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockStats,
+          });
+        }
+        if (url === '/api/assets') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => [],
+          });
+        }
+        if (url === '/api/attestation/my-attestations') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockAttestations,
+          });
+        }
+        return Promise.resolve({
+          ok: false,
+        });
+      });
+
+      render(
+        <BrowserRouter>
+          <Dashboard />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('All attestations complete')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('navigation to my-attestations', () => {
+    it('navigates to /my-attestations when clicking Pending Attestations card', async () => {
+      const user = userEvent.setup();
+      
+      render(
+        <BrowserRouter>
+          <Dashboard />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pending Attestations')).toBeInTheDocument();
+      });
+
+      // Click the Pending Attestations card
+      const pendingCard = screen.getByText('Pending Attestations').closest('.bento-card');
+      await user.click(pendingCard);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/my-attestations');
+    });
+
+    it('navigates to /my-attestations when clicking My Attestations quick action', async () => {
+      const user = userEvent.setup();
+      
+      render(
+        <BrowserRouter>
+          <Dashboard />
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('My Attestations')).toBeInTheDocument();
+      });
+
+      // Click the My Attestations quick action
+      const myAttestationsAction = screen.getByText('My Attestations').closest('.glass-panel');
+      await user.click(myAttestationsAction);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/my-attestations');
+    });
   });
 });

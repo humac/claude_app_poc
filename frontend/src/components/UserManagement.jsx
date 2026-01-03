@@ -175,21 +175,35 @@ const UserManagement = () => {
   return (
     <div className="space-y-3 animate-fade-in">
       <Card variant="glass">
-        <CardHeader className="pb-2 px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <CardHeader className="space-y-3 md:space-y-4 px-4 sm:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="icon-box icon-box-sm bg-primary/10 border-primary/20">
                 <Users size={20} className="text-primary" />
               </div>
-              <CardTitle className="text-lg sm:text-xl text-gradient">User Management</CardTitle>
+              <CardTitle className="text-lg sm:text-xl text-gradient">User Management ({users.length})</CardTitle>
             </div>
-            <span className="text-xs sm:text-sm text-muted-foreground">Total: {users.length}</span>
+            {isAdmin && (
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={() => setAddUserDialogOpen(true)} className="flex-1 sm:flex-none btn-interactive">
+                  <UserPlus size={20} className="mr-2" />Add User
+                </Button>
+              </div>
+            )}
           </div>
-          <CardDescription className="text-sm">
-            {isReadOnly ? 'View user information (read-only access)' : 'Manage user accounts, roles, and permissions'}
-          </CardDescription>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative max-w-md w-full">
+              <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, email, or manager"
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="pt-2 px-4 sm:px-6">
+        <CardContent className="px-4 sm:px-6">
           {isReadOnly && (
             <Alert className="mb-4">
               <Info className="h-4 w-4" />
@@ -200,25 +214,6 @@ const UserManagement = () => {
           )}
 
           <div className="space-y-2">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="relative w-full sm:max-w-md">
-                <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, email, or manager"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <div className="flex gap-2">
-                {isAdmin && (
-                  <Button onClick={() => setAddUserDialogOpen(true)} className="gap-2 btn-interactive">
-                    <UserPlus size={20} />
-                    Add User
-                  </Button>
-                )}
-              </div>
-            </div>
 
             {isAdmin && (
               <UserBulkActions

@@ -131,7 +131,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-8 p-1 md:p-2 animate-fade-in bg-surface/30 min-h-screen rounded-2xl">
+    <div className="space-y-6 p-1 md:p-2 animate-fade-in bg-surface/30 min-h-screen rounded-2xl">
       {/* Header Section */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2">
         <div>
@@ -152,26 +152,26 @@ const Dashboard = () => {
 
       {/* Main Bento Grid Layout - EMPLOYEE VIEW */}
       {isEmployee && (
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 md:gap-6 min-h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 md:gap-4 min-h-[400px]">
           
           {/* Featured Stat: My Assets (Large Bento Item) */}
           <Card className="bento-card md:col-span-2 md:row-span-2 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Package size={140} />
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-15 transition-opacity">
+              <Package size={100} />
             </div>
-            <CardContent className="p-8 relative z-10 flex flex-col h-full justify-between">
+            <CardContent className="p-5 md:p-6 relative z-10 flex flex-col h-full justify-between">
               <div className="space-y-2">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-glow mb-6">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-4">
                   <Package className="text-primary h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-semibold text-muted-foreground uppercase tracking-widest">My Assets</h2>
-                <div className="text-7xl font-bold tracking-tighter text-gradient leading-none">
+                <div className="text-5xl md:text-6xl font-bold tracking-tighter text-gradient leading-none">
                   {dashboardStats.myAssetsCount}
                 </div>
               </div>
               <button 
                 onClick={() => navigate('/assets')}
-                className="flex items-center gap-2 text-primary font-bold group/btn mt-8"
+                className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4"
               >
                 View My Assets <ArrowUpRight className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
               </button>
@@ -192,10 +192,10 @@ const Dashboard = () => {
                 </span>
               </div>
             )}
-            <CardContent className="p-6 flex items-center justify-between h-full">
+            <CardContent className="p-4 flex items-center justify-between h-full">
               <div className="space-y-1">
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Pending Attestations</p>
-                <div className="text-4xl font-bold">
+                <div className="text-3xl font-bold">
                   {dashboardStats.pendingAttestationsCount > 0 ? (
                     <span className="text-warning">{dashboardStats.pendingAttestationsCount}</span>
                   ) : (
@@ -213,15 +213,15 @@ const Dashboard = () => {
                 )}
               </div>
               <div className={cn(
-                "h-16 w-16 rounded-3xl flex items-center justify-center border group-hover:scale-110 transition-transform",
+                "h-12 w-12 rounded-2xl flex items-center justify-center border group-hover:scale-105 transition-transform",
                 dashboardStats.pendingAttestationsCount > 0 
                   ? "bg-warning/10 border-warning/20" 
                   : "bg-success/10 border-success/20"
               )}>
                 {dashboardStats.pendingAttestationsCount > 0 ? (
-                  <AlertCircle className="text-warning h-8 w-8" />
+                  <AlertCircle className="text-warning h-6 w-6" />
                 ) : (
-                  <CheckCircle2 className="text-success h-8 w-8" />
+                  <CheckCircle2 className="text-success h-6 w-6" />
                 )}
               </div>
             </CardContent>
@@ -232,7 +232,7 @@ const Dashboard = () => {
             className="glass-panel md:col-span-1 md:row-span-1 cursor-pointer hover:bg-white/5 transition-colors group"
             onClick={() => navigate('/profile')}
           >
-            <CardContent className="p-6 flex flex-col justify-between h-full">
+            <CardContent className="p-4 flex flex-col justify-between h-full">
                <User className="text-muted-foreground h-6 w-6 group-hover:text-primary transition-colors" />
                <div className="flex items-center justify-between">
                   <span className="font-semibold tracking-tight">My Profile</span>
@@ -243,9 +243,9 @@ const Dashboard = () => {
 
           {/* Quick Access: Recent Activity */}
           <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-6 flex flex-col justify-between h-full">
-              <div className="h-10 w-10 rounded-xl bg-info/10 flex items-center justify-center border border-info/20 mb-4">
-                <FileBarChart className="text-info h-5 w-5" />
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="h-8 w-8 rounded-lg bg-info/10 flex items-center justify-center border border-info/20 mb-2">
+                <FileBarChart className="text-info h-4 w-4" />
               </div>
               <div>
                 <div className="text-sm font-bold text-muted-foreground uppercase mb-1">Activity</div>
@@ -258,26 +258,26 @@ const Dashboard = () => {
 
       {/* Main Bento Grid Layout - MANAGER VIEW */}
       {isManager && (
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 md:gap-6 min-h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 md:gap-4 min-h-[400px]">
           
           {/* Featured Stat: Team Assets (Large Bento Item) */}
           <Card className="bento-card md:col-span-2 md:row-span-2 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Package size={140} />
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-15 transition-opacity">
+              <Package size={100} />
             </div>
-            <CardContent className="p-8 relative z-10 flex flex-col h-full justify-between">
+            <CardContent className="p-5 md:p-6 relative z-10 flex flex-col h-full justify-between">
               <div className="space-y-2">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-glow mb-6">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-4">
                   <Package className="text-primary h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-semibold text-muted-foreground uppercase tracking-widest">Team Assets</h2>
-                <div className="text-7xl font-bold tracking-tighter text-gradient leading-none">
+                <div className="text-5xl md:text-6xl font-bold tracking-tighter text-gradient leading-none">
                   {dashboardStats.teamAssetsCount}
                 </div>
               </div>
               <button 
                 onClick={() => navigate('/assets')}
-                className="flex items-center gap-2 text-primary font-bold group/btn mt-8"
+                className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4"
               >
                 View Team Assets <ArrowUpRight className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
               </button>
@@ -286,26 +286,26 @@ const Dashboard = () => {
 
           {/* Medium Stat: Team Members */}
           <Card className="bento-card md:col-span-2 md:row-span-1 group">
-            <CardContent className="p-6 flex items-center justify-between h-full">
+            <CardContent className="p-4 flex items-center justify-between h-full">
               <div className="space-y-1">
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Team Members</p>
-                <div className="text-4xl font-bold">{dashboardStats.teamMembersCount}</div>
+                <div className="text-3xl font-bold">{dashboardStats.teamMembersCount}</div>
                 <p className="text-xs text-success font-medium">Direct reports</p>
               </div>
-              <div className="h-16 w-16 rounded-3xl bg-success/10 flex items-center justify-center border border-success/20 group-hover:scale-110 transition-transform">
-                <Users className="text-success h-8 w-8" />
+              <div className="h-12 w-12 rounded-2xl bg-success/10 flex items-center justify-center border border-success/20 group-hover:scale-105 transition-transform">
+                <Users className="text-success h-6 w-6" />
               </div>
             </CardContent>
           </Card>
 
           {/* Small Stat: Pending Reviews */}
           <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-6 flex flex-col justify-between h-full">
-              <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center border border-warning/20 mb-4">
-                <AlertCircle className="text-warning h-5 w-5" />
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center border border-warning/20 mb-2">
+                <AlertCircle className="text-warning h-4 w-4" />
               </div>
               <div>
-                <div className="text-2xl font-bold leading-none mb-1">-</div>
+                <div className="text-xl font-bold leading-none mb-1">-</div>
                 <p className="text-xs font-bold text-muted-foreground uppercase">Reviews</p>
               </div>
             </CardContent>
@@ -316,7 +316,7 @@ const Dashboard = () => {
             className="glass-panel md:col-span-1 md:row-span-1 cursor-pointer hover:bg-white/5 transition-colors group"
             onClick={() => navigate('/audit')}
           >
-            <CardContent className="p-6 flex flex-col justify-between h-full">
+            <CardContent className="p-4 flex flex-col justify-between h-full">
                <FileBarChart className="text-muted-foreground h-6 w-6 group-hover:text-primary transition-colors" />
                <div className="flex items-center justify-between">
                   <span className="font-semibold tracking-tight">Audit Logs</span>
@@ -329,26 +329,26 @@ const Dashboard = () => {
 
       {/* Main Bento Grid Layout - COORDINATOR VIEW */}
       {isCoordinator && (
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 md:gap-6 min-h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 md:gap-4 min-h-[400px]">
           
           {/* Featured Stat: Active Campaigns (Large Bento Item) */}
           <Card className="bento-card md:col-span-2 md:row-span-2 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-              <ClipboardCheck size={140} />
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-15 transition-opacity">
+              <ClipboardCheck size={100} />
             </div>
-            <CardContent className="p-8 relative z-10 flex flex-col h-full justify-between">
+            <CardContent className="p-5 md:p-6 relative z-10 flex flex-col h-full justify-between">
               <div className="space-y-2">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-glow mb-6">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-4">
                   <ClipboardCheck className="text-primary h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-semibold text-muted-foreground uppercase tracking-widest">Active Campaigns</h2>
-                <div className="text-7xl font-bold tracking-tighter text-gradient leading-none">
+                <div className="text-5xl md:text-6xl font-bold tracking-tighter text-gradient leading-none">
                   {dashboardStats.activeCampaignsCount}
                 </div>
               </div>
               <button 
                 onClick={() => navigate('/attestation')}
-                className="flex items-center gap-2 text-primary font-bold group/btn mt-8"
+                className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4"
               >
                 Manage Campaigns <ArrowUpRight className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
               </button>
@@ -357,26 +357,26 @@ const Dashboard = () => {
 
           {/* Medium Stat: Pending Responses */}
           <Card className="bento-card md:col-span-2 md:row-span-1 group">
-            <CardContent className="p-6 flex items-center justify-between h-full">
+            <CardContent className="p-4 flex items-center justify-between h-full">
               <div className="space-y-1">
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Pending Responses</p>
-                <div className="text-4xl font-bold">-</div>
+                <div className="text-3xl font-bold">-</div>
                 <p className="text-xs text-muted-foreground font-medium">Campaign status</p>
               </div>
-              <div className="h-16 w-16 rounded-3xl bg-warning/10 flex items-center justify-center border border-warning/20 group-hover:scale-110 transition-transform">
-                <AlertCircle className="text-warning h-8 w-8" />
+              <div className="h-12 w-12 rounded-2xl bg-warning/10 flex items-center justify-center border border-warning/20 group-hover:scale-105 transition-transform">
+                <AlertCircle className="text-warning h-6 w-6" />
               </div>
             </CardContent>
           </Card>
 
           {/* Small Stat: Companies */}
           <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-6 flex flex-col justify-between h-full">
-              <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center border border-warning/20 mb-4">
-                <Building2 className="text-warning h-5 w-5" />
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center border border-warning/20 mb-2">
+                <Building2 className="text-warning h-4 w-4" />
               </div>
               <div>
-                <div className="text-2xl font-bold leading-none mb-1">{dashboardStats.companiesCount}</div>
+                <div className="text-xl font-bold leading-none mb-1">{dashboardStats.companiesCount}</div>
                 <p className="text-xs font-bold text-muted-foreground uppercase">Companies</p>
               </div>
             </CardContent>
@@ -384,12 +384,12 @@ const Dashboard = () => {
 
           {/* Small Stat: Assets Overview */}
           <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-6 flex flex-col justify-between h-full">
-              <div className="h-10 w-10 rounded-xl bg-info/10 flex items-center justify-center border border-info/20 mb-4">
-                <Package className="text-info h-5 w-5" />
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="h-8 w-8 rounded-lg bg-info/10 flex items-center justify-center border border-info/20 mb-2">
+                <Package className="text-info h-4 w-4" />
               </div>
               <div>
-                <div className="text-2xl font-bold leading-none mb-1">{dashboardStats.assetsCount}</div>
+                <div className="text-xl font-bold leading-none mb-1">{dashboardStats.assetsCount}</div>
                 <p className="text-xs font-bold text-muted-foreground uppercase">Assets</p>
               </div>
             </CardContent>
@@ -399,26 +399,26 @@ const Dashboard = () => {
 
       {/* Main Bento Grid Layout - ADMIN VIEW */}
       {isAdmin && (
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 md:gap-6 min-h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 md:gap-4 min-h-[400px]">
           
           {/* Featured Stat: Total Assets (Large Bento Item) */}
           <Card className="bento-card md:col-span-2 md:row-span-2 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Package size={140} />
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-15 transition-opacity">
+              <Package size={100} />
             </div>
-            <CardContent className="p-8 relative z-10 flex flex-col h-full justify-between">
+            <CardContent className="p-5 md:p-6 relative z-10 flex flex-col h-full justify-between">
               <div className="space-y-2">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-glow mb-6">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-4">
                   <Package className="text-primary h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-semibold text-muted-foreground uppercase tracking-widest">Total Assets</h2>
-                <div className="text-7xl font-bold tracking-tighter text-gradient leading-none">
+                <div className="text-5xl md:text-6xl font-bold tracking-tighter text-gradient leading-none">
                   {dashboardStats.assetsCount}
                 </div>
               </div>
               <button 
                 onClick={() => navigate('/assets')}
-                className="flex items-center gap-2 text-primary font-bold group/btn mt-8"
+                className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4"
               >
                 View Full Inventory <ArrowUpRight className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
               </button>
@@ -427,26 +427,26 @@ const Dashboard = () => {
 
           {/* Medium Stat: Users */}
           <Card className="bento-card md:col-span-2 md:row-span-1 group">
-            <CardContent className="p-6 flex items-center justify-between h-full">
+            <CardContent className="p-4 flex items-center justify-between h-full">
               <div className="space-y-1">
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Users</p>
-                <div className="text-4xl font-bold">{dashboardStats.employeesCount}</div>
+                <div className="text-3xl font-bold">{dashboardStats.employeesCount}</div>
                 <p className="text-xs text-success font-medium">Synced across all departments</p>
               </div>
-              <div className="h-16 w-16 rounded-3xl bg-success/10 flex items-center justify-center border border-success/20 group-hover:scale-110 transition-transform">
-                <Users className="text-success h-8 w-8" />
+              <div className="h-12 w-12 rounded-2xl bg-success/10 flex items-center justify-center border border-success/20 group-hover:scale-105 transition-transform">
+                <Users className="text-success h-6 w-6" />
               </div>
             </CardContent>
           </Card>
 
           {/* Small Stat: Companies */}
           <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-6 flex flex-col justify-between h-full">
-              <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center border border-warning/20 mb-4">
-                <Building2 className="text-warning h-5 w-5" />
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center border border-warning/20 mb-2">
+                <Building2 className="text-warning h-4 w-4" />
               </div>
               <div>
-                <div className="text-2xl font-bold leading-none mb-1">{dashboardStats.companiesCount}</div>
+                <div className="text-xl font-bold leading-none mb-1">{dashboardStats.companiesCount}</div>
                 <p className="text-xs font-bold text-muted-foreground uppercase">Companies</p>
               </div>
             </CardContent>
@@ -457,7 +457,7 @@ const Dashboard = () => {
             className="glass-panel md:col-span-1 md:row-span-1 cursor-pointer hover:bg-white/5 transition-colors group"
             onClick={() => navigate('/profile')}
           >
-            <CardContent className="p-6 flex flex-col justify-between h-full">
+            <CardContent className="p-4 flex flex-col justify-between h-full">
                <User className="text-muted-foreground h-6 w-6 group-hover:text-primary transition-colors" />
                <div className="flex items-center justify-between">
                   <span className="font-semibold tracking-tight">My Account</span>
@@ -470,7 +470,7 @@ const Dashboard = () => {
 
       {/* Actions Grid - EMPLOYEE */}
       {isEmployee && (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div className="md:col-span-3">
             <h2 className="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
               <ClipboardCheck className="text-primary" /> Quick Actions
@@ -488,9 +488,9 @@ const Dashboard = () => {
               onClick={() => navigate(item.path)}
             >
               <div className={cn("absolute inset-y-0 left-0 w-1", item.bg.replace('/10', ''))} />
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center border border-white/5", item.bg)}>
-                  <item.icon className={cn("h-6 w-6", item.color)} />
+              <CardContent className="p-3 flex items-center gap-3">
+                <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center border border-white/5", item.bg)}>
+                  <item.icon className={cn("h-5 w-5", item.color)} />
                 </div>
                 <div>
                   <h3 className="font-bold tracking-tight">{item.label}</h3>
@@ -504,7 +504,7 @@ const Dashboard = () => {
 
       {/* Actions Grid - MANAGER */}
       {isManager && (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div className="md:col-span-3">
             <h2 className="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
               <ClipboardCheck className="text-primary" /> Quick Actions
@@ -522,9 +522,9 @@ const Dashboard = () => {
               onClick={() => navigate(item.path)}
             >
               <div className={cn("absolute inset-y-0 left-0 w-1", item.bg.replace('/10', ''))} />
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center border border-white/5", item.bg)}>
-                  <item.icon className={cn("h-6 w-6", item.color)} />
+              <CardContent className="p-3 flex items-center gap-3">
+                <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center border border-white/5", item.bg)}>
+                  <item.icon className={cn("h-5 w-5", item.color)} />
                 </div>
                 <div>
                   <h3 className="font-bold tracking-tight">{item.label}</h3>
@@ -538,7 +538,7 @@ const Dashboard = () => {
 
       {/* Actions Grid - COORDINATOR */}
       {isCoordinator && (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div className="md:col-span-3">
             <h2 className="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
               <ClipboardCheck className="text-primary" /> Quick Actions
@@ -556,9 +556,9 @@ const Dashboard = () => {
               onClick={() => navigate(item.path)}
             >
               <div className={cn("absolute inset-y-0 left-0 w-1", item.bg.replace('/10', ''))} />
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center border border-white/5", item.bg)}>
-                  <item.icon className={cn("h-6 w-6", item.color)} />
+              <CardContent className="p-3 flex items-center gap-3">
+                <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center border border-white/5", item.bg)}>
+                  <item.icon className={cn("h-5 w-5", item.color)} />
                 </div>
                 <div>
                   <h3 className="font-bold tracking-tight">{item.label}</h3>
@@ -572,7 +572,7 @@ const Dashboard = () => {
 
       {/* Actions Grid - ADMIN */}
       {isAdmin && (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div className="md:col-span-3">
             <h2 className="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
               <ClipboardCheck className="text-primary" /> Operational Controls
@@ -590,9 +590,9 @@ const Dashboard = () => {
               onClick={() => navigate(item.path)}
             >
               <div className={cn("absolute inset-y-0 left-0 w-1", item.bg.replace('/10', ''))} />
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center border border-white/5", item.bg)}>
-                  <item.icon className={cn("h-6 w-6", item.color)} />
+              <CardContent className="p-3 flex items-center gap-3">
+                <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center border border-white/5", item.bg)}>
+                  <item.icon className={cn("h-5 w-5", item.color)} />
                 </div>
                 <div>
                   <h3 className="font-bold tracking-tight">{item.label}</h3>

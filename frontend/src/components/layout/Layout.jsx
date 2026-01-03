@@ -61,10 +61,13 @@ const Layout = ({ theme, setTheme }) => {
       </div>
 
       {/* 2. Desktop Floating Sidebar */}
-      <aside className={cn(
-        "fixed inset-y-4 left-4 z-50 w-72 hidden lg:flex flex-col",
-        "glass-panel rounded-2xl shadow-2xl animate-fade-in"
-      )}>
+      <aside 
+        className={cn(
+          "fixed inset-y-4 left-4 z-50 w-72 hidden lg:flex flex-col",
+          "glass-panel rounded-2xl shadow-2xl animate-fade-in"
+        )}
+        style={{ willChange: 'transform' }}
+      >
         {/* Branding Area */}
         <div className="p-8 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/')}>
           {brandingLogo ? (

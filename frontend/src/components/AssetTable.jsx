@@ -251,7 +251,7 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
         ) : (
           <>
             <div className="md:hidden space-y-4 p-4 bg-surface/10">
-              {paginatedAssets.map(asset => (
+              {paginatedAssets.map((asset, index) => (
                 <AssetCard 
                   key={asset.id} 
                   asset={asset} 
@@ -261,6 +261,7 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
                   onEdit={() => onEdit(asset)}
                   onDelete={() => setDeleteDialog({ open: true, asset })}
                   onStatusUpdated={handleStatusUpdated}
+                  index={index}
                 />
               ))}
             </div>
@@ -315,7 +316,7 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
       />
 
       <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, asset: null })}>
-        <DialogContent className="glass-panel border-glass">
+        <DialogContent className="glass-overlay">
           <DialogHeader>
             <DialogTitle className="text-gradient text-2xl">Confirm Permanent Deletion</DialogTitle>
             <DialogDescription className="pt-2">
@@ -330,7 +331,7 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
       </Dialog>
 
       <Dialog open={bulkDeleteDialog.open} onOpenChange={(open) => !open && setBulkDeleteDialog({ open: false })}>
-        <DialogContent className="glass-panel border-glass">
+        <DialogContent className="glass-overlay">
           <DialogHeader>
             <DialogTitle className="text-gradient text-2xl">Confirm Bulk Deletion</DialogTitle>
             <DialogDescription className="pt-2">

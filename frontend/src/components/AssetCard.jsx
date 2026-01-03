@@ -56,6 +56,7 @@ const AssetCard = memo(function AssetCard({
   onEdit,
   onDelete,
   onStatusUpdated,
+  index = 0,
 }) {
   const { getAuthHeaders } = useAuth();
   const { toast } = useToast();
@@ -134,9 +135,10 @@ const AssetCard = memo(function AssetCard({
   return (
     <div
       className={cn(
-        'border rounded-lg p-4',
+        'border rounded-lg p-4 animate-slide-up',
         isSelected && 'bg-primary/5 border-primary/50 shadow-[0_0_0_1px_hsl(var(--primary))]'
       )}
+      style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
     >
       {/* Header row with checkbox, name, status, and actions */}
       <div className="flex gap-3">

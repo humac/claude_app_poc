@@ -623,7 +623,7 @@ export default function MyAttestationsPage() {
                             const selectedStatus = selectedStatuses[asset.id] || asset.status;
                             const showReturnedDate = selectedStatus === 'returned' && !isCertified;
                             return (
-                              <TableRow key={asset.id} className={isCertified ? 'bg-green-50 dark:bg-green-950' : ''}>
+                              <TableRow key={asset.id} className={isCertified ? 'bg-success/10' : ''}>
                                 <TableCell className="font-medium">{asset.asset_type}</TableCell>
                                 <TableCell>
                                   {asset.make} {asset.model}
@@ -707,7 +707,7 @@ export default function MyAttestationsPage() {
 
                     {/* Mobile Card View */}
                     <div className="md:hidden space-y-4">
-                      {attestationDetails.assets?.map((asset) => {
+                      {attestationDetails.assets?.map((asset, index) => {
                         const isCertified = certifiedAssetIds.has(asset.id);
                         const selectedStatus = selectedStatuses[asset.id] || asset.status;
                         const showReturnedDate = selectedStatus === 'returned' && !isCertified;
@@ -715,9 +715,10 @@ export default function MyAttestationsPage() {
                           <div 
                             key={asset.id} 
                             className={cn(
-                              "bento-card",
+                              "bento-card animate-slide-up",
                               isCertified && "border-success/30 bg-success/5"
                             )}
+                            style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
                           >
                             <div className="space-y-3">
                               <div className="flex items-start justify-between">

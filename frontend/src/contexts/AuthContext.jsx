@@ -85,9 +85,11 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       localStorage.setItem('token', data.token);
 
-      return { 
+      return {
         success: true,
-        redirectToAttestations: data.redirectToAttestations || false
+        redirectToAttestations: data.redirectToAttestations || false,
+        requiresEmailVerification: data.requiresEmailVerification || false,
+        emailVerificationSent: data.emailVerificationSent || false
       };
     } catch (error) {
       return { success: false, error: error.message };
@@ -102,6 +104,27 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = (userData) => {
     setUser(userData);
+  };
+
+  // Refresh user data from the server
+  const refreshUser = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        return userData;
+      }
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
+    return null;
   };
 
   const getAuthHeaders = useCallback(() => {
@@ -125,6 +148,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
+    refreshUser,
     setAuthData,
     isAuthenticated: !!user,
     getAuthHeaders

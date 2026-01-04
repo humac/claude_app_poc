@@ -21,9 +21,11 @@ export default function createAuthRouter(deps) {
     userDb,
     auditDb,
     passwordResetTokenDb,
+    emailVerificationTokenDb,
     attestationCampaignDb,
     attestationRecordDb,
     attestationPendingInviteDb,
+    smtpSettingsDb,
     // Auth
     authenticate,
     hashPassword,
@@ -37,6 +39,9 @@ export default function createAuthRouter(deps) {
     mfaSessions,
     // Email
     sendPasswordResetEmail,
+    sendEmailVerificationEmail,
+    sendEmailChangeVerificationEmail,
+    getAppUrl,
   } = deps;
 
   // ===== Registration =====
@@ -199,6 +204,49 @@ export default function createAuthRouter(deps) {
         // Don't fail registration if invite conversion fails
       }
 
+      // Send email verification if SMTP is enabled
+      let emailVerificationSent = false;
+      let requiresEmailVerification = false;
+      try {
+        if (smtpSettingsDb && emailVerificationTokenDb && sendEmailVerificationEmail && getAppUrl) {
+          const smtpSettings = await smtpSettingsDb.get();
+          if (smtpSettings && smtpSettings.enabled) {
+            // Generate verification token
+            const crypto = await import('crypto');
+            const verificationToken = crypto.randomBytes(32).toString('hex');
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+            // Store token in database
+            await emailVerificationTokenDb.create(
+              finalUser.email,
+              verificationToken,
+              expiresAt.toISOString(),
+              'registration',
+              finalUser.id
+            );
+
+            // Mark user as unverified
+            await userDb.setEmailUnverified(finalUser.id);
+            requiresEmailVerification = true;
+
+            // Send verification email
+            const baseUrl = await getAppUrl();
+            const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+
+            const emailResult = await sendEmailVerificationEmail(finalUser.email, verificationToken, verifyUrl);
+            if (emailResult.success) {
+              emailVerificationSent = true;
+              logger.info({ email: finalUser.email }, 'Email verification sent to new user');
+            } else {
+              logger.error({ email: finalUser.email, error: emailResult.error }, 'Failed to send verification email');
+            }
+          }
+        }
+      } catch (emailError) {
+        logger.error({ err: emailError }, 'Error sending email verification during registration');
+        // Don't fail registration if email verification fails
+      }
+
       res.status(201).json({
         message: 'User registered successfully',
         token,
@@ -210,9 +258,12 @@ export default function createAuthRouter(deps) {
           role: finalUser.role,
           manager_first_name: finalUser.manager_first_name,
           manager_last_name: finalUser.manager_last_name,
-          manager_email: finalUser.manager_email
+          manager_email: finalUser.manager_email,
+          email_verified: !requiresEmailVerification
         },
-        redirectToAttestations: hasActiveAttestation
+        redirectToAttestations: hasActiveAttestation,
+        requiresEmailVerification,
+        emailVerificationSent
       });
     } catch (error) {
       logger.error({ err: error }, 'Registration error');
@@ -286,7 +337,8 @@ export default function createAuthRouter(deps) {
           manager_last_name: user.manager_last_name,
           manager_email: user.manager_email,
           profile_complete: Boolean(user.first_name && user.last_name && user.manager_email),
-          profile_image: user.profile_image
+          profile_image: user.profile_image,
+          email_verified: Boolean(user.email_verified)
         }
       });
     } catch (error) {
@@ -449,7 +501,8 @@ export default function createAuthRouter(deps) {
         manager_email: user.manager_email,
         mfa_enabled: user.mfa_enabled,
         profile_complete: Boolean(user.first_name && user.last_name && user.manager_email),
-        profile_image: user.profile_image
+        profile_image: user.profile_image,
+        email_verified: Boolean(user.email_verified)
       });
     } catch (error) {
       logger.error({ err: error, userId: req.user?.id }, 'Get profile error');
@@ -712,6 +765,289 @@ export default function createAuthRouter(deps) {
     } catch (error) {
       logger.error({ err: error, userId: req.user?.id }, 'Change password error');
       res.status(500).json({ error: 'Failed to change password' });
+    }
+  });
+
+  // ===== Email Verification =====
+
+  // Verify email with token (for registration)
+  router.post('/verify-email', requireFields('token'), async (req, res) => {
+    try {
+      const { token } = req.body;
+
+      if (!emailVerificationTokenDb) {
+        return res.status(500).json({ error: 'Email verification not configured' });
+      }
+
+      const verificationToken = await emailVerificationTokenDb.findByToken(token);
+
+      if (!verificationToken) {
+        return res.status(400).json({ error: 'Invalid or expired verification token' });
+      }
+
+      // Check if token is expired
+      const expiresAt = new Date(verificationToken.expires_at);
+      if (expiresAt < new Date()) {
+        return res.status(400).json({ error: 'Verification token has expired' });
+      }
+
+      // Check if token has been used
+      if (verificationToken.used) {
+        return res.status(400).json({ error: 'Verification token has already been used' });
+      }
+
+      // Handle based on token type
+      if (verificationToken.token_type === 'registration') {
+        // Mark email as verified for the user
+        if (verificationToken.user_id) {
+          await userDb.setEmailVerified(verificationToken.user_id);
+        } else {
+          // Find user by email and verify
+          const user = await userDb.getByEmail(verificationToken.email);
+          if (user) {
+            await userDb.setEmailVerified(user.id);
+          }
+        }
+
+        // Mark token as used
+        await emailVerificationTokenDb.markAsUsed(verificationToken.id);
+
+        // Get user for audit log
+        const user = verificationToken.user_id
+          ? await userDb.getById(verificationToken.user_id)
+          : await userDb.getByEmail(verificationToken.email);
+
+        if (user) {
+          await auditDb.log(
+            'EMAIL_VERIFIED',
+            'user',
+            user.id,
+            user.email,
+            { verified_at: new Date().toISOString() },
+            user.email
+          );
+        }
+
+        res.json({ message: 'Email verified successfully' });
+      } else if (verificationToken.token_type === 'email_change') {
+        // Handle email change verification
+        if (!verificationToken.user_id) {
+          return res.status(400).json({ error: 'Invalid email change token' });
+        }
+
+        const user = await userDb.getById(verificationToken.user_id);
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        const oldEmail = user.email;
+        const newEmail = verificationToken.email;
+
+        // Check if new email is already in use
+        const existingUser = await userDb.getByEmail(newEmail);
+        if (existingUser && existingUser.id !== user.id) {
+          return res.status(409).json({ error: 'Email address is already in use' });
+        }
+
+        // Update user's email
+        await userDb.updateEmail(user.id, newEmail);
+
+        // Mark token as used
+        await emailVerificationTokenDb.markAsUsed(verificationToken.id);
+
+        // Log audit
+        await auditDb.log(
+          'EMAIL_CHANGED',
+          'user',
+          user.id,
+          newEmail,
+          { old_email: oldEmail, new_email: newEmail, changed_at: new Date().toISOString() },
+          newEmail
+        );
+
+        res.json({ message: 'Email changed successfully', newEmail });
+      } else {
+        res.status(400).json({ error: 'Unknown token type' });
+      }
+    } catch (error) {
+      logger.error({ err: error }, 'Verify email error');
+      res.status(500).json({ error: 'Failed to verify email' });
+    }
+  });
+
+  // Resend verification email
+  router.post('/resend-verification', authenticate, async (req, res) => {
+    try {
+      const user = await userDb.getById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Check if email is already verified
+      if (user.email_verified) {
+        return res.status(400).json({ error: 'Email is already verified' });
+      }
+
+      // Check if SMTP is enabled
+      if (!smtpSettingsDb || !sendEmailVerificationEmail || !getAppUrl) {
+        return res.status(500).json({ error: 'Email service not configured' });
+      }
+
+      const smtpSettings = await smtpSettingsDb.get();
+      if (!smtpSettings || !smtpSettings.enabled) {
+        return res.status(500).json({ error: 'Email service not enabled' });
+      }
+
+      // Delete any existing verification tokens for this user
+      await emailVerificationTokenDb.deleteByUserId(user.id);
+
+      // Generate new verification token
+      const crypto = await import('crypto');
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Store token in database
+      await emailVerificationTokenDb.create(
+        user.email,
+        verificationToken,
+        expiresAt.toISOString(),
+        'registration',
+        user.id
+      );
+
+      // Send verification email
+      const baseUrl = await getAppUrl();
+      const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+
+      const emailResult = await sendEmailVerificationEmail(user.email, verificationToken, verifyUrl);
+      if (!emailResult.success) {
+        logger.error({ email: user.email, error: emailResult.error }, 'Failed to resend verification email');
+        return res.status(500).json({ error: 'Failed to send verification email' });
+      }
+
+      logger.info({ email: user.email }, 'Verification email resent');
+      res.json({ message: 'Verification email sent' });
+    } catch (error) {
+      logger.error({ err: error, userId: req.user?.id }, 'Resend verification error');
+      res.status(500).json({ error: 'Failed to resend verification email' });
+    }
+  });
+
+  // Request email change
+  router.post('/request-email-change', authenticate, requireFields('newEmail', 'password'), validateEmail('newEmail'), async (req, res) => {
+    try {
+      const { newEmail, password } = req.body;
+
+      const user = await userDb.getById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Verify password
+      const isValidPassword = await comparePassword(password, user.password_hash);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Password is incorrect' });
+      }
+
+      // Check if new email is the same as current
+      if (newEmail.toLowerCase() === user.email.toLowerCase()) {
+        return res.status(400).json({ error: 'New email must be different from current email' });
+      }
+
+      // Check if new email is already in use
+      const existingUser = await userDb.getByEmail(newEmail);
+      if (existingUser) {
+        return res.status(409).json({ error: 'Email address is already in use' });
+      }
+
+      // Check if SMTP is enabled
+      if (!smtpSettingsDb || !sendEmailChangeVerificationEmail || !getAppUrl) {
+        return res.status(500).json({ error: 'Email service not configured' });
+      }
+
+      const smtpSettings = await smtpSettingsDb.get();
+      if (!smtpSettings || !smtpSettings.enabled) {
+        return res.status(500).json({ error: 'Email service not enabled' });
+      }
+
+      // Delete any existing email change tokens for this user
+      await emailVerificationTokenDb.deleteByUserId(user.id);
+
+      // Generate verification token
+      const crypto = await import('crypto');
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Store token in database (store the NEW email in the token)
+      await emailVerificationTokenDb.create(
+        newEmail,
+        verificationToken,
+        expiresAt.toISOString(),
+        'email_change',
+        user.id
+      );
+
+      // Send verification email to the NEW email address
+      const baseUrl = await getAppUrl();
+      const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+
+      const emailResult = await sendEmailChangeVerificationEmail(newEmail, user.email, verificationToken, verifyUrl);
+      if (!emailResult.success) {
+        logger.error({ email: newEmail, error: emailResult.error }, 'Failed to send email change verification');
+        return res.status(500).json({ error: 'Failed to send verification email' });
+      }
+
+      await auditDb.log(
+        'EMAIL_CHANGE_REQUESTED',
+        'user',
+        user.id,
+        user.email,
+        { new_email: newEmail, requested_at: new Date().toISOString() },
+        user.email
+      );
+
+      logger.info({ email: user.email, newEmail }, 'Email change verification sent');
+      res.json({ message: 'Verification email sent to your new email address' });
+    } catch (error) {
+      logger.error({ err: error, userId: req.user?.id }, 'Request email change error');
+      res.status(500).json({ error: 'Failed to request email change' });
+    }
+  });
+
+  // Check verification token validity (for frontend validation)
+  router.get('/verify-email-token/:token', async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      if (!emailVerificationTokenDb) {
+        return res.status(500).json({ valid: false, error: 'Email verification not configured' });
+      }
+
+      const verificationToken = await emailVerificationTokenDb.findByToken(token);
+
+      if (!verificationToken) {
+        return res.status(400).json({ valid: false, error: 'Invalid verification token' });
+      }
+
+      // Check if token is expired
+      const expiresAt = new Date(verificationToken.expires_at);
+      if (expiresAt < new Date()) {
+        return res.status(400).json({ valid: false, error: 'Verification token has expired' });
+      }
+
+      // Check if token has been used
+      if (verificationToken.used) {
+        return res.status(400).json({ valid: false, error: 'Verification token has already been used' });
+      }
+
+      res.json({
+        valid: true,
+        tokenType: verificationToken.token_type,
+        email: verificationToken.email
+      });
+    } catch (error) {
+      logger.error({ err: error }, 'Verify email token check error');
+      res.status(500).json({ valid: false, error: 'Failed to verify token' });
     }
   });
 

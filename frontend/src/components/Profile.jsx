@@ -10,12 +10,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { User, Shield, Key, Loader2, Check, X, Trash2, Pencil, Mail, UserCheck, Users } from 'lucide-react';
+import { User, Shield, Key, Loader2, Check, X, Trash2, Pencil, Mail, UserCheck, Users, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react';
 import MFASetupModal from './MFASetupModal';
 import { prepareCreationOptions, uint8ArrayToBase64Url } from '@/utils/webauthn';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Profile = () => {
-  const { user, getAuthHeaders, updateUser } = useAuth();
+  const { user, getAuthHeaders, updateUser, refreshUser } = useAuth();
   const { toast } = useToast();
 
   // Edit mode state
@@ -34,6 +35,15 @@ const Profile = () => {
     newPassword: '',
     confirmPassword: ''
   });
+
+  // Email change state
+  const [showEmailChange, setShowEmailChange] = useState(false);
+  const [emailChangeData, setEmailChangeData] = useState({
+    newEmail: '',
+    password: ''
+  });
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
 
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -164,6 +174,52 @@ const Profile = () => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { ...getAuthHeaders() },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to resend verification email');
+      toast({ title: "Success", description: "Verification email sent! Check your inbox.", variant: "success" });
+    } catch (err) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setResendingVerification(false);
+    }
+  };
+
+  const handleEmailChange = async (e) => {
+    e.preventDefault();
+    if (!emailChangeData.newEmail || !emailChangeData.password) {
+      toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
+      return;
+    }
+    setEmailChangeLoading(true);
+    try {
+      const response = await fetch('/api/auth/request-email-change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify(emailChangeData),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to request email change');
+      toast({
+        title: "Verification Email Sent",
+        description: `A verification link has been sent to ${emailChangeData.newEmail}. Please check your inbox to confirm the change.`,
+        variant: "success"
+      });
+      setShowEmailChange(false);
+      setEmailChangeData({ newEmail: '', password: '' });
+    } catch (err) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setEmailChangeLoading(false);
     }
   };
 
@@ -298,6 +354,33 @@ const Profile = () => {
 
   return (
     <div className="space-y-6 p-1 md:p-2 animate-fade-in bg-surface/30 min-h-screen rounded-2xl">
+      {/* Email Verification Alert */}
+      {user && user.email_verified === false && (
+        <Alert className="glass-panel border-warning/50 bg-warning/10">
+          <AlertCircle className="h-4 w-4 text-warning" />
+          <AlertTitle className="text-warning">Email Not Verified</AlertTitle>
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <span className="text-sm">
+              Please verify your email address to access all features.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleResendVerification}
+              disabled={resendingVerification}
+              className="btn-interactive w-fit"
+            >
+              {resendingVerification ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Resend Verification Email
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Information Section */}
       <section className="glass-panel rounded-2xl">
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/10">
@@ -475,8 +558,29 @@ const Profile = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="caption-label">Email</p>
-                    <p className="font-medium text-sm truncate">{user?.email}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm truncate">{user?.email}</p>
+                      {user?.email_verified ? (
+                        <span className="flex items-center text-xs text-success">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="flex items-center text-xs text-warning">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Unverified
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowEmailChange(true)}
+                    className="btn-interactive shrink-0"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                 </div>
 
                 <div className="flex items-center gap-3 p-4 glass-panel rounded-xl">
@@ -733,6 +837,70 @@ const Profile = () => {
               Disable MFA
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Email Dialog */}
+      <Dialog open={showEmailChange} onOpenChange={(open) => {
+        setShowEmailChange(open);
+        if (!open) setEmailChangeData({ newEmail: '', password: '' });
+      }}>
+        <DialogContent className="glass-overlay">
+          <DialogHeader>
+            <DialogTitle>Change Email Address</DialogTitle>
+            <DialogDescription>
+              Enter your new email address and current password. A verification link will be sent to your new email.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEmailChange} className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm">Current Email</Label>
+              <Input
+                type="email"
+                value={user?.email || ''}
+                disabled
+                className="bg-muted/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">New Email Address</Label>
+              <Input
+                type="email"
+                placeholder="Enter your new email"
+                value={emailChangeData.newEmail}
+                onChange={(e) => setEmailChangeData({ ...emailChangeData, newEmail: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Current Password</Label>
+              <Input
+                type="password"
+                placeholder="Enter your current password"
+                value={emailChangeData.password}
+                onChange={(e) => setEmailChangeData({ ...emailChangeData, password: e.target.value })}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEmailChange(false)}
+                className="btn-interactive"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={emailChangeLoading || !emailChangeData.newEmail || !emailChangeData.password}
+                className="btn-interactive"
+              >
+                {emailChangeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Send Verification
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

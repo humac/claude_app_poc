@@ -1156,4 +1156,247 @@ This is an automated escalation notification to help ensure timely completion of
   }
 };
 
+/**
+ * Send email verification email to a user
+ * Used for new user registration email verification
+ * @param {string} recipient - Email address to verify
+ * @param {string} verificationToken - Secure verification token
+ * @param {string} verifyUrl - Full URL to verify email (including token)
+ * @returns {Promise<Object>} Result object with success status and message
+ */
+export const sendEmailVerificationEmail = async (recipient, verificationToken, verifyUrl) => {
+  try {
+    const settings = await smtpSettingsDb.get();
+
+    if (!settings || !settings.enabled) {
+      return {
+        success: false,
+        error: 'SMTP settings are not enabled. Please enable them first.'
+      };
+    }
+
+    if (!settings.from_email) {
+      return {
+        success: false,
+        error: 'From email address is not configured'
+      };
+    }
+
+    const transport = await createTransport();
+
+    // Get branding settings for email customization
+    const branding = await brandingSettingsDb.get();
+    const siteName = branding?.site_name || 'ACS';
+
+    // Try to get template from database
+    const template = await emailTemplateDb.getByKey('email_verification');
+
+    // Prepare variables for substitution
+    const variables = {
+      siteName,
+      verifyUrl,
+      expiryTime: '24 hours'
+    };
+
+    // Use template if available, otherwise fall back to hardcoded default
+    let subject, emailContent, textContent;
+
+    if (template) {
+      subject = substituteVariables(template.subject, variables);
+      emailContent = substituteVariables(template.html_body, variables);
+      textContent = substituteVariables(template.text_body, variables);
+    } else {
+      // Fallback to hardcoded template
+      subject = `Verify Your Email - ${siteName}`;
+      emailContent = `
+        <h2 style="color: #333;">Verify Your Email Address</h2>
+        <p>Thank you for registering with <strong>${siteName}</strong>.</p>
+        <p>Please click the button below to verify your email address. This link will expire in 24 hours.</p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${verifyUrl}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Verify Email</a>
+        </div>
+        <p style="color: #666; font-size: 14px;">
+          If the button doesn't work, copy and paste this link into your browser:<br>
+          <a href="${verifyUrl}" style="color: #3B82F6; word-break: break-all;">${verifyUrl}</a>
+        </p>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+        <p style="color: #999; font-size: 12px;">
+          If you didn't create an account with ${siteName}, please ignore this email.<br>
+          This link will expire in 24 hours for security reasons.
+        </p>
+      `;
+      textContent = `Verify Your Email Address
+
+Thank you for registering with ${siteName}.
+
+Please click the link below to verify your email address. This link will expire in 24 hours.
+
+${verifyUrl}
+
+If you didn't create an account with ${siteName}, please ignore this email.
+This link will expire in 24 hours for security reasons.`;
+    }
+
+    const mailOptions = {
+      from: `"${settings.from_name || `${siteName} Notifications`}" <${settings.from_email}>`,
+      to: recipient,
+      subject,
+      text: textContent,
+      html: buildEmailHtml(branding, siteName, emailContent)
+    };
+
+    const info = await transport.sendMail(mailOptions);
+
+    return {
+      success: true,
+      message: `Verification email sent successfully to ${recipient}`,
+      messageId: info.messageId
+    };
+  } catch (error) {
+    // Parse common SMTP errors into user-friendly messages
+    let errorMessage = error.message;
+
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = `Connection refused. Please check that the SMTP server is running and the host/port are correct.`;
+    } else if (error.code === 'ETIMEDOUT' || error.code === 'ESOCKET') {
+      errorMessage = `Connection timed out. Please check your network connection and firewall settings.`;
+    } else if (error.code === 'EAUTH' || error.responseCode === 535) {
+      errorMessage = `Authentication failed. Please check your username and password.`;
+    }
+
+    logger.error({ err: error }, 'Failed to send email verification email');
+
+    return {
+      success: false,
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    };
+  }
+};
+
+/**
+ * Send email change verification email to new email address
+ * Used when a user requests to change their email address
+ * @param {string} newEmail - New email address to verify
+ * @param {string} currentEmail - Current email address of the user
+ * @param {string} verificationToken - Secure verification token
+ * @param {string} verifyUrl - Full URL to verify email change (including token)
+ * @returns {Promise<Object>} Result object with success status and message
+ */
+export const sendEmailChangeVerificationEmail = async (newEmail, currentEmail, verificationToken, verifyUrl) => {
+  try {
+    const settings = await smtpSettingsDb.get();
+
+    if (!settings || !settings.enabled) {
+      return {
+        success: false,
+        error: 'SMTP settings are not enabled. Please enable them first.'
+      };
+    }
+
+    if (!settings.from_email) {
+      return {
+        success: false,
+        error: 'From email address is not configured'
+      };
+    }
+
+    const transport = await createTransport();
+
+    // Get branding settings for email customization
+    const branding = await brandingSettingsDb.get();
+    const siteName = branding?.site_name || 'ACS';
+
+    // Try to get template from database
+    const template = await emailTemplateDb.getByKey('email_change_verification');
+
+    // Prepare variables for substitution
+    const variables = {
+      siteName,
+      currentEmail,
+      newEmail,
+      verifyUrl,
+      expiryTime: '24 hours'
+    };
+
+    // Use template if available, otherwise fall back to hardcoded default
+    let subject, emailContent, textContent;
+
+    if (template) {
+      subject = substituteVariables(template.subject, variables);
+      emailContent = substituteVariables(template.html_body, variables);
+      textContent = substituteVariables(template.text_body, variables);
+    } else {
+      // Fallback to hardcoded template
+      subject = `Confirm Your New Email Address - ${siteName}`;
+      emailContent = `
+        <h2 style="color: #333;">Confirm Your New Email Address</h2>
+        <p>You requested to change your email address for your <strong>${siteName}</strong> account.</p>
+        <p><strong>Current email:</strong> ${currentEmail}</p>
+        <p><strong>New email:</strong> ${newEmail}</p>
+        <p>Please click the button below to confirm this email change. This link will expire in 24 hours.</p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${verifyUrl}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Confirm Email Change</a>
+        </div>
+        <p style="color: #666; font-size: 14px;">
+          If the button doesn't work, copy and paste this link into your browser:<br>
+          <a href="${verifyUrl}" style="color: #3B82F6; word-break: break-all;">${verifyUrl}</a>
+        </p>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+        <p style="color: #999; font-size: 12px;">
+          If you didn't request this email change, please ignore this email. Your account will remain unchanged.<br>
+          This link will expire in 24 hours for security reasons.
+        </p>
+      `;
+      textContent = `Confirm Your New Email Address
+
+You requested to change your email address for your ${siteName} account.
+
+Current email: ${currentEmail}
+New email: ${newEmail}
+
+Please click the link below to confirm this email change. This link will expire in 24 hours.
+
+${verifyUrl}
+
+If you didn't request this email change, please ignore this email. Your account will remain unchanged.
+This link will expire in 24 hours for security reasons.`;
+    }
+
+    const mailOptions = {
+      from: `"${settings.from_name || `${siteName} Notifications`}" <${settings.from_email}>`,
+      to: newEmail,
+      subject,
+      text: textContent,
+      html: buildEmailHtml(branding, siteName, emailContent)
+    };
+
+    const info = await transport.sendMail(mailOptions);
+
+    return {
+      success: true,
+      message: `Email change verification sent successfully to ${newEmail}`,
+      messageId: info.messageId
+    };
+  } catch (error) {
+    // Parse common SMTP errors into user-friendly messages
+    let errorMessage = error.message;
+
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = `Connection refused. Please check that the SMTP server is running and the host/port are correct.`;
+    } else if (error.code === 'ETIMEDOUT' || error.code === 'ESOCKET') {
+      errorMessage = `Connection timed out. Please check your network connection and firewall settings.`;
+    } else if (error.code === 'EAUTH' || error.responseCode === 535) {
+      errorMessage = `Authentication failed. Please check your username and password.`;
+    }
+
+    logger.error({ err: error }, 'Failed to send email change verification email');
+
+    return {
+      success: false,
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    };
+  }
+};
 

@@ -314,7 +314,7 @@ const HubSpotSettings = () => {
             </div>
 
             {!settings.auto_sync_enabled && (
-              <Alert className="py-2 glow-info border-0">
+              <Alert className="py-2 glow-info border-0 [&>svg]:top-2">
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-sm">
                   Automatic sync is disabled. Use the "Sync Now" button to sync manually.

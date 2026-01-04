@@ -86,7 +86,7 @@ const SecuritySettings = () => {
 
         <div className="space-y-4">
           {!passkeySettings.enabled && (
-            <Alert className="py-2 glow-warning border-0">
+            <Alert className="py-2 glow-warning border-0 [&>svg]:top-2">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="text-sm">
                 Passkey registration and sign-in are currently disabled. Users will not see passkey options on the login page.
@@ -95,7 +95,7 @@ const SecuritySettings = () => {
           )}
 
           {passkeySettings.managed_by_env && (
-            <Alert className="py-2 glow-warning border-0">
+            <Alert className="py-2 glow-warning border-0 [&>svg]:top-2">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="text-sm">
                 Passkey settings are managed by environment variables. Remove PASSKEY_RP_ID, PASSKEY_RP_NAME, PASSKEY_ORIGIN, and PASSKEY_ENABLED from your environment and restart the backend to use database configuration.
@@ -103,7 +103,7 @@ const SecuritySettings = () => {
             </Alert>
           )}
 
-          <Alert className="py-2 glow-info border-0">
+          <Alert className="py-2 glow-info border-0 [&>svg]:top-2">
             <Info className="h-4 w-4" />
             <AlertDescription className="text-sm">
               <strong>Restart required:</strong> Changes to passkey settings require a backend restart to take effect.
@@ -213,7 +213,7 @@ const SecuritySettings = () => {
           </div>
 
           {!passkeySettings.managed_by_env && (
-            <Alert className="py-2 glow-warning border-0">
+            <Alert className="py-2 glow-warning border-0 [&>svg]:top-2">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="text-sm">
                 After saving, you must restart the backend for changes to take effect.

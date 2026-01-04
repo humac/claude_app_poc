@@ -112,7 +112,7 @@ const HubSpotSettings = () => {
         throw new Error(data.error || 'Failed to save settings');
       }
 
-      toast({ title: "Success", description: 'HubSpot settings saved successfully!' });
+      toast({ title: "Success", description: 'HubSpot settings saved successfully!', variant: "success" });
       setHasAccessToken(!!settings.access_token || hasAccessToken);
       setSettings(prev => ({ ...prev, access_token: '' }));
     } catch (err) {
@@ -138,7 +138,8 @@ const HubSpotSettings = () => {
 
       toast({
         title: "Success",
-        description: data.message || 'Successfully connected to HubSpot!'
+        description: data.message || 'Successfully connected to HubSpot!',
+        variant: "success"
       });
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -163,7 +164,8 @@ const HubSpotSettings = () => {
 
       toast({
         title: "Success",
-        description: `Synced ${data.companiesFound} companies: ${data.companiesCreated} created, ${data.companiesUpdated} updated`
+        description: `Synced ${data.companiesFound} companies: ${data.companiesCreated} created, ${data.companiesUpdated} updated`,
+        variant: "success"
       });
 
       await fetchSettings();

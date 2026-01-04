@@ -72,7 +72,8 @@ const SystemSettings = () => {
 
       toast({
         title: "Success",
-        description: "System settings saved successfully"
+        description: "System settings saved successfully",
+        variant: "success"
       });
     } catch (err) {
       toast({

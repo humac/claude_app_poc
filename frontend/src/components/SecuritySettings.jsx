@@ -58,7 +58,7 @@ const SecuritySettings = () => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to save passkey settings');
-      toast({ title: "Success", description: data.message || 'Passkey settings saved successfully' });
+      toast({ title: "Success", description: data.message || 'Passkey settings saved successfully', variant: "success" });
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {

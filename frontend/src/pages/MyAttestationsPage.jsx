@@ -259,7 +259,8 @@ export default function MyAttestationsPage() {
 
       toast({
         title: 'Success',
-        description: 'Asset certified successfully'
+        description: 'Asset certified successfully',
+        variant: 'success'
       });
 
       // Mark this asset as attested and certified
@@ -334,7 +335,8 @@ export default function MyAttestationsPage() {
 
       toast({
         title: 'Success',
-        description: 'New asset added successfully'
+        description: 'New asset added successfully',
+        variant: 'success'
       });
 
       setShowAddAssetModal(false);
@@ -380,7 +382,8 @@ export default function MyAttestationsPage() {
 
       toast({
         title: 'Success',
-        description: 'Attestation completed successfully'
+        description: 'Attestation completed successfully',
+        variant: 'success'
       });
 
       setShowAttestationModal(false);

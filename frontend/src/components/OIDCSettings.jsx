@@ -96,7 +96,7 @@ const OIDCSettings = () => {
         throw new Error(data.error || 'Failed to save settings');
       }
 
-      toast({ title: "Success", description: 'OIDC settings saved successfully!' });
+      toast({ title: "Success", description: 'OIDC settings saved successfully!', variant: "success" });
       setHasClientSecret(!!settings.client_secret || hasClientSecret);
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });

@@ -145,7 +145,7 @@ const NotificationSettings = () => {
         throw new Error(data.error || 'Failed to save settings');
       }
 
-      toast({ title: "Success", description: 'Notification settings saved successfully!' });
+      toast({ title: "Success", description: 'Notification settings saved successfully!', variant: "success" });
       setHasPassword(!!settings.password || hasPassword);
       setSettings(prev => ({ ...prev, password: '' }));
     } catch (err) {
@@ -194,7 +194,8 @@ const NotificationSettings = () => {
 
       toast({
         title: "Success",
-        description: data.message || 'Test email sent successfully!'
+        description: data.message || 'Test email sent successfully!',
+        variant: "success"
       });
       setTestDialogOpen(false);
     } catch (err) {

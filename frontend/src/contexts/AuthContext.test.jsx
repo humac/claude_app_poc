@@ -280,7 +280,12 @@ describe('AuthContext', () => {
         );
       });
 
-      expect(result).toEqual({ success: true, redirectToAttestations: false });
+      expect(result).toEqual({
+        success: true,
+        redirectToAttestations: false,
+        requiresEmailVerification: false,
+        emailVerificationSent: false
+      });
       expect(global.fetch).toHaveBeenCalledWith('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -325,7 +330,12 @@ describe('AuthContext', () => {
         result = await authContext.register('new@test.com', 'password123', 'John', 'Doe', '', '', '');
       });
 
-      expect(result).toEqual({ success: true, redirectToAttestations: true });
+      expect(result).toEqual({
+        success: true,
+        redirectToAttestations: true,
+        requiresEmailVerification: false,
+        emailVerificationSent: false
+      });
     });
 
     it('returns error on failed registration', async () => {

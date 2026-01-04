@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { assetDb, companyDb, auditDb, userDb, oidcSettingsDb, brandingSettingsDb, passkeySettingsDb, databaseSettings, databaseEngine, importSqliteDatabase, passkeyDb, hubspotSettingsDb, hubspotSyncLogDb, smtpSettingsDb, passwordResetTokenDb, syncAssetOwnership, attestationCampaignDb, attestationRecordDb, attestationAssetDb, attestationNewAssetDb, assetTypeDb, emailTemplateDb, sanitizeDateValue, attestationPendingInviteDb, systemSettingsDb } from './database.js';
+import { assetDb, companyDb, auditDb, userDb, oidcSettingsDb, brandingSettingsDb, passkeySettingsDb, databaseSettings, databaseEngine, importSqliteDatabase, passkeyDb, hubspotSettingsDb, hubspotSyncLogDb, smtpSettingsDb, passwordResetTokenDb, emailVerificationTokenDb, syncAssetOwnership, attestationCampaignDb, attestationRecordDb, attestationAssetDb, attestationNewAssetDb, assetTypeDb, emailTemplateDb, sanitizeDateValue, attestationPendingInviteDb, systemSettingsDb } from './database.js';
 import { authenticate, authorize, hashPassword, comparePassword, generateToken } from './auth.js';
 import { initializeOIDC, getAuthorizationUrl, handleCallback, getUserInfo, extractUserData, isOIDCEnabled } from './oidc.js';
 import { generateMFASecret, verifyTOTP, generateBackupCodes, formatBackupCode } from './mfa.js';
@@ -10,7 +10,7 @@ import { testHubSpotConnection, syncCompaniesToACS } from './hubspot.js';
 import { encryptValue } from './utils/encryption.js';
 import { safeJsonParse, safeJsonParseArray } from './utils/json.js';
 import { VALID_ROLES } from './utils/constants.js';
-import { sendTestEmail, sendPasswordResetEmail } from './services/smtpMailer.js';
+import { sendTestEmail, sendPasswordResetEmail, sendEmailVerificationEmail, sendEmailChangeVerificationEmail, getAppUrl } from './services/smtpMailer.js';
 import { webcrypto as nodeWebcrypto } from 'crypto';
 import multer from 'multer';
 import { readFile } from 'fs/promises';
@@ -370,7 +370,12 @@ mountRoutes(app, {
   // Email
   sendTestEmail,
   sendPasswordResetEmail,
+  sendEmailVerificationEmail,
+  sendEmailChangeVerificationEmail,
+  getAppUrl,
   encryptValue,
+  // Email verification
+  emailVerificationTokenDb,
   // Helpers
   syncAssetOwnership,
   parseBooleanEnv,

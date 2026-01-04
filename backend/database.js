@@ -552,6 +552,75 @@ Please remind them to register their account so they can complete their asset at
 {{deadlineText}}`,
     variables: JSON.stringify(['siteName', 'managerName', 'employeeName', 'employeeEmail', 'campaignName', 'assetCount', 'endDate', 'deadlineHtml', 'deadlineText'])
   },
+  {
+    template_key: 'email_verification',
+    name: 'Email Verification',
+    description: 'Email sent to users to verify their email address during registration or email change',
+    subject: 'Verify Your Email - {{siteName}}',
+    html_body: `<h2 style="color: #333;">Verify Your Email Address</h2>
+<p>Thank you for registering with <strong>{{siteName}}</strong>.</p>
+<p>Please click the button below to verify your email address. This link will expire in {{expiryTime}}.</p>
+<div style="margin: 30px 0; text-align: center;">
+  <a href="{{verifyUrl}}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Verify Email</a>
+</div>
+<p style="color: #666; font-size: 14px;">
+  If the button doesn't work, copy and paste this link into your browser:<br>
+  <a href="{{verifyUrl}}" style="color: #3B82F6; word-break: break-all;">{{verifyUrl}}</a>
+</p>
+<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+<p style="color: #999; font-size: 12px;">
+  If you didn't create an account with {{siteName}}, please ignore this email.<br>
+  This link will expire in {{expiryTime}} for security reasons.
+</p>`,
+    text_body: `Verify Your Email Address
+
+Thank you for registering with {{siteName}}.
+
+Please click the link below to verify your email address. This link will expire in {{expiryTime}}.
+
+{{verifyUrl}}
+
+If you didn't create an account with {{siteName}}, please ignore this email.
+This link will expire in {{expiryTime}} for security reasons.`,
+    variables: JSON.stringify(['siteName', 'verifyUrl', 'expiryTime'])
+  },
+  {
+    template_key: 'email_change_verification',
+    name: 'Email Change Verification',
+    description: 'Email sent to the new email address when a user requests to change their email',
+    subject: 'Confirm Your New Email Address - {{siteName}}',
+    html_body: `<h2 style="color: #333;">Confirm Your New Email Address</h2>
+<p>You requested to change your email address for your <strong>{{siteName}}</strong> account.</p>
+<p><strong>Current email:</strong> {{currentEmail}}</p>
+<p><strong>New email:</strong> {{newEmail}}</p>
+<p>Please click the button below to confirm this email change. This link will expire in {{expiryTime}}.</p>
+<div style="margin: 30px 0; text-align: center;">
+  <a href="{{verifyUrl}}" style="background-color: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Confirm Email Change</a>
+</div>
+<p style="color: #666; font-size: 14px;">
+  If the button doesn't work, copy and paste this link into your browser:<br>
+  <a href="{{verifyUrl}}" style="color: #3B82F6; word-break: break-all;">{{verifyUrl}}</a>
+</p>
+<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+<p style="color: #999; font-size: 12px;">
+  If you didn't request this email change, please ignore this email. Your account will remain unchanged.<br>
+  This link will expire in {{expiryTime}} for security reasons.
+</p>`,
+    text_body: `Confirm Your New Email Address
+
+You requested to change your email address for your {{siteName}} account.
+
+Current email: {{currentEmail}}
+New email: {{newEmail}}
+
+Please click the link below to confirm this email change. This link will expire in {{expiryTime}}.
+
+{{verifyUrl}}
+
+If you didn't request this email change, please ignore this email. Your account will remain unchanged.
+This link will expire in {{expiryTime}} for security reasons.`,
+    variables: JSON.stringify(['siteName', 'currentEmail', 'newEmail', 'verifyUrl', 'expiryTime'])
+  },
 
 ];
 
@@ -952,6 +1021,31 @@ const initDb = async () => {
     )
   `;
 
+  const emailVerificationTokensTable = isPostgres ? `
+    CREATE TABLE IF NOT EXISTS email_verification_tokens (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      email TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      token_type TEXT NOT NULL DEFAULT 'registration',
+      expires_at TIMESTAMP NOT NULL,
+      used INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  ` : `
+    CREATE TABLE IF NOT EXISTS email_verification_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      email TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      token_type TEXT NOT NULL DEFAULT 'registration',
+      expires_at TEXT NOT NULL,
+      used INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `;
+
   const attestationCampaignsTable = isPostgres ? `
     CREATE TABLE IF NOT EXISTS attestation_campaigns (
       id SERIAL PRIMARY KEY,
@@ -1185,7 +1279,8 @@ const initDb = async () => {
   await dbRun(smtpSettingsTable);    // 11. Create SMTP settings table
   await dbRun(systemSettingsTable);  // 12. Create system settings table
   await dbRun(passwordResetTokensTable); // 13. Create password reset tokens table (depends on users)
-  await dbRun(attestationCampaignsTable); // 14. Create attestation campaigns table (depends on users)
+  await dbRun(emailVerificationTokensTable); // 14. Create email verification tokens table (depends on users)
+  await dbRun(attestationCampaignsTable); // 15. Create attestation campaigns table (depends on users)
   await dbRun(attestationRecordsTable); // 15. Create attestation records table (depends on campaigns and users)
   await dbRun(attestationAssetsTable); // 16. Create attestation assets table (depends on attestation_records and assets)
   await dbRun(attestationNewAssetsTable); // 17. Create attestation new assets table (depends on attestation_records)
@@ -1330,6 +1425,34 @@ const initDb = async () => {
   } catch (err) {
     console.error('Migration error (profile_complete column):', err.message);
     // Don't fail initialization - the table might be new with correct schema
+  }
+
+  // Migration: Add email_verified column to users table
+  try {
+    const userCols = isPostgres
+      ? await dbAll(`
+          SELECT column_name as name
+          FROM information_schema.columns
+          WHERE table_name = 'users'
+        `)
+      : await dbAll("PRAGMA table_info(users)");
+
+    const hasEmailVerified = userCols.some(col => col.name === 'email_verified');
+
+    if (!hasEmailVerified) {
+      console.log('Migrating users table: adding email_verified column...');
+
+      // Add email_verified column - existing users are considered verified
+      await dbRun('ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 1');
+
+      // Set all existing users as verified (since they were registered before this feature)
+      await dbRun('UPDATE users SET email_verified = 1 WHERE email_verified IS NULL');
+
+      console.log('Migration complete: Added email_verified column to users table');
+    }
+  } catch (err) {
+    console.error('Migration error (email_verified column):', err.message);
+    // Don't fail initialization
   }
 
   // Insert default OIDC settings if not exists
@@ -2976,6 +3099,19 @@ export const userDb = {
       created_at: normalizeDates(row.created_at),
       last_login: normalizeDates(row.last_login)
     }));
+  },
+  // Set email_verified to 1 (true) for a user
+  setEmailVerified: async (id) => {
+    return dbRun('UPDATE users SET email_verified = 1 WHERE id = ?', [id]);
+  },
+  // Set email_verified to 0 (false) for a user - used when creating new unverified users
+  setEmailUnverified: async (id) => {
+    return dbRun('UPDATE users SET email_verified = 0 WHERE id = ?', [id]);
+  },
+  // Update user's email address (for email change flow)
+  updateEmail: async (id, newEmail) => {
+    // Also update name field to match new email (since name is set to email during registration)
+    return dbRun('UPDATE users SET email = ?, name = ? WHERE id = ?', [newEmail.toLowerCase(), newEmail.toLowerCase(), id]);
   }
 };
 
@@ -3723,6 +3859,101 @@ export const passwordResetTokenDb = {
   deleteByUserId: async (userId) => {
     await dbRun(
       'DELETE FROM password_reset_tokens WHERE user_id = ?',
+      [userId]
+    );
+  }
+};
+
+export const emailVerificationTokenDb = {
+  // Create a new email verification token
+  // token_type: 'registration' for new user registration, 'email_change' for changing email
+  create: async (email, token, expiresAt, tokenType = 'registration', userId = null) => {
+    const now = new Date().toISOString();
+    if (isPostgres) {
+      const result = await dbRun(
+        'INSERT INTO email_verification_tokens (user_id, email, token, token_type, expires_at, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [userId, email.toLowerCase(), token, tokenType, expiresAt, now]
+      );
+      return { id: result.rows[0].id };
+    } else {
+      const result = await dbRun(
+        'INSERT INTO email_verification_tokens (user_id, email, token, token_type, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+        [userId, email.toLowerCase(), token, tokenType, expiresAt, now]
+      );
+      return { id: result.lastInsertRowid };
+    }
+  },
+
+  findByToken: async (token) => {
+    const verificationToken = await dbGet(
+      'SELECT * FROM email_verification_tokens WHERE token = ?',
+      [token]
+    );
+    if (verificationToken) {
+      return {
+        ...verificationToken,
+        expires_at: normalizeDates(verificationToken.expires_at),
+        created_at: normalizeDates(verificationToken.created_at)
+      };
+    }
+    return null;
+  },
+
+  findByEmail: async (email) => {
+    const verificationToken = await dbGet(
+      'SELECT * FROM email_verification_tokens WHERE email = ? AND used = 0 ORDER BY created_at DESC LIMIT 1',
+      [email.toLowerCase()]
+    );
+    if (verificationToken) {
+      return {
+        ...verificationToken,
+        expires_at: normalizeDates(verificationToken.expires_at),
+        created_at: normalizeDates(verificationToken.created_at)
+      };
+    }
+    return null;
+  },
+
+  findByUserId: async (userId) => {
+    const verificationToken = await dbGet(
+      'SELECT * FROM email_verification_tokens WHERE user_id = ? AND used = 0 ORDER BY created_at DESC LIMIT 1',
+      [userId]
+    );
+    if (verificationToken) {
+      return {
+        ...verificationToken,
+        expires_at: normalizeDates(verificationToken.expires_at),
+        created_at: normalizeDates(verificationToken.created_at)
+      };
+    }
+    return null;
+  },
+
+  markAsUsed: async (tokenId) => {
+    await dbRun(
+      'UPDATE email_verification_tokens SET used = 1 WHERE id = ?',
+      [tokenId]
+    );
+  },
+
+  deleteExpired: async () => {
+    const now = new Date().toISOString();
+    await dbRun(
+      'DELETE FROM email_verification_tokens WHERE expires_at < ?',
+      [now]
+    );
+  },
+
+  deleteByEmail: async (email) => {
+    await dbRun(
+      'DELETE FROM email_verification_tokens WHERE email = ?',
+      [email.toLowerCase()]
+    );
+  },
+
+  deleteByUserId: async (userId) => {
+    await dbRun(
+      'DELETE FROM email_verification_tokens WHERE user_id = ?',
       [userId]
     );
   }

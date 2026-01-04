@@ -176,9 +176,11 @@ export function mountRoutes(app, deps) {
     auditDb: deps.auditDb,
     assetDb: deps.assetDb,
     passwordResetTokenDb: deps.passwordResetTokenDb,
+    emailVerificationTokenDb: deps.emailVerificationTokenDb,
     attestationCampaignDb: deps.attestationCampaignDb,
     attestationRecordDb: deps.attestationRecordDb,
     attestationPendingInviteDb: deps.attestationPendingInviteDb,
+    smtpSettingsDb: deps.smtpSettingsDb,
     // Auth
     authenticate: deps.authenticate,
     hashPassword: deps.hashPassword,
@@ -194,6 +196,9 @@ export function mountRoutes(app, deps) {
     autoAssignManagerRole: deps.autoAssignManagerRole,
     // Email
     sendPasswordResetEmail: deps.sendPasswordResetEmail,
+    sendEmailVerificationEmail: deps.sendEmailVerificationEmail,
+    sendEmailChangeVerificationEmail: deps.sendEmailChangeVerificationEmail,
+    getAppUrl: deps.getAppUrl,
   });
   app.use('/api/auth', authRouter);
 

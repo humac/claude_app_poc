@@ -20,6 +20,7 @@ import CompleteProfile from '@/components/CompleteProfile';
 import ForgotPassword from '@/components/ForgotPassword';
 import ResetPassword from '@/components/ResetPassword';
 import VerifyEmail from '@/components/VerifyEmail';
+import EmailVerificationRequired from '@/components/EmailVerificationRequired';
 import AttestationPage from '@/pages/AttestationPage';
 import MyAttestationsPage from '@/pages/MyAttestationsPage';
 
@@ -94,6 +95,11 @@ function App() {
 
   if (user && (user.profile_complete === 0 || user.profile_complete === false)) {
     return <CompleteProfile />;
+  }
+
+  // 5. Email Verification Check - block access until email is verified
+  if (user && user.email_verified === false) {
+    return <EmailVerificationRequired />;
   }
 
   return (

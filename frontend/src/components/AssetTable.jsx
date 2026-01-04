@@ -255,6 +255,11 @@ export default function AssetTable({ assets = [], onEdit, onDelete, currentUser,
                   isSelected={selectedIds.has(asset.id)}
                   canEdit={canEdit(asset)}
                   canDelete={canDelete(asset)}
+                  onToggleSelect={() => {
+                    const next = new Set(selectedIds);
+                    next.has(asset.id) ? next.delete(asset.id) : next.add(asset.id);
+                    setSelectedIds(next);
+                  }}
                   onEdit={() => onEdit(asset)}
                   onDelete={() => setDeleteDialog({ open: true, asset })}
                   onStatusUpdated={handleStatusUpdated}

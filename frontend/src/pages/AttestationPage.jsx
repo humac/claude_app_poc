@@ -284,7 +284,8 @@ export default function AttestationPage() {
 
       toast({
         title: 'Success',
-        description: 'Campaign created successfully'
+        description: 'Campaign created successfully',
+        variant: 'success'
       });
 
       setShowCreateModal(false);
@@ -368,7 +369,8 @@ export default function AttestationPage() {
 
       toast({
         title: 'Success',
-        description: 'Campaign cancelled successfully'
+        description: 'Campaign cancelled successfully',
+        variant: 'success'
       });
 
       loadCampaigns();
@@ -403,7 +405,8 @@ export default function AttestationPage() {
 
       toast({
         title: 'Success',
-        description: 'Campaign deleted successfully'
+        description: 'Campaign deleted successfully',
+        variant: 'success'
       });
 
       loadCampaigns();
@@ -464,7 +467,8 @@ export default function AttestationPage() {
 
       toast({
         title: 'Success',
-        description: 'Campaign updated successfully'
+        description: 'Campaign updated successfully',
+        variant: 'success'
       });
 
       setShowEditModal(false);
@@ -521,7 +525,8 @@ export default function AttestationPage() {
 
       toast({
         title: 'Success',
-        description: 'Campaign exported successfully'
+        description: 'Campaign exported successfully',
+        variant: 'success'
       });
     } catch (err) {
       console.error(err);

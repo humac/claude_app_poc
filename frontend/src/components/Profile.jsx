@@ -1,29 +1,45 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { User, Shield, Key, Loader2, Check, X, Trash2 } from 'lucide-react';
+import { User, Shield, Key, Loader2, Check, X, Trash2, Pencil, Mail, UserCheck, Users } from 'lucide-react';
 import MFASetupModal from './MFASetupModal';
 import { prepareCreationOptions, uint8ArrayToBase64Url } from '@/utils/webauthn';
 
-const ProfileNew = () => {
+const Profile = () => {
   const { user, getAuthHeaders, updateUser } = useAuth();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({ first_name: '', last_name: '', manager_first_name: '', manager_last_name: '', manager_email: '' });
-  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Form data
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    manager_first_name: '',
+    manager_last_name: '',
+    manager_email: ''
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  // Loading states
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('account');
+
+  // Profile image
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageName, setProfileImageName] = useState('');
 
@@ -39,6 +55,7 @@ const ProfileNew = () => {
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [newPasskeyName, setNewPasskeyName] = useState('');
 
+  // Initialize form data from user
   useEffect(() => {
     if (user) {
       setFormData({
@@ -53,20 +70,20 @@ const ProfileNew = () => {
     }
   }, [user]);
 
+  // Fetch MFA status
   useEffect(() => {
     const fetchMFAStatus = async () => {
       try {
         const response = await fetch('/api/auth/mfa/status', { headers: getAuthHeaders() });
         const data = await response.json();
         if (response.ok) setMfaEnabled(data.enabled);
-      } catch (err) { console.error('Failed to fetch MFA status:', err); }
+      } catch (err) {
+        console.error('Failed to fetch MFA status:', err);
+      }
     };
     fetchMFAStatus();
+    fetchPasskeys();
   }, [getAuthHeaders]);
-
-  useEffect(() => {
-    if (activeTab === 'security') fetchPasskeys();
-  }, [activeTab]);
 
   const fetchPasskeys = async () => {
     setPasskeyLoading(true);
@@ -75,8 +92,10 @@ const ProfileNew = () => {
       const data = await response.json();
       if (response.ok) setPasskeys(data.passkeys || []);
     } catch (err) {
-      toast({ title: "Error", description: "Failed to load passkeys", variant: "destructive" });
-    } finally { setPasskeyLoading(false); }
+      console.error('Failed to load passkeys:', err);
+    } finally {
+      setPasskeyLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -96,9 +115,28 @@ const ProfileNew = () => {
       if (!response.ok) throw new Error(data.error || 'Failed to update profile');
       toast({ title: "Success", description: "Profile updated successfully", variant: "success" });
       updateUser(data.user);
+      setIsEditing(false);
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset form to original user data
+    if (user) {
+      setFormData({
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        manager_first_name: user.manager_first_name || '',
+        manager_last_name: user.manager_last_name || '',
+        manager_email: user.manager_email || ''
+      });
+      setProfileImage(user.profile_image || null);
+      setProfileImageName(user.profile_image ? 'Current profile image' : '');
+    }
+    setIsEditing(false);
   };
 
   const handlePasswordSubmit = async (e) => {
@@ -124,7 +162,9 @@ const ProfileNew = () => {
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally { setPasswordLoading(false); }
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const handleMFASetupComplete = () => {
@@ -153,7 +193,9 @@ const ProfileNew = () => {
       toast({ title: "Success", description: "Two-factor authentication disabled", variant: "success" });
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally { setMfaLoading(false); }
+    } finally {
+      setMfaLoading(false);
+    }
   };
 
   const handlePasskeyRegistration = async () => {
@@ -197,14 +239,17 @@ const ProfileNew = () => {
       setNewPasskeyName('');
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally { setPasskeyLoading(false); }
+    } finally {
+      setPasskeyLoading(false);
+    }
   };
 
   const handleDeletePasskey = async (passkeyId) => {
     setPasskeyLoading(true);
     try {
       const response = await fetch(`/api/auth/passkeys/${passkeyId}`, {
-        method: 'DELETE', headers: { ...getAuthHeaders() },
+        method: 'DELETE',
+        headers: { ...getAuthHeaders() },
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to delete passkey');
@@ -212,15 +257,18 @@ const ProfileNew = () => {
       toast({ title: "Success", description: "Passkey removed", variant: "success" });
     } catch (err) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally { setPasskeyLoading(false); }
+    } finally {
+      setPasskeyLoading(false);
+    }
   };
 
   const formatDate = (d) => d ? new Date(d).toLocaleString() : 'Never';
-  const getRoleClass = (role) => ({ 
-    admin: 'glow-destructive', 
-    manager: 'glow-success', 
+
+  const getRoleClass = (role) => ({
+    admin: 'glow-destructive',
+    manager: 'glow-success',
     coordinator: 'glow-primary',
-    employee: 'glow-muted' 
+    employee: 'glow-muted'
   }[role] || 'glow-muted');
 
   const handleImageChange = (event) => {
@@ -250,193 +298,440 @@ const ProfileNew = () => {
 
   return (
     <div className="space-y-6 p-1 md:p-2 animate-fade-in bg-surface/30 min-h-screen rounded-2xl">
-      <Card className="glass-panel rounded-2xl">
-        <CardHeader className="pb-2 px-4 sm:px-6">
-          <div className="flex items-center gap-2">
-            <div className="icon-box icon-box-sm bg-primary/10 border-primary/20">
-              <User className="h-4 w-4 text-primary" />
+      {/* Information Section */}
+      <section className="glass-panel rounded-2xl">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="icon-box icon-box-md bg-primary/10 border-primary/20">
+              <User className="h-5 w-5 text-primary" />
             </div>
-            <CardTitle className="text-gradient text-lg sm:text-xl">Profile Settings</CardTitle>
+            <div>
+              <h2 className="text-gradient text-lg sm:text-xl font-semibold">Information</h2>
+              <p className="text-xs text-muted-foreground">Your personal profile details</p>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="pt-2 pb-4 px-4 sm:px-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-3">
-              <TabsTrigger value="account" className="gap-2"><User className="h-4 w-4" />Account</TabsTrigger>
-              <TabsTrigger value="update" className="gap-2"><User className="h-4 w-4" />Update Info</TabsTrigger>
-              <TabsTrigger value="security" className="gap-2"><Shield className="h-4 w-4" />Security</TabsTrigger>
-            </TabsList>
+          {!isEditing ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditing(true)}
+              className="btn-interactive gap-2"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelEdit}
+                className="btn-interactive"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="btn-interactive"
+              >
+                {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Save
+              </Button>
+            </div>
+          )}
+        </div>
 
-            <TabsContent value="account" className="space-y-0 mt-3">
-              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                <div 
-                  className="flex items-center justify-between p-3 glass-panel rounded-xl animate-slide-up"
-                  style={{ animationDelay: '0ms', animationFillMode: 'forwards' }}
-                >
-                  <span className="caption-label">Email</span>
-                  <span className="font-medium text-sm">{user?.email}</span>
-                </div>
-                <div 
-                  className="flex items-center justify-between p-3 glass-panel rounded-xl animate-slide-up"
-                  style={{ animationDelay: '50ms', animationFillMode: 'forwards' }}
-                >
-                  <span className="caption-label">Role</span>
-                  <Badge className={getRoleClass(user?.role)}>{user?.role?.toUpperCase()}</Badge>
-                </div>
-                <div 
-                  className="flex items-center justify-between p-3 glass-panel rounded-xl animate-slide-up"
-                  style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
-                >
-                  <span className="caption-label">Name</span>
-                  <span className="font-medium text-sm">{user?.name}</span>
-                </div>
-                <div 
-                  className="flex items-center justify-between p-3 glass-panel rounded-xl animate-slide-up"
-                  style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}
-                >
-                  <span className="caption-label">Manager</span>
-                  <span className="font-medium text-sm">
-                    {user?.manager_first_name && user?.manager_last_name 
-                      ? `${user.manager_first_name} ${user.manager_last_name}` 
-                      : 'Not set'}
-                  </span>
-                </div>
-                <div 
-                  className="flex items-center justify-between p-3 glass-panel rounded-xl animate-slide-up lg:col-span-2"
-                  style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
-                >
-                  <span className="caption-label">Manager Email</span>
-                  <span className="font-medium text-sm">{user?.manager_email || 'Not set'}</span>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="update" className="space-y-0 mt-3">
-              <form onSubmit={handleSubmit} className="space-y-3 max-w-2xl">
-                <div className="flex items-center gap-3 pb-2 border-b">
-                  <Avatar className="h-14 w-14">
-                    {profileImage && <AvatarImage src={profileImage} alt="Profile" />}
-                    <AvatarFallback className="bg-primary text-primary-foreground text-base">
-                      {user?.first_name?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <Label htmlFor="profile-image" className="text-sm">Profile Picture</Label>
-                    <Input id="profile-image" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Button type="button" size="sm" variant="secondary" onClick={() => document.getElementById('profile-image')?.click()} className="btn-interactive">
-                        Choose Image
+        <div className="p-4 sm:p-6">
+          {isEditing ? (
+            /* Edit Mode */
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Profile Picture */}
+              <div className="flex items-center gap-4 pb-4 border-b border-white/10">
+                <Avatar className="h-16 w-16">
+                  {profileImage && <AvatarImage src={profileImage} alt="Profile" />}
+                  <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                    {formData.first_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-2">
+                  <p className="text-sm font-medium">Profile Picture</p>
+                  <Input
+                    id="profile-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => document.getElementById('profile-image')?.click()}
+                      className="btn-interactive"
+                    >
+                      Choose Image
+                    </Button>
+                    {profileImage && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={handleRemoveImage}
+                        className="btn-interactive"
+                      >
+                        Remove
                       </Button>
-                      {profileImage && (
-                        <Button type="button" size="sm" variant="outline" onClick={handleRemoveImage} className="btn-interactive">
-                          Remove
-                        </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">JPG, PNG, or SVG up to 5MB</p>
+                </div>
+              </div>
+
+              {/* Name Fields */}
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-sm">First Name</Label>
+                  <Input
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    required
+                    className="text-base"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Last Name</Label>
+                  <Input
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    required
+                    className="text-base"
+                  />
+                </div>
+              </div>
+
+              {/* Manager Fields */}
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-muted-foreground">Manager Information</p>
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Manager First Name</Label>
+                    <Input
+                      value={formData.manager_first_name}
+                      onChange={(e) => setFormData({ ...formData, manager_first_name: e.target.value })}
+                      className="text-base"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Manager Last Name</Label>
+                    <Input
+                      value={formData.manager_last_name}
+                      onChange={(e) => setFormData({ ...formData, manager_last_name: e.target.value })}
+                      className="text-base"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Manager Email</Label>
+                  <Input
+                    type="email"
+                    value={formData.manager_email}
+                    onChange={(e) => setFormData({ ...formData, manager_email: e.target.value })}
+                    className="text-base"
+                  />
+                </div>
+              </div>
+            </form>
+          ) : (
+            /* View Mode */
+            <div className="space-y-6">
+              {/* Profile Header */}
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  {user?.profile_image && <AvatarImage src={user.profile_image} alt="Profile" />}
+                  <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                    {user?.first_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {user?.first_name && user?.last_name
+                      ? `${user.first_name} ${user.last_name}`
+                      : user?.email}
+                  </h3>
+                  <Badge className={`${getRoleClass(user?.role)} mt-1`}>
+                    {user?.role?.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Info Grid */}
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                <div className="flex items-center gap-3 p-4 glass-panel rounded-xl">
+                  <div className="icon-box icon-box-sm bg-info/10 border-info/20">
+                    <Mail className="h-4 w-4 text-info" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="caption-label">Email</p>
+                    <p className="font-medium text-sm truncate">{user?.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 glass-panel rounded-xl">
+                  <div className="icon-box icon-box-sm bg-success/10 border-success/20">
+                    <UserCheck className="h-4 w-4 text-success" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="caption-label">Name</p>
+                    <p className="font-medium text-sm">
+                      {user?.first_name && user?.last_name
+                        ? `${user.first_name} ${user.last_name}`
+                        : 'Not set'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 glass-panel rounded-xl sm:col-span-2">
+                  <div className="icon-box icon-box-sm bg-warning/10 border-warning/20">
+                    <Users className="h-4 w-4 text-warning" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="caption-label">Manager</p>
+                    <p className="font-medium text-sm">
+                      {user?.manager_first_name && user?.manager_last_name
+                        ? `${user.manager_first_name} ${user.manager_last_name}`
+                        : 'Not set'}
+                      {user?.manager_email && (
+                        <span className="text-muted-foreground ml-2">({user.manager_email})</span>
                       )}
-                      <span className="text-xs text-muted-foreground">
-                        {profileImageName || 'No file selected'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">JPG, PNG, or SVG up to 5MB.</p>
-                  </div>
-                </div>
-                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
-                  <div className="space-y-1.5"><Label className="text-sm">First Name</Label><Input value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} required className="text-base" /></div>
-                  <div className="space-y-1.5"><Label className="text-sm">Last Name</Label><Input value={formData.last_name} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} required className="text-base" /></div>
-                </div>
-                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 pt-1">
-                  <div className="space-y-1.5"><Label className="text-sm">Manager First Name</Label><Input value={formData.manager_first_name} onChange={(e) => setFormData({ ...formData, manager_first_name: e.target.value })} className="text-base" /></div>
-                  <div className="space-y-1.5"><Label className="text-sm">Manager Last Name</Label><Input value={formData.manager_last_name} onChange={(e) => setFormData({ ...formData, manager_last_name: e.target.value })} className="text-base" /></div>
-                </div>
-                <div className="space-y-1.5"><Label className="text-sm">Manager Email</Label><Input type="email" value={formData.manager_email} onChange={(e) => setFormData({ ...formData, manager_email: e.target.value })} className="text-base" /></div>
-                <Button type="submit" size="sm" disabled={loading} className="btn-interactive w-full sm:w-auto">{loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Update Profile</Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="security" className="space-y-3 mt-3">
-              <div className="glass-panel rounded-xl">
-                <div className="p-3 pb-2 border-b">
-                  <h4 className="text-sm font-semibold">Change Password</h4>
-                </div>
-                <div className="p-3">
-                  <form onSubmit={handlePasswordSubmit} className="space-y-2 max-w-md">
-                    <div className="space-y-1.5"><Label className="text-sm">Current Password</Label><Input type="password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} required className="text-base" /></div>
-                    <div className="space-y-1.5"><Label className="text-sm">New Password</Label><Input type="password" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} minLength={6} required className="text-base" /></div>
-                    <div className="space-y-1.5"><Label className="text-sm">Confirm New Password</Label><Input type="password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} minLength={6} required className="text-base" /></div>
-                    <Button type="submit" size="sm" disabled={passwordLoading} className="btn-interactive w-full sm:w-auto">{passwordLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Change Password</Button>
-                  </form>
-                </div>
-              </div>
-
-              <div className="glass-panel rounded-xl">
-                <div className="p-3 pb-2 border-b">
-                  <h4 className="text-sm font-semibold">Two-Factor Authentication</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">Add extra security with a verification code.</p>
-                </div>
-                <div className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {mfaEnabled ? <><Check className="h-4 w-4 text-success" /><span className="text-sm text-success font-medium">Enabled</span></> : <><X className="h-4 w-4 text-destructive" /><span className="text-sm text-destructive">Disabled</span></>}
-                    </div>
-                    {mfaEnabled ? <Button size="sm" variant="outline" onClick={() => setShowDisableMFA(true)} className="btn-interactive">Disable MFA</Button> : <Button size="sm" onClick={() => setShowMFASetup(true)} className="btn-interactive">Enable MFA</Button>}
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+      </section>
 
-              <div className="glass-panel rounded-xl">
-                <div className="p-3 pb-2 border-b">
-                  <div className="flex items-center gap-2">
-                    <div className="icon-box icon-box-sm bg-primary/10 border-primary/20">
-                      <Key className="h-4 w-4 text-primary" />
-                    </div>
-                    <h4 className="text-sm font-semibold">Passkeys</h4>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">Use passkeys for passwordless sign-in.</p>
-                </div>
-                <div className="p-3 space-y-2">
-                  <div className="flex gap-2 flex-wrap">
-                    <Input placeholder="Passkey name (e.g., MacBook Touch ID)" value={newPasskeyName} onChange={(e) => setNewPasskeyName(e.target.value)} className="flex-1 min-w-[200px]" />
-                    <Button size="sm" onClick={handlePasskeyRegistration} disabled={passkeyLoading} className="btn-interactive">{passkeyLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}<Key className="h-4 w-4 mr-2" />Create Passkey</Button>
-                  </div>
-                  {passkeys.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">No passkeys registered yet.</p>
+      {/* Security Section */}
+      <section className="glass-panel rounded-2xl">
+        <div className="flex items-center gap-3 p-4 sm:p-6 border-b border-white/10">
+          <div className="icon-box icon-box-md bg-destructive/10 border-destructive/20">
+            <Shield className="h-5 w-5 text-destructive" />
+          </div>
+          <div>
+            <h2 className="text-gradient text-lg sm:text-xl font-semibold">Security</h2>
+            <p className="text-xs text-muted-foreground">Manage your password and authentication methods</p>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-6 space-y-6">
+          {/* Password Change */}
+          <div className="glass-panel rounded-xl p-4">
+            <h4 className="text-sm font-semibold mb-4">Change Password</h4>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
+              <div className="space-y-2">
+                <Label className="text-sm">Current Password</Label>
+                <Input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  required
+                  className="text-base"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">New Password</Label>
+                <Input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  minLength={6}
+                  required
+                  className="text-base"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Confirm New Password</Label>
+                <Input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  minLength={6}
+                  required
+                  className="text-base"
+                />
+              </div>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={passwordLoading}
+                className="btn-interactive"
+              >
+                {passwordLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Change Password
+              </Button>
+            </form>
+          </div>
+
+          {/* Two-Factor Authentication */}
+          <div className="glass-panel rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-semibold">Two-Factor Authentication</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Add extra security with a verification code from your authenticator app.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  {mfaEnabled ? (
+                    <>
+                      <Check className="h-4 w-4 text-success" />
+                      <span className="text-sm text-success font-medium">Enabled</span>
+                    </>
                   ) : (
-                    <div className="space-y-1.5">
-                      {passkeys.map((pk, index) => (
-                        <div 
-                          key={pk.id} 
-                          className="flex items-center justify-between p-2 glass-panel rounded-lg animate-slide-up"
-                          style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-sm">{pk.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">Created {formatDate(pk.created_at)} | Last used {formatDate(pk.last_used_at)}</p>
-                          </div>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleDeletePasskey(pk.id)} disabled={passkeyLoading}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
-                        </div>
-                      ))}
-                    </div>
+                    <>
+                      <X className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Disabled</span>
+                    </>
                   )}
                 </div>
+                {mfaEnabled ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowDisableMFA(true)}
+                    className="btn-interactive"
+                  >
+                    Disable
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => setShowMFASetup(true)}
+                    className="btn-interactive"
+                  >
+                    Enable
+                  </Button>
+                )}
               </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            </div>
+          </div>
 
-      <MFASetupModal open={showMFASetup} onClose={() => setShowMFASetup(false)} onComplete={handleMFASetupComplete} getAuthHeaders={getAuthHeaders} />
+          {/* Passkeys */}
+          <div className="glass-panel rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="icon-box icon-box-sm bg-primary/10 border-primary/20">
+                <Key className="h-4 w-4 text-primary" />
+              </div>
+              <h4 className="text-sm font-semibold">Passkeys</h4>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">
+              Use passkeys for fast, secure passwordless sign-in with Face ID, Touch ID, or Windows Hello.
+            </p>
 
-      <Dialog open={showDisableMFA} onOpenChange={(open) => { setShowDisableMFA(open); if (!open) { setDisablePassword(''); } }}>
+            <div className="space-y-4">
+              <div className="flex gap-2 flex-wrap">
+                <Input
+                  placeholder="Passkey name (e.g., MacBook Touch ID)"
+                  value={newPasskeyName}
+                  onChange={(e) => setNewPasskeyName(e.target.value)}
+                  className="flex-1 min-w-[200px]"
+                />
+                <Button
+                  size="sm"
+                  onClick={handlePasskeyRegistration}
+                  disabled={passkeyLoading}
+                  className="btn-interactive"
+                >
+                  {passkeyLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  <Key className="h-4 w-4 mr-2" />
+                  Add Passkey
+                </Button>
+              </div>
+
+              {passkeys.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No passkeys registered yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {passkeys.map((pk, index) => (
+                    <div
+                      key={pk.id}
+                      className="flex items-center justify-between p-3 glass-panel rounded-lg animate-slide-up"
+                      style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm">{pk.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          Created {formatDate(pk.created_at)} | Last used {formatDate(pk.last_used_at)}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => handleDeletePasskey(pk.id)}
+                        disabled={passkeyLoading}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MFA Setup Modal */}
+      <MFASetupModal
+        open={showMFASetup}
+        onClose={() => setShowMFASetup(false)}
+        onComplete={handleMFASetupComplete}
+        getAuthHeaders={getAuthHeaders}
+      />
+
+      {/* Disable MFA Dialog */}
+      <Dialog open={showDisableMFA} onOpenChange={(open) => {
+        setShowDisableMFA(open);
+        if (!open) setDisablePassword('');
+      }}>
         <DialogContent className="glass-overlay">
           <DialogHeader>
             <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
-            <DialogDescription>This will make your account less secure. Enter your password to confirm.</DialogDescription>
+            <DialogDescription>
+              This will make your account less secure. Enter your password to confirm.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Input type="password" placeholder="Enter your password" value={disablePassword} onChange={(e) => setDisablePassword(e.target.value)} />
+            <Input
+              type="password"
+              placeholder="Enter your password"
+              value={disablePassword}
+              onChange={(e) => setDisablePassword(e.target.value)}
+            />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDisableMFA(false)} className="btn-interactive">Cancel</Button>
-            <Button variant="destructive" onClick={handleDisableMFA} disabled={mfaLoading || !disablePassword} className="btn-interactive">{mfaLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Disable MFA</Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowDisableMFA(false)}
+              className="btn-interactive"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDisableMFA}
+              disabled={mfaLoading || !disablePassword}
+              className="btn-interactive"
+            >
+              {mfaLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Disable MFA
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -444,4 +739,4 @@ const ProfileNew = () => {
   );
 };
 
-export default ProfileNew;
+export default Profile;

@@ -45,36 +45,44 @@ const Dashboard = () => {
       const statsResponse = await fetch('/api/stats', {
         headers: { ...getAuthHeaders() }
       });
-      
+
       let stats = {};
       if (statsResponse.ok) {
         stats = await statsResponse.json();
       }
 
+      // Fetch COMMON data for ALL users (for common cards section)
+      // My personal assets (where employee_email = user.email)
+      const myAssetsRes = await fetch('/api/assets', {
+        headers: { ...getAuthHeaders() }
+      });
+      if (myAssetsRes.ok) {
+        const allAssets = await myAssetsRes.json();
+        // For employees, this returns only their assets already
+        // For managers/admins/coordinators, we filter to get personal assets
+        const myPersonalAssets = isEmployee
+          ? allAssets
+          : allAssets.filter(asset => asset.employee_email?.toLowerCase() === user.email.toLowerCase());
+        stats.myAssetsCount = myPersonalAssets.length;
+      }
+
+      // My attestations (for all users)
+      const attestRes = await fetch('/api/attestation/my-attestations', {
+        headers: { ...getAuthHeaders() }
+      });
+      if (attestRes.ok) {
+        const attestData = await attestRes.json();
+        const attestations = attestData.attestations || [];
+        // Count attestations that need action (pending OR in_progress)
+        stats.pendingAttestationsCount = attestations.filter(a =>
+          a.status === 'pending' || a.status === 'in_progress'
+        ).length;
+        stats.completedAttestationsCount = attestations.filter(a => a.status === 'completed').length;
+      }
+
       // Fetch role-specific data
       if (isEmployee) {
-        // Fetch my assets
-        const myAssetsRes = await fetch('/api/assets', {
-          headers: { ...getAuthHeaders() }
-        });
-        if (myAssetsRes.ok) {
-          const myAssets = await myAssetsRes.json();
-          stats.myAssetsCount = myAssets.length;
-        }
-
-        // Fetch my attestations
-        const attestRes = await fetch('/api/attestation/my-attestations', {
-          headers: { ...getAuthHeaders() }
-        });
-        if (attestRes.ok) {
-          const attestData = await attestRes.json();
-          const attestations = attestData.attestations || [];
-          // Count attestations that need action (pending OR in_progress)
-          stats.pendingAttestationsCount = attestations.filter(a => 
-            a.status === 'pending' || a.status === 'in_progress'
-          ).length;
-          stats.completedAttestationsCount = attestations.filter(a => a.status === 'completed').length;
-        }
+        // Employee-specific stats already handled in common section
       }
 
       if (isManager) {
@@ -101,25 +109,13 @@ const Dashboard = () => {
           const usersData = await usersRes.json();
           // Count users where this manager is their manager (case-insensitive)
           const managerEmail = user.email.toLowerCase();
-          const teamMembers = usersData.users?.filter(u => 
+          const teamMembers = usersData.users?.filter(u =>
             u.manager_email?.toLowerCase() === managerEmail
           ) || [];
           stats.teamMembersCount = teamMembers.length;
         }
 
-        // Fetch manager's own attestations
-        const attestRes = await fetch('/api/attestation/my-attestations', {
-          headers: { ...getAuthHeaders() }
-        });
-        if (attestRes.ok) {
-          const attestData = await attestRes.json();
-          const attestations = attestData.attestations || [];
-          // Count attestations that need action (pending OR in_progress)
-          stats.pendingAttestationsCount = attestations.filter(a => 
-            a.status === 'pending' || a.status === 'in_progress'
-          ).length;
-          stats.completedAttestationsCount = attestations.filter(a => a.status === 'completed').length;
-        }
+        // Manager's attestations already fetched in common section
       }
 
       if (isCoordinator || isAdmin) {
@@ -158,19 +154,7 @@ const Dashboard = () => {
       }
 
       if (isCoordinator) {
-        // Fetch coordinator's own attestations (if they own assets)
-        const attestRes = await fetch('/api/attestation/my-attestations', {
-          headers: { ...getAuthHeaders() }
-        });
-        if (attestRes.ok) {
-          const attestData = await attestRes.json();
-          const attestations = attestData.attestations || [];
-          // Count attestations that need action (pending OR in_progress)
-          stats.pendingAttestationsCount = attestations.filter(a => 
-            a.status === 'pending' || a.status === 'in_progress'
-          ).length;
-          stats.completedAttestationsCount = attestations.filter(a => a.status === 'completed').length;
-        }
+        // Coordinator's attestations already fetched in common section
       }
 
       setDashboardStats(prev => ({ ...prev, ...stats }));
@@ -213,106 +197,150 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* COMMON CARDS - Shown to ALL Users */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 py-2">
+        <div className="md:col-span-3 mb-2">
+          <h2 className="text-xl font-bold tracking-tight text-muted-foreground uppercase">
+            My Information
+          </h2>
+        </div>
+
+        {/* My Profile Card */}
+        <Card
+          className="glass-panel cursor-pointer hover:scale-[1.02] transition-all duration-200 group"
+          onClick={() => navigate('/profile')}
+        >
+          <CardContent className="p-5 flex flex-col h-full justify-between min-h-[140px]">
+            <div className="flex items-start justify-between">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
+                <User className="text-primary h-6 w-6" />
+              </div>
+              <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg tracking-tight mb-1">My Profile</h3>
+              <p className="text-xs text-muted-foreground">View and edit personal information</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* My Assets Card */}
+        <Card
+          className="glass-panel cursor-pointer hover:scale-[1.02] transition-all duration-200 group"
+          onClick={() => navigate('/assets')}
+        >
+          <CardContent className="p-5 flex flex-col h-full justify-between min-h-[140px]">
+            <div className="flex items-start justify-between">
+              <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center border border-info/20 group-hover:bg-info/20 transition-colors">
+                <Package className="text-info h-6 w-6" />
+              </div>
+              <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity text-info" />
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-gradient mb-1">{dashboardStats.myAssetsCount}</div>
+              <h3 className="caption-label">My Assets</h3>
+              <p className="text-xs text-muted-foreground">Assets assigned to me</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* My Attestations Card */}
+        <Card
+          className="glass-panel cursor-pointer hover:scale-[1.02] transition-all duration-200 group relative"
+          onClick={() => navigate('/my-attestations')}
+        >
+          {/* Notification pulse if pending */}
+          {dashboardStats.pendingAttestationsCount > 0 && (
+            <div className="absolute top-4 right-4">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-warning"></span>
+              </span>
+            </div>
+          )}
+          <CardContent className="p-5 flex flex-col h-full justify-between min-h-[140px]">
+            <div className="flex items-start justify-between">
+              <div className={cn(
+                "h-12 w-12 rounded-xl flex items-center justify-center border transition-colors",
+                dashboardStats.pendingAttestationsCount > 0
+                  ? "bg-warning/10 border-warning/20 group-hover:bg-warning/20"
+                  : "bg-success/10 border-success/20 group-hover:bg-success/20"
+              )}>
+                <ClipboardCheck className={cn(
+                  "h-6 w-6",
+                  dashboardStats.pendingAttestationsCount > 0 ? "text-warning" : "text-success"
+                )} />
+              </div>
+              <ArrowUpRight size={18} className={cn(
+                "opacity-0 group-hover:opacity-100 transition-opacity",
+                dashboardStats.pendingAttestationsCount > 0 ? "text-warning" : "text-success"
+              )} />
+            </div>
+            <div>
+              <div className={cn(
+                "text-3xl font-bold mb-1",
+                dashboardStats.pendingAttestationsCount > 0 ? "text-warning" : "text-success"
+              )}>
+                {dashboardStats.pendingAttestationsCount}
+              </div>
+              <h3 className="caption-label">My Attestations</h3>
+              <p className="text-xs text-muted-foreground">
+                {dashboardStats.pendingAttestationsCount > 0 ? "Action required" : "All up to date"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* ROLE-SPECIFIC INSIGHTS SECTION */}
+      <div className="md:col-span-3 mb-2 mt-6">
+        <h2 className="text-xl font-bold tracking-tight text-muted-foreground uppercase">
+          {isEmployee && "My Dashboard"}
+          {isManager && "Team Overview"}
+          {isCoordinator && "Campaign Management"}
+          {isAdmin && "System Overview"}
+        </h2>
+      </div>
+
       {/* Main Bento Grid Layout - EMPLOYEE VIEW */}
       {isEmployee && (
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 md:gap-4 min-h-[400px]">
-          
-          {/* Featured Stat: My Assets (Large Bento Item) */}
-          <Card className="bento-card md:col-span-2 md:row-span-2 group relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-15 transition-opacity">
-              <Package size={100} />
-            </div>
-            <CardContent className="p-5 md:p-6 relative z-10 flex flex-col h-full justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
+          {/* Info Card: Activity */}
+          <Card className="bento-card md:col-span-2 group cursor-pointer" onClick={() => navigate('/audit')}>
+            <CardContent className="p-5 flex items-center justify-between h-full">
               <div className="space-y-2">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 mb-4">
-                  <Package className="text-primary h-6 w-6" />
+                <div className="h-10 w-10 rounded-xl bg-info/10 flex items-center justify-center border border-info/20">
+                  <FileBarChart className="text-info h-6 w-6" />
                 </div>
-                <h2 className="text-xl font-semibold text-muted-foreground uppercase tracking-widest">My Assets</h2>
-                <div className="text-5xl md:text-6xl font-bold tracking-tighter text-gradient leading-none">
-                  {dashboardStats.myAssetsCount}
-                </div>
+                <h3 className="text-lg font-bold text-muted-foreground uppercase tracking-widest">Recent Activity</h3>
+                <p className="text-sm text-muted-foreground">View your recent actions and changes</p>
               </div>
-              <button 
-                onClick={() => navigate('/assets')}
-                className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4"
-              >
-                View My Assets <ArrowUpRight className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-              </button>
+              <ArrowUpRight className="text-info group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </CardContent>
           </Card>
 
-          {/* Medium Stat: Pending Attestations */}
-          <Card 
-            className="bento-card md:col-span-2 md:row-span-1 group relative cursor-pointer"
-            onClick={() => navigate('/my-attestations')}
-          >
-            {/* Add notification pulse when there are pending items */}
-            {dashboardStats.pendingAttestationsCount > 0 && (
-              <div className="absolute top-4 right-4">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-warning"></span>
-                </span>
-              </div>
-            )}
-            <CardContent className="p-4 flex items-center justify-between h-full">
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Pending Attestations</p>
-                <div className="text-3xl font-bold">
-                  {dashboardStats.pendingAttestationsCount > 0 ? (
-                    <span className="text-warning">{dashboardStats.pendingAttestationsCount}</span>
-                  ) : (
-                    <span className="text-success">0</span>
-                  )}
-                </div>
-                {dashboardStats.pendingAttestationsCount === 0 ? (
-                  <p className="text-xs text-success font-medium flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> All attestations complete
-                  </p>
-                ) : (
-                  <p className="text-xs text-warning font-medium flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" /> Action required
-                  </p>
-                )}
-              </div>
-              <div className={cn(
-                "h-12 w-12 rounded-2xl flex items-center justify-center border group-hover:scale-105 transition-transform",
-                dashboardStats.pendingAttestationsCount > 0 
-                  ? "bg-warning/10 border-warning/20" 
-                  : "bg-success/10 border-success/20"
-              )}>
-                {dashboardStats.pendingAttestationsCount > 0 ? (
-                  <AlertCircle className="text-warning h-6 w-6" />
-                ) : (
-                  <CheckCircle2 className="text-success h-6 w-6" />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Small Stat: My Profile */}
-          <Card 
-            className="glass-panel md:col-span-1 md:row-span-1 cursor-pointer hover:bg-white/5 transition-colors group"
-            onClick={() => navigate('/profile')}
-          >
+          {/* Info Card: Companies */}
+          <Card className="bento-card md:col-span-1 group">
             <CardContent className="p-4 flex flex-col justify-between h-full">
-               <User className="text-muted-foreground h-6 w-6 group-hover:text-primary transition-colors" />
-               <div className="flex items-center justify-between">
-                  <span className="font-semibold tracking-tight">My Profile</span>
-                  <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
-               </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Access: Recent Activity */}
-          <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-4 flex flex-col justify-between h-full">
-              <div className="h-8 w-8 rounded-lg bg-info/10 flex items-center justify-center border border-info/20 mb-2">
-                <FileBarChart className="text-info h-4 w-4" />
+              <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center border border-warning/20 mb-2">
+                <Building2 className="text-warning h-4 w-4" />
               </div>
               <div>
-                <div className="text-sm font-bold text-muted-foreground uppercase mb-1">Activity</div>
-                <p className="text-xs text-muted-foreground">Recent actions</p>
+                <div className="text-xl font-bold leading-none mb-1">{dashboardStats.companiesCount}</div>
+                <p className="text-xs font-bold text-muted-foreground uppercase">Companies</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Info Card: Total Assets in System */}
+          <Card className="bento-card md:col-span-1 group">
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 mb-2">
+                <Package className="text-primary h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-xl font-bold leading-none mb-1">{dashboardStats.assetsCount}</div>
+                <p className="text-xs font-bold text-muted-foreground uppercase">Total Assets</p>
               </div>
             </CardContent>
           </Card>
@@ -321,10 +349,9 @@ const Dashboard = () => {
 
       {/* Main Bento Grid Layout - MANAGER VIEW */}
       {isManager && (
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 md:gap-4 min-h-[400px]">
-          
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
           {/* Featured Stat: Team Assets (Large Bento Item) */}
-          <Card className="bento-card md:col-span-2 md:row-span-2 group relative overflow-hidden flex flex-col justify-between">
+          <Card className="bento-card md:col-span-2 group relative overflow-hidden flex flex-col justify-between cursor-pointer" onClick={() => navigate('/assets')}>
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-15 transition-opacity">
               <Package size={100} />
             </div>
@@ -337,100 +364,39 @@ const Dashboard = () => {
                 <div className="text-5xl md:text-6xl font-bold tracking-tighter text-gradient leading-none">
                   {dashboardStats.teamAssetsCount}
                 </div>
+                <p className="text-sm text-muted-foreground">Assets managed by you</p>
               </div>
-              <button 
-                onClick={() => navigate('/assets')}
-                className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4"
-              >
+              <div className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4">
                 View Team Assets <ArrowUpRight className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-              </button>
+              </div>
             </CardContent>
           </Card>
 
           {/* Medium Stat: Team Members */}
-          <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-4 flex items-center justify-between h-full">
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Team Members</p>
-                <div className="text-3xl font-bold">{dashboardStats.teamMembersCount}</div>
-                <p className="text-xs text-success font-medium">Direct reports</p>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-success/10 flex items-center justify-center border border-success/20 group-hover:scale-105 transition-transform">
+          <Card className="bento-card md:col-span-1 group cursor-pointer" onClick={() => navigate('/users')}>
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-success/10 flex items-center justify-center border border-success/20 group-hover:scale-105 transition-transform">
                 <Users className="text-success h-6 w-6" />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Medium Stat: My Attestations */}
-          <Card 
-            className="bento-card md:col-span-1 md:row-span-1 group cursor-pointer"
-            onClick={() => navigate('/my-attestations')}
-          >
-            {/* Add notification pulse when there are pending items */}
-            {dashboardStats.pendingAttestationsCount > 0 && (
-              <div className="absolute top-4 right-4">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-warning"></span>
-                </span>
-              </div>
-            )}
-            <CardContent className="p-4 flex items-center justify-between h-full">
               <div className="space-y-1">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">My Attestations</p>
-                <div className="text-3xl font-bold">
-                  {dashboardStats.pendingAttestationsCount > 0 ? (
-                    <span className="text-warning">{dashboardStats.pendingAttestationsCount}</span>
-                  ) : (
-                    <span className="text-success">0</span>
-                  )}
-                </div>
-                {dashboardStats.pendingAttestationsCount === 0 ? (
-                  <p className="text-xs text-success font-medium">All complete</p>
-                ) : (
-                  <p className="text-xs text-warning font-medium">Action required</p>
-                )}
-              </div>
-              <div className={cn(
-                "h-12 w-12 rounded-2xl flex items-center justify-center border group-hover:scale-105 transition-transform",
-                dashboardStats.pendingAttestationsCount > 0 
-                  ? "bg-warning/10 border-warning/20" 
-                  : "bg-success/10 border-success/20"
-              )}>
-                {dashboardStats.pendingAttestationsCount > 0 ? (
-                  <ClipboardCheck className="text-warning h-6 w-6" />
-                ) : (
-                  <CheckCircle2 className="text-success h-6 w-6" />
-                )}
+                <div className="text-4xl font-bold text-gradient">{dashboardStats.teamMembersCount}</div>
+                <p className="caption-label">Team Members</p>
+                <p className="text-xs text-muted-foreground">Direct reports</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Quick Access: My Profile */}
-          <Card 
-            className="glass-panel md:col-span-1 md:row-span-1 cursor-pointer hover:bg-white/5 transition-colors group"
-            onClick={() => navigate('/profile')}
-          >
-            <CardContent className="p-4 flex flex-col justify-between h-full">
-               <User className="text-muted-foreground h-6 w-6 group-hover:text-primary transition-colors" />
-               <div className="flex items-center justify-between">
-                  <span className="font-semibold tracking-tight">My Profile</span>
-                  <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
-               </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Access: Team */}
-          <Card 
-            className="glass-panel md:col-span-1 md:row-span-1 cursor-pointer hover:bg-white/5 transition-colors group"
-            onClick={() => navigate('/users')}
-          >
-            <CardContent className="p-4 flex flex-col justify-between h-full">
-               <UserPlus className="text-muted-foreground h-6 w-6 group-hover:text-primary transition-colors" />
-               <div className="flex items-center justify-between">
-                  <span className="font-semibold tracking-tight">Team</span>
-                  <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
-               </div>
+          {/* Info Card: Companies */}
+          <Card className="bento-card md:col-span-1 group">
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center border border-warning/20">
+                <Building2 className="text-warning h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-gradient">{dashboardStats.companiesCount}</div>
+                <p className="caption-label">Companies</p>
+                <p className="text-xs text-muted-foreground">Total client orgs</p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -438,10 +404,9 @@ const Dashboard = () => {
 
       {/* Main Bento Grid Layout - COORDINATOR VIEW */}
       {isCoordinator && (
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 md:gap-4 min-h-[400px]">
-          
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
           {/* Featured Stat: Active Campaigns (Large Bento Item) */}
-          <Card className="bento-card md:col-span-2 md:row-span-2 group relative overflow-hidden flex flex-col justify-between">
+          <Card className="bento-card md:col-span-2 group relative overflow-hidden flex flex-col justify-between cursor-pointer" onClick={() => navigate('/attestation')}>
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-15 transition-opacity">
               <ClipboardCheck size={100} />
             </div>
@@ -454,117 +419,71 @@ const Dashboard = () => {
                 <div className="text-5xl md:text-6xl font-bold tracking-tighter text-gradient leading-none">
                   {dashboardStats.activeCampaignsCount}
                 </div>
+                <p className="text-sm text-muted-foreground">Attestation campaigns in progress</p>
               </div>
-              <button 
-                onClick={() => navigate('/attestation')}
-                className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4"
-              >
+              <div className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4">
                 Manage Campaigns <ArrowUpRight className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-              </button>
+              </div>
             </CardContent>
           </Card>
 
           {/* Medium Stat: Pending Responses */}
-          <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-4 flex items-center justify-between h-full">
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Pending Responses</p>
-                <div className="text-3xl font-bold">
-                  {dashboardStats.totalPendingResponses > 0 ? (
-                    <span className="text-warning">{dashboardStats.totalPendingResponses}</span>
-                  ) : (
-                    <span className="text-success">0</span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground font-medium">Campaign responses</p>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-warning/10 flex items-center justify-center border border-warning/20 group-hover:scale-105 transition-transform">
+          <Card className="bento-card md:col-span-1 group cursor-pointer" onClick={() => navigate('/attestation')}>
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center border border-warning/20 group-hover:scale-105 transition-transform">
                 <AlertCircle className="text-warning h-6 w-6" />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Medium Stat: My Attestations (if coordinator has assets) */}
-          {dashboardStats.pendingAttestationsCount > 0 || dashboardStats.completedAttestationsCount > 0 ? (
-            <Card 
-              className="bento-card md:col-span-1 md:row-span-1 group cursor-pointer"
-              onClick={() => navigate('/my-attestations')}
-            >
-              {/* Add notification pulse when there are pending items */}
-              {dashboardStats.pendingAttestationsCount > 0 && (
-                <div className="absolute top-4 right-4">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-warning"></span>
-                  </span>
-                </div>
-              )}
-              <CardContent className="p-4 flex items-center justify-between h-full">
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">My Attestations</p>
-                  <div className="text-3xl font-bold">
-                    {dashboardStats.pendingAttestationsCount > 0 ? (
-                      <span className="text-warning">{dashboardStats.pendingAttestationsCount}</span>
-                    ) : (
-                      <span className="text-success">0</span>
-                    )}
-                  </div>
-                  {dashboardStats.pendingAttestationsCount === 0 ? (
-                    <p className="text-xs text-success font-medium">All complete</p>
-                  ) : (
-                    <p className="text-xs text-warning font-medium">Action required</p>
-                  )}
-                </div>
+              <div className="space-y-1">
                 <div className={cn(
-                  "h-12 w-12 rounded-2xl flex items-center justify-center border group-hover:scale-105 transition-transform",
-                  dashboardStats.pendingAttestationsCount > 0 
-                    ? "bg-warning/10 border-warning/20" 
-                    : "bg-success/10 border-success/20"
+                  "text-4xl font-bold",
+                  dashboardStats.totalPendingResponses > 0 ? "text-warning" : "text-success"
                 )}>
-                  {dashboardStats.pendingAttestationsCount > 0 ? (
-                    <ClipboardCheck className="text-warning h-6 w-6" />
-                  ) : (
-                    <CheckCircle2 className="text-success h-6 w-6" />
-                  )}
+                  {dashboardStats.totalPendingResponses}
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="bento-card md:col-span-1 md:row-span-1 group">
-              <CardContent className="p-4 flex flex-col justify-between h-full">
-                <div className="h-8 w-8 rounded-lg bg-info/10 flex items-center justify-center border border-info/20 mb-2">
-                  <Package className="text-info h-4 w-4" />
-                </div>
-                <div>
-                  <div className="text-xl font-bold leading-none mb-1">{dashboardStats.assetsCount}</div>
-                  <p className="text-xs font-bold text-muted-foreground uppercase">Assets</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Small Stat: Companies */}
-          <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-4 flex flex-col justify-between h-full">
-              <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center border border-warning/20 mb-2">
-                <Building2 className="text-warning h-4 w-4" />
-              </div>
-              <div>
-                <div className="text-xl font-bold leading-none mb-1">{dashboardStats.companiesCount}</div>
-                <p className="text-xs font-bold text-muted-foreground uppercase">Companies</p>
+                <p className="caption-label">Pending Responses</p>
+                <p className="text-xs text-muted-foreground">Campaign responses needed</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Small Stat: Users */}
-          <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-4 flex flex-col justify-between h-full">
-              <div className="h-8 w-8 rounded-lg bg-success/10 flex items-center justify-center border border-success/20 mb-2">
-                <Users className="text-success h-4 w-4" />
+          {/* Info Card: Total Assets (Read Only) */}
+          <Card className="bento-card md:col-span-1 group">
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center border border-info/20">
+                <Package className="text-info h-6 w-6" />
               </div>
               <div>
-                <div className="text-xl font-bold leading-none mb-1">{dashboardStats.employeesCount}</div>
-                <p className="text-xs font-bold text-muted-foreground uppercase">Users</p>
+                <div className="text-4xl font-bold text-gradient">{dashboardStats.assetsCount}</div>
+                <p className="caption-label">Total Assets</p>
+                <p className="text-xs text-muted-foreground">System-wide (view only)</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Info Card: Companies (Read Only) */}
+          <Card className="bento-card md:col-span-1 group">
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center border border-warning/20">
+                <Building2 className="text-warning h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-gradient">{dashboardStats.companiesCount}</div>
+                <p className="caption-label">Companies</p>
+                <p className="text-xs text-muted-foreground">Total client orgs</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Info Card: Users (Read Only) */}
+          <Card className="bento-card md:col-span-1 group">
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-success/10 flex items-center justify-center border border-success/20">
+                <Users className="text-success h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-gradient">{dashboardStats.employeesCount}</div>
+                <p className="caption-label">Users</p>
+                <p className="text-xs text-muted-foreground">Total system users</p>
               </div>
             </CardContent>
           </Card>
@@ -573,10 +492,9 @@ const Dashboard = () => {
 
       {/* Main Bento Grid Layout - ADMIN VIEW */}
       {isAdmin && (
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 md:gap-4 min-h-[400px]">
-          
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
           {/* Featured Stat: Total Assets (Large Bento Item) */}
-          <Card className="bento-card md:col-span-2 md:row-span-2 group relative overflow-hidden flex flex-col justify-between">
+          <Card className="bento-card md:col-span-2 group relative overflow-hidden flex flex-col justify-between cursor-pointer" onClick={() => navigate('/assets')}>
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-15 transition-opacity">
               <Package size={100} />
             </div>
@@ -589,54 +507,53 @@ const Dashboard = () => {
                 <div className="text-5xl md:text-6xl font-bold tracking-tighter text-gradient leading-none">
                   {dashboardStats.assetsCount}
                 </div>
+                <p className="text-sm text-muted-foreground">System-wide asset inventory</p>
               </div>
-              <button 
-                onClick={() => navigate('/assets')}
-                className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4"
-              >
+              <div className="flex items-center gap-2 text-primary font-semibold text-sm group/btn mt-4">
                 View Full Inventory <ArrowUpRight className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-              </button>
+              </div>
             </CardContent>
           </Card>
 
           {/* Medium Stat: Users */}
-          <Card className="bento-card md:col-span-2 md:row-span-1 group">
-            <CardContent className="p-4 flex items-center justify-between h-full">
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Users</p>
-                <div className="text-3xl font-bold">{dashboardStats.employeesCount}</div>
-                <p className="text-xs text-success font-medium">Synced across all departments</p>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-success/10 flex items-center justify-center border border-success/20 group-hover:scale-105 transition-transform">
+          <Card className="bento-card md:col-span-1 group cursor-pointer" onClick={() => navigate('/users')}>
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-success/10 flex items-center justify-center border border-success/20 group-hover:scale-105 transition-transform">
                 <Users className="text-success h-6 w-6" />
               </div>
+              <div className="space-y-1">
+                <div className="text-4xl font-bold text-gradient">{dashboardStats.employeesCount}</div>
+                <p className="caption-label">Users</p>
+                <p className="text-xs text-muted-foreground">All system users</p>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Small Stat: Companies */}
-          <Card className="bento-card md:col-span-1 md:row-span-1 group">
-            <CardContent className="p-4 flex flex-col justify-between h-full">
-              <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center border border-warning/20 mb-2">
-                <Building2 className="text-warning h-4 w-4" />
+          {/* Info Card: Companies */}
+          <Card className="bento-card md:col-span-1 group cursor-pointer" onClick={() => navigate('/companies')}>
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center border border-warning/20 group-hover:scale-105 transition-transform">
+                <Building2 className="text-warning h-6 w-6" />
               </div>
               <div>
-                <div className="text-xl font-bold leading-none mb-1">{dashboardStats.companiesCount}</div>
-                <p className="text-xs font-bold text-muted-foreground uppercase">Companies</p>
+                <div className="text-4xl font-bold text-gradient">{dashboardStats.companiesCount}</div>
+                <p className="caption-label">Companies</p>
+                <p className="text-xs text-muted-foreground">Client organizations</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Quick Access: My Account */}
-          <Card 
-            className="glass-panel md:col-span-1 md:row-span-1 cursor-pointer hover:bg-white/5 transition-colors group"
-            onClick={() => navigate('/profile')}
-          >
-            <CardContent className="p-4 flex flex-col justify-between h-full">
-               <User className="text-muted-foreground h-6 w-6 group-hover:text-primary transition-colors" />
-               <div className="flex items-center justify-between">
-                  <span className="font-semibold tracking-tight">My Account</span>
-                  <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
-               </div>
+          {/* Info Card: Active Campaigns */}
+          <Card className="bento-card md:col-span-1 group cursor-pointer" onClick={() => navigate('/attestation')}>
+            <CardContent className="p-4 flex flex-col justify-between h-full min-h-[180px]">
+              <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center border border-info/20 group-hover:scale-105 transition-transform">
+                <ClipboardCheck className="text-info h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-gradient">{dashboardStats.activeCampaignsCount}</div>
+                <p className="caption-label">Active Campaigns</p>
+                <p className="text-xs text-muted-foreground">Attestation campaigns</p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -749,7 +666,7 @@ const Dashboard = () => {
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div className="md:col-span-3">
             <h2 className="text-2xl font-bold tracking-tight mb-4 flex items-center gap-2">
-              <ClipboardCheck className="text-primary" /> Operational Controls
+              <ClipboardCheck className="text-primary" /> Quick Actions
             </h2>
           </div>
           
@@ -770,7 +687,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h3 className="font-bold tracking-tight">{item.label}</h3>
-                  <p className="text-xs text-muted-foreground font-medium italic">Execute system procedures</p>
+                  <p className="text-xs text-muted-foreground font-medium italic">Quick access</p>
                 </div>
               </CardContent>
             </Card>

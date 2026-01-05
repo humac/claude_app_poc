@@ -180,7 +180,7 @@ Expected response:
 {
   "status": "healthy",
   "database": "connected",
-  "timestamp": "2024-01-05T12:00:00.000Z"
+  "timestamp": "2026-01-05T12:00:00.000Z"
 }
 ```
 

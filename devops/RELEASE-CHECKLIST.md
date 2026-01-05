@@ -1,13 +1,21 @@
-# ACS Weekly Release Checklist
+# KARS Weekly Release Checklist
 
-This checklist ensures consistent, safe, and high-quality releases of ACS to production.
+This checklist ensures consistent, safe, and high-quality releases of KARS to production.
+
+**Project:** ACS - Asset Compliance System  
+**Code Name:** KARS  
+**Repository:** humac/acs  
+**Domain:** kars.keydatalab.ca
 
 ## Release Overview
 
-- **Frequency:** Weekly (every Friday)
-- **Time Window:** 2:00 PM - 4:00 PM EST (off-peak hours)
+- **Frequency:** Weekly
+- **QA Day:** Friday (full day testing on kars-dev)
+- **Deployment Day:** Monday
+- **Time Window:** 10:00 AM - 11:00 AM EST (low-traffic hours)
 - **Duration:** ~30 minutes (excluding monitoring)
 - **Rollback Window:** Prepared for immediate rollback if issues detected
+- **Communication:** Microsoft Teams #kars-releases channel
 
 ---
 
@@ -16,21 +24,21 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
 ### Code Freeze (Thursday 5:00 PM EST)
 
 - [ ] **Announce Code Freeze**
-  - Post in team chat: "Code freeze for weekly release active. No merges to `develop` until release complete."
-  - Update #releases channel with release notes draft
+  - Post in #kars-releases Teams channel: "Code freeze for weekly release active. No merges to `kars-dev` until release complete."
+  - Update release notes draft
 
-- [ ] **Verify Develop Branch Status**
+- [ ] **Verify kars-dev Branch Status**
   ```bash
-  git checkout develop
-  git pull origin develop
-  git log main..develop --oneline
+  git checkout kars-dev
+  git pull origin kars-dev
+  git log kars-prod..kars-dev --oneline
   ```
   - [ ] Review commits since last release
   - [ ] Confirm all intended features merged
   - [ ] No work-in-progress commits
 
 - [ ] **Check CI/CD Pipeline**
-  - [ ] All tests passing on `develop`: https://github.com/humac/acs/actions
+  - [ ] All tests passing on `kars-dev`: https://github.com/humac/acs/actions
   - [ ] Frontend build successful
   - [ ] Backend build successful
   - [ ] No security audit failures (npm audit)
@@ -38,16 +46,16 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
 
 ### Testing Phase (Friday Morning)
 
-- [ ] **Staging Environment Verification**
+- [ ] **Development Environment Verification**
   ```bash
-  # Verify staging deployment
-  curl https://staging.acs.jvhlabs.com/api/health
+  # Verify development deployment
+  curl https://kars-dev.keydatalab.ca/api/health
   ```
-  - [ ] Staging deployed from latest `develop`
-  - [ ] All containers running healthy
+  - [ ] Development deployed from latest `kars-dev`
+  - [ ] Railway services running healthy
   - [ ] No error spikes in logs
 
-- [ ] **Functional Testing on Staging**
+- [ ] **Functional Testing on Development (kars-dev.keydatalab.ca)**
   - [ ] **Authentication**
     - [ ] User registration works
     - [ ] Login with email/password works
@@ -93,14 +101,14 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
 
 - [ ] **Performance Testing**
   ```bash
-  # Test response times
-  time curl https://staging.acs.jvhlabs.com/api/assets
-  time curl https://staging.acs.jvhlabs.com/api/users
-  time curl https://staging.acs.jvhlabs.com/api/companies
+  # Test response times on development
+  time curl https://kars-dev.keydatalab.ca/api/assets
+  time curl https://kars-dev.keydatalab.ca/api/users
+  time curl https://kars-dev.keydatalab.ca/api/companies
   ```
   - [ ] API response times < 500ms
   - [ ] Page load times < 3 seconds
-  - [ ] No memory leaks in containers
+  - [ ] No memory leaks in services
 
 - [ ] **Security Scan**
   ```bash
@@ -112,7 +120,7 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
   - [ ] Dependencies up to date (or known safe versions)
 
 - [ ] **Database Migration Testing (if applicable)**
-  - [ ] Migration scripts tested on staging
+  - [ ] Migration scripts tested on kars_dev database
   - [ ] Rollback scripts prepared
   - [ ] Data integrity verified post-migration
   - [ ] Backup taken before migration
@@ -124,36 +132,16 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
   - [ ] Edge (latest)
   - [ ] Mobile browsers (iOS Safari, Chrome Mobile)
 
-### Release Preparation (Friday 1:00 PM EST)
+### Release Preparation (Friday 3:00 PM EST)
 
-- [ ] **Create Release Branch**
-  ```bash
-  git checkout develop
-  git pull origin develop
-  git checkout -b release/v1.x.x
-  git push origin release/v1.x.x
-  ```
-
-- [ ] **Update Version Numbers**
-  ```bash
-  # Update package.json versions
-  cd backend
-  npm version patch  # or minor/major
-  cd ../frontend
-  npm version patch
-  git add .
-  git commit -m "chore: bump version to v1.x.x"
-  git push origin release/v1.x.x
-  ```
-
-- [ ] **Generate Release Notes**
+- [ ] **Create Release Notes**
   ```bash
   # Review commits
-  git log main..develop --oneline --no-merges
+  git log kars-prod..kars-dev --oneline --no-merges
   
   # Create CHANGELOG.md entry
   # Format:
-  ## [1.x.x] - YYYY-MM-DD
+  ## [YYYY-MM-DD] - Monday Deployment
   ### Added
   - Feature A
   - Feature B
@@ -169,22 +157,26 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
   - Security improvement W
   ```
 
-- [ ] **Create Pull Request**
-  - [ ] PR from `release/v1.x.x` to `main`
-  - [ ] Title: "Release v1.x.x"
-  - [ ] Include release notes in description
-  - [ ] Request review from team lead
+- [ ] **Create Pull Request (Optional - for visibility)**
+  ```bash
+  # Create PR from kars-dev to kars-prod for Monday
+  gh pr create --base kars-prod --head kars-dev \
+    --title "Production Release - Monday $(date -d 'next monday' +%Y-%m-%d)" \
+    --body "Weekly production release after Friday QA validation"
+  
+  # Mark as draft until Monday
+  gh pr ready --undo
+  ```
 
-- [ ] **Notify Stakeholders**
+- [ ] **Notify Stakeholders in #kars-releases Teams channel**
   ```
   📢 RELEASE NOTIFICATION
   
-  Release: v1.x.x
-  Scheduled: Friday, [Date] at 2:00 PM EST
+  Release Date: Monday, [Date] at 10:00 AM EST
   Duration: ~30 minutes
-  Expected Downtime: None (rolling deployment)
+  Expected Downtime: None (zero-downtime deployment)
   
-  Release Notes: [Link to PR]
+  Testing Status: ✅ All QA tests passed on kars-dev
   
   Features:
   - [Feature 1]
@@ -194,18 +186,19 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
   - [Fix 1]
   - [Fix 2]
   
-  Please report any issues in #support channel.
+  Please report any issues in #kars-support channel.
   ```
 
 ---
 
-## Release Phase (Friday 2:00 PM EST)
+## Release Phase (Monday 10:00 AM EST)
 
-### Pre-Deployment Checks
+### Pre-Deployment Checks (9:45 AM EST)
 
 - [ ] **Verify Production Health**
   ```bash
-  curl https://acs.jvhlabs.com/api/health
+  curl https://kars.keydatalab.ca/api/health
+  railway link kars-backend-prod
   railway status
   ```
   - [ ] Production running stable
@@ -215,6 +208,7 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
 - [ ] **Backup Production Database**
   ```bash
   # PostgreSQL backup
+  railway link kars-backend-prod
   railway run pg_dump > backup-pre-release-$(date +%Y%m%d-%H%M).sql
   
   # Verify backup
@@ -225,76 +219,84 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
   - [ ] Backup stored securely
 
 - [ ] **Review Rollback Plan**
-  - [ ] Previous version tag identified: `v1.x.x-previous`
+  - [ ] Previous deployment identified in Railway dashboard
   - [ ] Rollback procedure reviewed
   - [ ] Team on standby for monitoring
 
-### Deployment Execution
-
-- [ ] **Merge Release PR**
-  ```bash
-  # After PR approval
-  # Merge release branch to main
-  git checkout main
-  git pull origin main
-  git merge --no-ff release/v1.x.x
-  git push origin main
+- [ ] **Post Pre-Flight in #kars-releases Teams channel**
   ```
-
-- [ ] **Create Release Tag**
-  ```bash
-  git tag -a v1.x.x -m "Release v1.x.x - [Brief description]"
-  git push origin v1.x.x
-  ```
-
-- [ ] **Merge Back to Develop**
-  ```bash
-  git checkout develop
-  git pull origin develop
-  git merge --no-ff main
-  git push origin develop
-  ```
-
-- [ ] **Delete Release Branch**
-  ```bash
-  git branch -d release/v1.x.x
-  git push origin --delete release/v1.x.x
-  ```
-
-- [ ] **Deploy to Railway**
-  ```bash
-  # Railway auto-deploys from main branch
-  # OR manually trigger:
-  railway up
+  ✈️ PRE-FLIGHT CHECK - Monday Deployment
+  Time: 9:45 AM EST
   
-  # Monitor deployment
+  ✅ Production health: OK
+  ✅ Database backup: Complete
+  ✅ Rollback plan: Ready
+  ✅ Team: Standing by
+  
+  Deployment starting at 10:00 AM EST
+  ```
+
+### Deployment Execution (10:00 AM EST)
+
+- [ ] **Merge to Production Branch**
+  ```bash
+  # Option 1: Merge via GitHub PR (Recommended)
+  # If PR was created Friday, mark as ready and merge
+  gh pr ready  # Mark draft PR as ready
+  gh pr merge --merge  # Merge to kars-prod
+  
+  # Option 2: Direct merge (if no PR)
+  git checkout kars-prod
+  git pull origin kars-prod
+  git merge kars-dev --no-ff -m "Production release - $(date +%Y-%m-%d)"
+  git push origin kars-prod
+  
+  # Railway automatically deploys kars-prod branch
+  ```
+
+- [ ] **Monitor Railway Auto-Deployment**
+  ```bash
+  # Watch Railway deployment
+  railway link kars-backend-prod
+  railway logs --follow
+  
+  # Monitor both services
+  railway link kars-frontend-prod
   railway logs --follow
   ```
-  - [ ] Build started
-  - [ ] Build completed successfully
-  - [ ] Deployment started
-  - [ ] Deployment active
+  - [ ] Backend build started
+  - [ ] Frontend build started
+  - [ ] Both builds completed successfully
+  - [ ] Deployments active
 
-### Post-Deployment Verification (2:15 PM - 2:30 PM EST)
+- [ ] **Post Deployment Start in #kars-releases Teams channel**
+  ```
+  🚀 DEPLOYMENT IN PROGRESS
+  Time: 10:00 AM EST
+  Status: Building and deploying to production
+  
+  Monitoring: Railway logs
+  ETA: 10:15 AM EST
+  ```
+
+### Post-Deployment Verification (10:15 AM - 10:30 AM EST)
 
 - [ ] **Verify Deployment Success**
   ```bash
   # Check health
-  curl https://acs.jvhlabs.com/api/health
-  
-  # Check version (if version endpoint exists)
-  curl https://acs.jvhlabs.com/api/version
+  curl https://kars.keydatalab.ca/api/health
   
   # Check Railway status
+  railway link kars-backend-prod
   railway status
   ```
 
 - [ ] **Smoke Tests**
   ```bash
   # Test critical endpoints
-  curl -I https://acs.jvhlabs.com
-  curl https://acs.jvhlabs.com/api/health
-  curl https://acs.jvhlabs.com/api/companies  # Should require auth
+  curl -I https://kars.keydatalab.ca
+  curl https://kars.keydatalab.ca/api/health
+  curl https://kars.keydatalab.ca/api/companies  # Should require auth
   ```
   - [ ] Frontend loads
   - [ ] Backend responds
@@ -302,7 +304,7 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
 
 - [ ] **Critical Path Testing**
   - [ ] **Login Flow**
-    - [ ] Navigate to https://acs.jvhlabs.com
+    - [ ] Navigate to https://kars.keydatalab.ca
     - [ ] Login with test account
     - [ ] JWT token received
     - [ ] Dashboard loads
@@ -322,16 +324,14 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
 - [ ] **Performance Check**
   ```bash
   # Response time verification
-  time curl https://acs.jvhlabs.com/api/assets
+  time curl https://kars.keydatalab.ca/api/assets
   # Should be < 500ms
-  
-  # Load test (optional)
-  ab -n 100 -c 10 https://acs.jvhlabs.com/
   ```
 
 - [ ] **Error Monitoring**
   ```bash
   # Check logs for errors
+  railway link kars-backend-prod
   railway logs --tail=500 | grep -i error
   railway logs --tail=500 | grep -i exception
   railway logs --tail=500 | grep -i fatal
@@ -357,21 +357,22 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
 
 ---
 
-## Post-Release Phase (2:30 PM - 4:00 PM EST)
+## Post-Release Phase (10:30 AM - 11:30 AM EST)
 
 ### Monitoring Period
 
 - [ ] **Active Monitoring (First 30 Minutes)**
   ```bash
   # Continuous log monitoring
+  railway link kars-backend-prod
   railway logs --follow | grep -i "error\|exception\|fatal"
   
   # Watch health endpoint
-  watch -n 30 'curl -s https://acs.jvhlabs.com/api/health && echo OK'
+  watch -n 30 'curl -s https://kars.keydatalab.ca/api/health && echo OK'
   ```
 
 - [ ] **User Feedback Monitoring**
-  - [ ] Monitor #support channel for issues
+  - [ ] Monitor #kars-support Teams channel for issues
   - [ ] Check error reporting system
   - [ ] Review user-reported issues
 
@@ -380,8 +381,7 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
   # Check error rates
   railway logs --since=30m | grep -c error
   
-  # Check response times
-  # Monitor via Railway dashboard or APM tool
+  # Check response times via Railway dashboard
   ```
   - [ ] Error rate stable or decreased
   - [ ] Response times within normal range
@@ -395,22 +395,22 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
   - [ ] Update wiki if major features
   - [ ] Update API documentation if endpoints changed
 
-- [ ] **Create GitHub Release**
+- [ ] **Create GitHub Release (Optional)**
   - [ ] Go to: https://github.com/humac/acs/releases
   - [ ] Click "Draft a new release"
-  - [ ] Select tag: v1.x.x
-  - [ ] Release title: "v1.x.x - [Brief description]"
+  - [ ] Tag: Use date format: release-YYYY-MM-DD
+  - [ ] Release title: "Production Release - $(date +%Y-%m-%d)"
   - [ ] Copy release notes from CHANGELOG.md
   - [ ] Publish release
 
-- [ ] **Notify Stakeholders - Success**
+- [ ] **Notify Stakeholders - Success in #kars-releases Teams channel**
   ```
-  ✅ RELEASE COMPLETE - v1.x.x
+  ✅ RELEASE COMPLETE - Monday $(date +%Y-%m-%d)
   
   Status: Successful
-  Deployed: Friday, [Date] at 2:00 PM EST
+  Deployed: Monday at 10:00 AM EST
   Duration: 15 minutes
-  Downtime: None
+  Downtime: None (zero-downtime deployment)
   
   New Features:
   - [Feature 1]
@@ -421,18 +421,13 @@ This checklist ensures consistent, safe, and high-quality releases of ACS to pro
   - [Fix 2]
   
   Monitoring: All systems normal
+  Production: https://kars.keydatalab.ca
   
   Thank you for your patience during the release!
   ```
 
 - [ ] **Lift Code Freeze**
-  - Post in team chat: "Code freeze lifted. Normal development can resume."
-
-- [ ] **Archive Release Branch** (if not already deleted)
-  ```bash
-  git branch -d release/v1.x.x
-  git push origin --delete release/v1.x.x
-  ```
+  - Post in #kars-releases Teams channel: "Code freeze lifted. Normal development can resume on kars-dev."
 
 ---
 
@@ -450,35 +445,35 @@ Rollback immediately if:
 
 ### Rollback Steps
 
-1. **Announce Rollback**
+1. **Announce Rollback in #kars-incidents Teams channel**
    ```
-   🚨 ROLLBACK INITIATED - v1.x.x
+   🚨 ROLLBACK INITIATED
    
    Reason: [Brief description]
-   Action: Rolling back to v1.x.x-previous
-   ETA: 10 minutes
+   Action: Rolling back kars-prod to previous deployment
+   ETA: 5-10 minutes
    ```
 
 2. **Execute Rollback**
    ```bash
-   # Option 1: Railway Dashboard
-   # Go to Deployments → Find previous successful deployment → Redeploy
-   
-   # Option 2: Railway CLI
+   # Option 1: Railway One-Click Rollback (Fastest)
+   railway link kars-backend-prod
    railway rollback
    
-   # Option 3: Git revert
+   # Option 2: Git revert
+   git checkout kars-prod
    git revert HEAD
-   git push origin main
+   git push origin kars-prod
+   # Railway auto-deploys the revert
    
-   # Option 4: Deploy previous tag
-   git checkout v1.x.x-previous
-   railway up
+   # Option 3: Railway Dashboard
+   # Go to Deployments → Find previous successful → Redeploy
    ```
 
 3. **Rollback Database (if migration failed)**
    ```bash
    # Stop application
+   railway link kars-backend-prod
    railway scale web=0
    
    # Restore backup
@@ -490,25 +485,25 @@ Rollback immediately if:
 
 4. **Verify Rollback**
    ```bash
-   curl https://acs.jvhlabs.com/api/health
+   curl https://kars.keydatalab.ca/api/health
    railway logs --tail=100
    
    # Test critical paths
    # Verify functionality restored
    ```
 
-5. **Notify Stakeholders**
+5. **Notify Stakeholders in #kars-incidents Teams channel**
    ```
    ✅ ROLLBACK COMPLETE
    
    Status: Service restored
-   Version: Rolled back to v1.x.x-previous
+   Rollback: Completed successfully
    Impact: [Duration and scope]
    
    Next Steps:
    - Investigation underway
    - Fix in progress
-   - New release scheduled
+   - New deployment to be scheduled
    ```
 
 6. **Post-Rollback**
@@ -521,15 +516,15 @@ Rollback immediately if:
 
 ## Emergency Release Procedure
 
-### For Critical Hotfixes
+### For Critical Hotfixes (Outside Regular Schedule)
 
 When a critical bug is discovered in production that requires immediate fix:
 
 1. **Create Hotfix Branch**
    ```bash
-   git checkout main
-   git pull origin main
-   git checkout -b hotfix/v1.x.y
+   git checkout kars-prod
+   git pull origin kars-prod
+   git checkout -b hotfix/critical-issue-description
    ```
 
 2. **Apply Fix**
@@ -541,31 +536,34 @@ When a critical bug is discovered in production that requires immediate fix:
    ```
 
 3. **Fast-Track Testing**
-   - [ ] Deploy to staging
+   - [ ] Test fix locally
+   - [ ] Deploy to kars-dev for quick verification
    - [ ] Test fix specifically
    - [ ] Verify no side effects
 
 4. **Emergency Deployment**
    ```bash
-   # Merge to main
-   git checkout main
-   git merge --no-ff hotfix/v1.x.y
-   git tag -a v1.x.y -m "Hotfix: [Description]"
-   git push origin main --tags
+   # Merge to kars-prod
+   git checkout kars-prod
+   git merge --no-ff hotfix/critical-issue-description
+   git push origin kars-prod
    
-   # Merge back to develop
-   git checkout develop
-   git merge --no-ff hotfix/v1.x.y
-   git push origin develop
+   # Railway automatically deploys
    
-   # Deploy
-   railway up
+   # Backport to kars-dev
+   git checkout kars-dev
+   git merge --no-ff hotfix/critical-issue-description
+   git push origin kars-dev
+   
+   # Clean up hotfix branch
+   git branch -d hotfix/critical-issue-description
+   git push origin --delete hotfix/critical-issue-description
    ```
 
 5. **Accelerated Verification**
    - [ ] Test fix in production
    - [ ] Monitor for 15 minutes
-   - [ ] Notify stakeholders
+   - [ ] Notify stakeholders in #kars-incidents Teams channel
 
 ---
 
@@ -646,9 +644,13 @@ After each release, review:
 
 ```bash
 # Health check
-curl https://acs.jvhlabs.com/api/health
+curl https://kars.keydatalab.ca/api/health
 
-# Deploy to Railway
+# Deploy to Railway (automatic on push to kars-prod)
+git push origin kars-prod
+
+# Manual Railway deployment
+railway link kars-backend-prod
 railway up
 
 # Rollback
@@ -666,20 +668,21 @@ railway status
 
 ### Key URLs
 
-- **Production:** https://acs.jvhlabs.com
-- **Staging:** https://staging.acs.jvhlabs.com
+- **Production:** https://kars.keydatalab.ca
+- **Development:** https://kars-dev.keydatalab.ca
 - **GitHub Actions:** https://github.com/humac/acs/actions
-- **Railway Dashboard:** https://railway.app/project/[project-id]
+- **Railway Dashboard:** https://railway.app
 
-### Contacts
+### Teams Channels
 
-- **Release Manager:** [Contact]
-- **DevOps Lead:** [Contact]
-- **Backend Lead:** [Contact]
-- **On-Call Engineer:** PagerDuty rotation
+- **#kars-releases** - Release coordination and announcements
+- **#kars-support** - User support
+- **#kars-incidents** - Incident response
 
 ---
 
-**Last Updated:** December 2024  
-**Release Schedule:** Weekly (Fridays, 2:00 PM EST)  
-**Next Review:** Q1 2025
+**Last Updated:** January 2025  
+**Release Schedule:** Weekly (Monday 10:00 AM EST)  
+**Next Review:** Q2 2025  
+**Project:** KARS (KeyData Asset Registration System)  
+**Repository:** https://github.com/humac/acs

@@ -1,6 +1,11 @@
-# ACS Incident Response Guide
+# KARS Incident Response Guide
 
-This document outlines procedures for responding to incidents affecting ACS (Asset Compliance System).
+This document outlines procedures for responding to incidents affecting KARS (KeyData Asset Registration System).
+
+**Project:** ACS - Asset Compliance System  
+**Code Name:** KARS  
+**Repository:** humac/acs  
+**Domain:** kars.keydatalab.ca
 
 ## Table of Contents
 
@@ -169,21 +174,16 @@ This document outlines procedures for responding to incidents affecting ACS (Ass
 5. What is the current state? (down / degraded / intermittent)
 
 # Check monitoring
-curl https://acs.jvhlabs.com/api/health
+curl https://kars.keydatalab.ca/api/health
+railway link kars-backend-prod
 railway status
-docker ps  # if Portainer
 ```
 
 #### Step 3: Initial Communication
 
-```bash
-# Notify stakeholders based on severity:
-# P0/P1: Immediate notification to incident response team
-# P2: Update in team chat
-# P3: Create ticket, no immediate notification
+**Post in #kars-incidents Teams channel:**
 
-# Communication template:
-"""
+```
 INCIDENT ALERT - P[0-3]
 Incident ID: INC-YYYYMMDD-NNN
 Time Detected: YYYY-MM-DD HH:MM UTC
@@ -192,16 +192,14 @@ Impact: [Brief description]
 Status: INVESTIGATING
 Assigned To: [On-Call Engineer]
 ETA for Update: [Time]
-"""
 ```
 
 #### Step 4: Begin Investigation
 
 ```bash
 # Gather initial data
+railway link kars-backend-prod
 railway logs --tail=500 | grep -i error
-docker logs asset-registration-backend --tail=500
-docker logs asset-registration-frontend --tail=500
 
 # Check recent changes
 git log -n 10 --oneline
@@ -211,7 +209,6 @@ git log -n 10 --oneline
 
 # Check infrastructure status
 railway status
-docker ps
 ```
 
 ---
@@ -233,12 +230,11 @@ docker ps
 2. **Quick Health Check**
    ```bash
    # Backend health
-   curl https://acs.jvhlabs.com/api/health
+   curl https://kars.keydatalab.ca/api/health
    
    # Container status
+   railway link kars-backend-prod
    railway status
-   # OR
-   docker ps | grep asset-registration
    
    # Database connectivity
    railway run psql $DATABASE_URL -c "SELECT 1;"
@@ -257,6 +253,7 @@ docker ps
 4. **Application Crash**
    ```bash
    # Check logs for crash
+   railway link kars-backend-prod
    railway logs | tail -100
    
    # Look for:
@@ -267,11 +264,9 @@ docker ps
    
    # Quick fix: Restart application
    railway restart
-   # OR
-   docker-compose restart
    
    # Monitor recovery
-   watch -n 5 curl https://acs.jvhlabs.com/api/health
+   watch -n 5 curl https://kars.keydatalab.ca/api/health
    ```
 
 5. **Database Failure**
@@ -295,14 +290,11 @@ docker ps
    railway status
    curl https://status.railway.app
    
-   # Check Portainer status
-   curl https://portainer.example.com
-   
-   # Check Cloudflare Tunnel
+   # Check Cloudflare status (if using)
    curl https://www.cloudflarestatus.com
    
-   # If platform issue: Switch to backup deployment (if available)
-   # Or wait for platform recovery
+   # If platform issue: Wait for platform recovery
+   # Post updates in #kars-incidents Teams channel
    ```
 
 7. **Deployment Failure**
@@ -318,10 +310,9 @@ docker ps
 
 #### Communication (Throughout)
 
-```bash
-# Update every 30 minutes during P0 incident
-# Template:
-"""
+**Update every 30 minutes in #kars-incidents Teams channel during P0 incident:**
+
+```
 INCIDENT UPDATE - P0
 Incident ID: INC-YYYYMMDD-NNN
 Time: YYYY-MM-DD HH:MM UTC
@@ -330,7 +321,6 @@ Progress: [What we've found and done]
 Next Steps: [What we're doing next]
 ETA: [Expected resolution time]
 Impact: [Current user impact]
-"""
 ```
 
 #### Resolution and Verification
@@ -338,7 +328,7 @@ Impact: [Current user impact]
 8. **Verify Service Recovery**
    ```bash
    # Comprehensive health check
-   curl https://acs.jvhlabs.com/api/health
+   curl https://kars.keydatalab.ca/api/health
    
    # Test critical paths
    # - Login
@@ -347,27 +337,28 @@ Impact: [Current user impact]
    # - Admin functions
    
    # Monitor error rates
+   railway link kars-backend-prod
    railway logs | grep -i error | wc -l
    
    # Check performance
-   time curl https://acs.jvhlabs.com/api/assets
+   time curl https://kars.keydatalab.ca/api/assets
    ```
 
 9. **Monitor Stability (30-60 minutes)**
    ```bash
    # Continuous monitoring
-   watch -n 30 'curl -s https://acs.jvhlabs.com/api/health && echo "OK"'
+   watch -n 30 'curl -s https://kars.keydatalab.ca/api/health && echo "OK"'
    
    # Watch logs for errors
+   railway link kars-backend-prod
    railway logs --follow | grep -i error
    
    # Monitor resource usage
    railway status
    ```
 
-10. **Final Communication**
-    ```bash
-    """
+10. **Final Communication in #kars-incidents Teams channel**
+    ```
     INCIDENT RESOLVED - P0
     Incident ID: INC-YYYYMMDD-NNN
     Resolution Time: YYYY-MM-DD HH:MM UTC
@@ -376,7 +367,6 @@ Impact: [Current user impact]
     Resolution: [What was done]
     Verification: Service fully operational
     Next Steps: Post-incident review scheduled
-    """
     ```
 
 ---
@@ -492,16 +482,15 @@ Impact: [Current user impact]
 **Symptoms:**
 - Website returns 502/503 error
 - Health endpoint unreachable
-- Containers stopped
+- Service unavailable
 
 **Diagnosis:**
 ```bash
-# Check container status
-docker ps -a | grep asset-registration
+# Check service status
+railway link kars-backend-prod
 railway status
 
 # Check logs
-docker logs asset-registration-backend --tail=100
 railway logs --tail=100
 ```
 
@@ -509,8 +498,6 @@ railway logs --tail=100
 ```bash
 # Quick fix: Restart application
 railway restart
-# OR
-docker-compose restart
 
 # If restart fails: Check logs for root cause
 # Common causes:
@@ -534,15 +521,13 @@ docker-compose restart
 
 **Diagnosis:**
 ```bash
-# Check JWT configuration
-railway run env | grep JWT_SECRET
-
 # Test login endpoint
-curl -X POST https://acs.jvhlabs.com/api/auth/login \
+curl -X POST https://kars.keydatalab.ca/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"test"}'
 
 # Check logs for auth errors
+railway link kars-backend-prod
 railway logs | grep -i "auth\|jwt\|token"
 ```
 
@@ -788,12 +773,14 @@ railway logs > incident-logs-$(date +%Y%m%d).txt
 
 ### Internal Communication
 
-#### Incident Channel
-- **Platform:** Slack/Teams/Discord
-- **Channel:** #incidents or #alerts
+#### Teams Channels
+- **Platform:** Microsoft Teams
+- **#kars-incidents** - Active incident communication and updates
+- **#kars-support** - General support and non-urgent issues
+- **#kars-releases** - Release announcements and deployment updates
 - **Format:** Structured updates every 30 minutes (P0/P1)
 
-#### Update Template
+#### Update Template for Teams
 ```
 🚨 INCIDENT UPDATE - P[0-3]
 ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -837,7 +824,7 @@ RESOLVED: The issue has been resolved. Service is fully operational.
 ```
 Subject: [RESOLVED] Service Disruption - [Date]
 
-Dear ACS Users,
+Dear KARS Users,
 
 We experienced a service disruption on [Date] from [Start Time] to [End Time] UTC.
 
@@ -855,7 +842,7 @@ Prevention:
 
 We apologize for any inconvenience caused.
 
-ACS Team
+KARS Team
 ```
 
 ---
@@ -1009,32 +996,35 @@ ACS Team
 
 ```bash
 # Health check
-curl https://acs.jvhlabs.com/api/health
+curl https://kars.keydatalab.ca/api/health
 
 # View logs
+railway link kars-backend-prod
 railway logs --tail=100
-docker logs asset-registration-backend --tail=100
 
 # Restart service
 railway restart
-docker-compose restart
 
 # Rollback deployment
 railway rollback
-# Or deploy specific version
-railway up --tag v1.x.x
 
 # Database backup
 railway run pg_dump > emergency-backup-$(date +%Y%m%d).sql
 
 # Check service status
 railway status
-docker ps
 ```
+
+### Teams Channels
+
+- **#kars-incidents** - Active incident communication
+- **#kars-support** - General support
+- **#kars-releases** - Release announcements
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2025  
 **Maintained By:** DevOps Team  
-**Next Review:** Q1 2025  
-**Emergency Hotline:** [Contact Info]
+**Next Review:** Q2 2025  
+**Project:** KARS (KeyData Asset Registration System)  
+**Repository:** https://github.com/humac/acs

@@ -1,5 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import EmptyState from '@/components/ui/empty-state';
+import { Building2 } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#f97316', '#14b8a6', '#a855f7'];
 
@@ -15,15 +17,19 @@ export default function CompanyBarChart({ data, title = 'Assets by Company', top
     .slice(0, topN);
 
   return (
-    <Card>
+    <Card className="glass-panel">
+
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
-          <div className="h-64 flex items-center justify-center text-muted-foreground">
-            No data available
-          </div>
+          <EmptyState
+            icon={Building2}
+            title="No Company Data"
+            description="No assets are currently assigned to any company."
+            className="min-h-[300px]"
+          />
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart

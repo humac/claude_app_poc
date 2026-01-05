@@ -340,48 +340,67 @@ export default function createReportsRouter(deps) {
         riskIndicators.push({ type: 'Overdue Attestations', count: overdueAttestations, severity: 'medium', description: 'Past due date' });
       }
 
-      // Compliance checklist
+      // Compliance checklist and weighting
       const activeAssets = assets.filter(a => a.status === 'active');
       const assetsWithOwners = activeAssets.filter(a => a.employee_email).length;
       const assetsWithManagers = activeAssets.filter(a => a.manager_email).length;
       const assetsWithCompanies = activeAssets.filter(a => a.company_name).length;
 
-      const checklist = [
+      const checklistItems = [
         {
           item: 'All active assets have owners',
+          weight: 2.0,
           status: assetsWithOwners === activeAssets.length ? 'pass' : 'fail',
           description: `${assetsWithOwners}/${activeAssets.length} assets have assigned owners`
         },
         {
-          item: 'All active assets have managers',
-          status: assetsWithManagers === activeAssets.length ? 'pass' : 'warn',
-          description: `${assetsWithManagers}/${activeAssets.length} assets have assigned managers`
-        },
-        {
-          item: 'All active assets assigned to companies',
-          status: assetsWithCompanies === activeAssets.length ? 'pass' : 'warn',
-          description: `${assetsWithCompanies}/${activeAssets.length} assets assigned to companies`
-        },
-        {
-          item: 'Active attestation campaigns',
-          status: activeCampaigns.length > 0 ? 'pass' : 'warn',
-          description: `${activeCampaigns.length} active campaigns running`
-        },
-        {
           item: 'No overdue attestations',
+          weight: 2.0,
           status: overdueAttestations === 0 ? 'pass' : 'fail',
           description: `${overdueAttestations} attestations overdue`
         },
         {
           item: 'No at-risk assets',
+          weight: 1.5,
           status: atRiskAssets === 0 ? 'pass' : (atRiskAssets < 5 ? 'warn' : 'fail'),
           description: `${atRiskAssets} assets at risk`
+        },
+        {
+          item: 'All active assets have managers',
+          weight: 1.0,
+          status: assetsWithManagers === activeAssets.length ? 'pass' : 'warn',
+          description: `${assetsWithManagers}/${activeAssets.length} assets have assigned managers`
+        },
+        {
+          item: 'All active assets assigned to companies',
+          weight: 1.0,
+          status: assetsWithCompanies === activeAssets.length ? 'pass' : 'warn',
+          description: `${assetsWithCompanies}/${activeAssets.length} assets assigned to companies`
+        },
+        {
+          item: 'Active attestation campaigns',
+          weight: 0.5,
+          status: activeCampaigns.length > 0 ? 'pass' : 'warn',
+          description: `${activeCampaigns.length} active campaigns running`
         }
       ];
 
-      // Calculate overall compliance score
-      const passCount = checklist.filter(c => c.status === 'pass').length;
-      const score = Math.round((passCount / checklist.length) * 100);
+      // Calculate weighted score
+      let totalWeight = 0;
+      let earnedWeight = 0;
+
+      const STATUS_VALUES = { pass: 1.0, warn: 0.5, fail: 0.0 };
+
+      checklistItems.forEach(c => {
+        const val = STATUS_VALUES[c.status] || 0.0;
+        earnedWeight += c.weight * val;
+        totalWeight += c.weight;
+      });
+
+      const score = Math.round((earnedWeight / totalWeight) * 100);
+
+      const checklist = checklistItems.map(({ weight, ...rest }) => rest); // Remove weight from response if not needed by frontend
+
 
       res.json({
         score,
@@ -436,7 +455,7 @@ export default function createReportsRouter(deps) {
 
         // Count assets up to this date using sorted array
         while (assetIndex < sortedAssets.length &&
-               new Date(sortedAssets[assetIndex].registration_date) <= date) {
+          new Date(sortedAssets[assetIndex].registration_date) <= date) {
           assetIndex++;
         }
 

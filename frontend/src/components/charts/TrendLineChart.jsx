@@ -1,17 +1,23 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import EmptyState from '@/components/ui/empty-state';
+import { TrendingUp } from 'lucide-react';
 
 export default function TrendLineChart({ data, title = 'Asset Growth Over Time', dataKey = 'count', lineColor = '#3b82f6' }) {
   return (
-    <Card>
+    <Card className="glass-panel">
+
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         {!data || data.length === 0 ? (
-          <div className="h-64 flex items-center justify-center text-muted-foreground">
-            No trend data available
-          </div>
+          <EmptyState
+            icon={TrendingUp}
+            title="No Trend Data"
+            description="No trend data available for the selected period."
+            className="min-h-[300px]"
+          />
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart

@@ -1,5 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import EmptyState from '@/components/ui/empty-state';
+import { PieChart as PieChartIcon } from 'lucide-react';
 
 const STATUS_COLORS = {
   active: '#22c55e',
@@ -41,15 +43,19 @@ export default function AssetStatusPieChart({ data, title = 'Asset Status Distri
   };
 
   return (
-    <Card>
+    <Card className="glass-panel">
+
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         {total === 0 ? (
-          <div className="h-64 flex items-center justify-center text-muted-foreground">
-            No data available
-          </div>
+          <EmptyState
+            icon={PieChartIcon}
+            title="No Data"
+            description="No asset status data available to display."
+            className="min-h-[300px]"
+          />
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>

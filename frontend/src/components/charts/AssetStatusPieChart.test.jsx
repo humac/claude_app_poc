@@ -14,10 +14,10 @@ describe('AssetStatusPieChart', () => {
     expect(container).toBeTruthy();
   });
 
-  it('shows "No data available" when data is empty', () => {
+  it('shows "No Data" when data is empty', () => {
     const data = {};
     render(<AssetStatusPieChart data={data} />);
-    expect(screen.getByText('No data available')).toBeInTheDocument();
+    expect(screen.getByText('No Data')).toBeInTheDocument();
   });
 
   it('renders custom title when provided', () => {
@@ -45,8 +45,8 @@ describe('AssetStatusPieChart', () => {
     const { container } = render(<AssetStatusPieChart data={data} />);
     // Verify the component renders without error
     expect(container).toBeTruthy();
-    // Verify it's not showing "No data available"
-    expect(screen.queryByText('No data available')).not.toBeInTheDocument();
+    // Verify it's not showing "No Data"
+    expect(screen.queryByText('No Data')).not.toBeInTheDocument();
   });
 
   it('transforms data correctly for chart rendering', () => {
@@ -56,9 +56,9 @@ describe('AssetStatusPieChart', () => {
     };
 
     const { container } = render(<AssetStatusPieChart data={data} />);
-    
+
     // Verify the component renders and doesn't show empty state
     expect(container).toBeTruthy();
-    expect(screen.queryByText('No data available')).not.toBeInTheDocument();
+    expect(screen.queryByText('No Data')).not.toBeInTheDocument();
   });
 });

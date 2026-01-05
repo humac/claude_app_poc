@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import AuditReportingNew from './AuditReporting';
 
 // Mock fetch
@@ -25,7 +26,14 @@ vi.mock('../contexts/AuthContext', async () => {
 vi.mock('@/components/charts', () => ({
   AssetStatusPieChart: () => <div data-testid="asset-status-pie-chart">AssetStatusPieChart</div>,
   CompanyBarChart: () => <div data-testid="company-bar-chart">CompanyBarChart</div>,
-  ActivityAreaChart: () => <div data-testid="activity-area-chart">ActivityAreaChart</div>,
+  ActivityAreaChart: ({ onActionClick }) => (
+    <div
+      data-testid="activity-area-chart"
+      onClick={() => onActionClick && onActionClick('CREATE')}
+    >
+      ActivityAreaChart
+    </div>
+  ),
   TrendLineChart: () => <div data-testid="trend-line-chart">TrendLineChart</div>,
   ManagerBarChart: () => <div data-testid="manager-bar-chart">ManagerBarChart</div>,
 }));
@@ -67,18 +75,18 @@ describe('AuditReporting', () => {
 
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ total: 10 }), // summary
+        json: async () => ({ score: 95 }), // compliance
       }).mockResolvedValueOnce({
         ok: true,
         json: async () => mockSummaryEnhanced, // summary-enhanced
       });
 
-      render(<AuditReportingNew />);
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
 
       // Wait for the fetch calls to be made
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(
-          '/api/reports/summary',
+          '/api/reports/compliance',
           expect.objectContaining({
             headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
           })
@@ -113,13 +121,13 @@ describe('AuditReporting', () => {
 
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ total: 10 }),
+        json: async () => ({ score: 95 }),
       }).mockResolvedValueOnce({
         ok: true,
         json: async () => mockSummaryEnhanced,
       });
 
-      render(<AuditReportingNew />);
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
 
       // Check that Summary tab is active
       const summaryTab = screen.getByRole('tab', { name: /summary/i });
@@ -138,14 +146,14 @@ describe('AuditReporting', () => {
       // Initial load - summary
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ total: 10 }),
+        json: async () => ({ score: 95 }),
       }).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ total: 100 }),
       });
 
       const user = userEvent.setup();
-      render(<AuditReportingNew />);
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
 
       // Clear previous fetch calls
       global.fetch.mockClear();
@@ -199,14 +207,14 @@ describe('AuditReporting', () => {
       // Initial load - summary
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ total: 10 }),
+        json: async () => ({ score: 95 }),
       }).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ total: 100 }),
       });
 
       const user = userEvent.setup();
-      render(<AuditReportingNew />);
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
 
       global.fetch.mockClear();
 
@@ -255,16 +263,16 @@ describe('AuditReporting', () => {
 
     it('should show all tabs for admin users', async () => {
       mockUser = { id: 1, email: 'admin@test.com', role: 'admin' };
-      
+
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ total: 10 }),
+        json: async () => ({ score: 95 }),
       }).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ total: 100 }),
       });
 
-      render(<AuditReportingNew />);
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
 
       expect(screen.getByRole('tab', { name: /summary/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /statistics/i })).toBeInTheDocument();
@@ -275,16 +283,16 @@ describe('AuditReporting', () => {
 
     it('should show all tabs for manager users', async () => {
       mockUser = { id: 2, email: 'manager@test.com', role: 'manager' };
-      
+
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ total: 10 }),
+        json: async () => ({ score: 95 }),
       }).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ total: 100 }),
       });
 
-      render(<AuditReportingNew />);
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
 
       expect(screen.getByRole('tab', { name: /summary/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /statistics/i })).toBeInTheDocument();
@@ -295,16 +303,16 @@ describe('AuditReporting', () => {
 
     it('should hide Statistics, Compliance, and Trends tabs for employee users', async () => {
       mockUser = { id: 3, email: 'employee@test.com', role: 'employee' };
-      
+
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ total: 10 }),
+        json: async () => ({ score: 95 }),
       }).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ total: 100 }),
       });
 
-      render(<AuditReportingNew />);
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
 
       // Should show Summary and Audit Logs
       expect(screen.getByRole('tab', { name: /summary/i })).toBeInTheDocument();
@@ -318,16 +326,16 @@ describe('AuditReporting', () => {
 
     it('should hide all tabs when user is null', async () => {
       mockUser = null;
-      
+
       global.fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ total: 10 }),
+        json: async () => ({ score: 95 }),
       }).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ total: 100 }),
       });
 
-      render(<AuditReportingNew />);
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
 
       // Should show Summary and Audit Logs (accessible to authenticated users)
       expect(screen.getByRole('tab', { name: /summary/i })).toBeInTheDocument();
@@ -337,6 +345,77 @@ describe('AuditReporting', () => {
       expect(screen.queryByRole('tab', { name: /statistics/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('tab', { name: /compliance/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('tab', { name: /trends/i })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Chart Interactivity', () => {
+    it('should switch to logs tab and apply filter when chart action is clicked', async () => {
+      // Reset mock user to ensure tabs are visible
+      mockUser = { id: 1, email: 'admin@test.com', role: 'admin' };
+
+      // Setup mock data
+      const mockSummaryEnhanced = {
+        total: 100,
+        totalChange: 5,
+        byStatus: { active: 80, returned: 15, lost: 3, damaged: 2 },
+        byCompany: [],
+        byManager: [],
+        byType: {},
+        complianceScore: 85,
+      };
+
+      const mockStatsEnhanced = {
+        activityByDay: [],
+        actionBreakdown: [],
+        topUsers: [],
+      };
+
+      // Initial load
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ score: 95 }),
+      }).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockSummaryEnhanced,
+      });
+
+      const user = userEvent.setup();
+      render(<MemoryRouter><AuditReportingNew /></MemoryRouter>);
+
+      // Navigate to statistics tab
+      global.fetch.mockClear();
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockStatsEnhanced,
+      });
+
+      const statsTab = screen.getByRole('tab', { name: /statistics/i });
+      await user.click(statsTab);
+
+      // Wait for chart to appear
+      const chart = await screen.findByTestId('activity-area-chart');
+
+      // Setup fetch mock for logs
+      global.fetch.mockClear();
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ logs: [], total: 0 }),
+      });
+
+      // Click the chart (triggers onActionClick('CREATE') as mocked)
+      await user.click(chart);
+
+      // Verify fetchLogs called with CREATE filter
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('action=CREATE'),
+          expect.any(Object)
+        );
+      });
+
+      // Verify Logs tab is active
+      const logsTab = screen.getByRole('tab', { name: /audit logs/i });
+      expect(logsTab).toHaveAttribute('data-state', 'active');
     });
   });
 });

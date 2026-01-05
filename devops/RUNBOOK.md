@@ -1,6 +1,11 @@
-# ACS Deployment Runbook
+# KARS Deployment Runbook
 
-This runbook provides step-by-step procedures for deploying and managing ACS across all environments.
+This runbook provides step-by-step procedures for deploying and managing KARS (KeyData Asset Registration System) across all environments.
+
+**Project:** ACS - Asset Compliance System  
+**Code Name:** KARS  
+**Repository:** humac/acs  
+**Domain:** kars.keydatalab.ca
 
 ## Table of Contents
 
@@ -47,9 +52,9 @@ This runbook provides step-by-step procedures for deploying and managing ACS acr
 
 | Environment | Branch | Platform | Database | URL | Auto-Deploy |
 |-------------|--------|----------|----------|-----|-------------|
-| **Development** | feature/* | Local | SQLite | localhost:3000 | No |
-| **Staging** | develop | Portainer | SQLite/PostgreSQL | staging.acs.jvhlabs.com | Yes |
-| **Production** | main | Railway | PostgreSQL | acs.jvhlabs.com | Manual |
+| **Development** | kars-dev | Railway | PostgreSQL | kars-dev.keydatalab.ca | Yes (on push) |
+| **Production** | kars-prod | Railway | PostgreSQL | kars.keydatalab.ca | Yes (on push) |
+| **Local** | feature/* | Local | SQLite | localhost:3000 | No |
 
 ### Environment Variables
 
@@ -82,6 +87,9 @@ Each environment requires the following variables (see `.env.example`):
 # Clone repository
 git clone https://github.com/humac/acs.git
 cd acs
+
+# Checkout development branch
+git checkout kars-dev
 
 # Install Node.js 22 LTS (if not installed)
 nvm install 22
@@ -276,73 +284,104 @@ docker logs asset-registration-frontend
 ## Production Deployment (Railway)
 
 ### Overview
-Production deployment uses Railway.app with managed PostgreSQL. Deployment is manual from the `main` branch.
+Production deployment uses Railway.app with managed PostgreSQL. Deployment is **automatic** when pushing to the `kars-prod` branch.
+
+**Deployment Schedule:**
+- **Day:** Monday
+- **Time:** 10:00-11:00 AM EST
+- **Process:** Merge kars-dev → kars-prod triggers automatic Railway deployment
 
 ### Pre-Deployment Checklist
 
-- [ ] All tests passing on main branch
-- [ ] Staging deployment verified and tested
+- [ ] All tests passing on kars-dev branch
+- [ ] Development deployment verified and tested (Friday QA)
+- [ ] Code reviewed and approved
 - [ ] Database migration plan prepared (if applicable)
 - [ ] Rollback plan documented
 - [ ] Environment variables configured in Railway
-- [ ] Email notification configured (SMTP)
-- [ ] Monitoring and alerts configured
-- [ ] Stakeholders notified of deployment window
+- [ ] Stakeholders notified via #kars-releases Teams channel
+- [ ] Change window scheduled: Monday 10:00-11:00 AM EST
 
 ### Initial Railway Setup
 
-See [railway/SETUP.md](railway/SETUP.md) for detailed first-time setup instructions.
+See [railway/SETUP-GUIDE.md](railway/SETUP-GUIDE.md) for detailed first-time setup instructions.
+
+**Quick Overview:**
+- Two Railway projects: kars-backend-prod, kars-backend-dev
+- Two databases: kars (prod), kars_dev (dev)
+- Custom domains: kars.keydatalab.ca, kars-dev.keydatalab.ca
+- Automatic deployment on push to kars-prod/kars-dev branches
 
 ### Deployment Steps
 
-#### 1. Pre-Deployment Tasks
+#### 1. Pre-Deployment Tasks (Monday 9:30 AM EST)
 
 ```bash
-# Verify main branch is ready
-git checkout main
-git pull origin main
+# Verify kars-dev branch is ready
+git checkout kars-dev
+git pull origin kars-dev
 
-# Check CI status
-# All tests must pass: https://github.com/humac/acs/actions
+# Check CI status - all tests must pass
+# https://github.com/humac/acs/actions
 
-# Create release tag
-git tag -a v1.x.x -m "Release v1.x.x - Description"
-git push origin v1.x.x
+# Notify in Teams #kars-releases channel
+# "🚀 Production deployment starting at 10:00 AM EST"
 
-# Backup production database (if upgrading)
-# See railway/DATABASE.md for backup procedures
+# Backup production database
+railway link kars-backend-prod
+railway run pg_dump > backup-pre-deploy-$(date +%Y%m%d).sql
+
+# Verify backup created
+ls -lh backup-pre-deploy-*.sql
 ```
 
-#### 2. Deploy to Railway
+#### 2. Deploy to Production (Monday 10:00 AM EST)
 
+**Option 1: Merge via GitHub (Recommended)**
 ```bash
-# Option 1: GitHub Integration (Recommended)
-# 1. Push to main branch triggers Railway deployment
-# 2. Railway automatically builds and deploys
+# Create PR from kars-dev to kars-prod
+gh pr create --base kars-prod --head kars-dev \
+  --title "Production Release - $(date +%Y-%m-%d)" \
+  --body "Weekly production release after QA validation"
 
-# Option 2: Railway CLI
-railway login
-railway link  # Link to project
-railway up    # Deploy current directory
+# After approval, merge PR
+gh pr merge --merge
 
-# Option 3: Railway Dashboard
-# 1. Navigate to Railway project
-# 2. Go to Deployments → Deploy
-# 3. Select commit or branch
-# 4. Click "Deploy"
+# Railway automatically deploys kars-prod branch
 ```
 
-#### 3. Monitor Deployment
+**Option 2: Direct Push (Emergency Only)**
+```bash
+# Merge kars-dev to kars-prod
+git checkout kars-prod
+git pull origin kars-prod
+git merge kars-dev
+git push origin kars-prod
+
+# Railway automatically builds and deploys
+```
+
+**Option 3: Railway CLI**
+```bash
+railway link kars-backend-prod
+railway up --service kars-backend-prod
+
+railway link kars-frontend-prod
+railway up --service kars-frontend-prod
+```
+
+#### 3. Monitor Deployment (10:05-10:15 AM EST)
 
 ```bash
 # Watch Railway deployment logs
-railway logs
-
-# Or in Railway Dashboard:
-# Project → Service → Deployments → View logs
+railway link kars-backend-prod
+railway logs --follow
 
 # Monitor deployment status
 # Status should change: Building → Deploying → Active
+
+# Watch for errors
+railway logs | grep -i "error\|exception\|fatal"
 ```
 
 #### 4. Database Migration (if required)
@@ -361,17 +400,18 @@ sqlite3 /app/data/assets.db ".tables"
 psql $DATABASE_URL -c "\dt"
 ```
 
-### Post-Deployment Verification
+### Post-Deployment Verification (10:15-10:30 AM EST)
 
 ```bash
 # 1. Verify Railway deployment status
+railway link kars-backend-prod
 railway status
 
 # 2. Check application health
-curl https://acs.jvhlabs.com/api/health
+curl https://kars.keydatalab.ca/api/health
 
 # 3. Test critical paths
-curl -X POST https://acs.jvhlabs.com/api/auth/login \
+curl -X POST https://kars.keydatalab.ca/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"test123"}'
 
@@ -379,7 +419,7 @@ curl -X POST https://acs.jvhlabs.com/api/auth/login \
 railway logs | grep -i "database"
 
 # 5. Test frontend
-# - Open https://acs.jvhlabs.com
+# - Open https://kars.keydatalab.ca
 # - Verify login works
 # - Check asset registration
 # - Verify audit logs
@@ -391,20 +431,26 @@ railway logs --tail=100 | grep -i "error"
 # 7. Verify email notifications (if configured)
 # - Test password reset
 # - Test attestation emails
+
+# 8. Post success message in #kars-releases Teams channel
+# "✅ Production deployment complete. All systems operational."
 ```
 
 ### Production Health Checks
 
 ```bash
 # Automated health checks
-# Backend: Every 30 seconds via Docker health check
+# Backend: Every 30 seconds via Railway health check
 # Railway: Built-in health check monitoring
 
 # Manual verification
-curl https://acs.jvhlabs.com/api/health
+curl https://kars.keydatalab.ca/api/health
 
 # Expected response:
-# {"status":"ok","timestamp":"2024-12-18T15:30:00.000Z"}
+# {"status":"ok","timestamp":"2025-01-05T10:30:00.000Z"}
+
+# Development environment
+curl https://kars-dev.keydatalab.ca/api/health
 ```
 
 ---
@@ -485,78 +531,70 @@ Rollback immediately if:
 - Severe performance degradation
 - Data loss occurring
 
-### Staging Rollback (Portainer)
-
-#### Option 1: Git Revert
-
-```bash
-# 1. Revert commit on develop branch
-git checkout develop
-git revert <commit-hash>
-git push origin develop
-
-# 2. GitHub Actions will auto-deploy reverted version
-# Monitor: https://github.com/humac/acs/actions
-```
-
-#### Option 2: Portainer Manual Rollback
-
-```bash
-# 1. In Portainer: Stacks → asset-registration
-# 2. Editor → Change image tags to previous version
-# Example: ghcr.io/humac/kars/backend:develop-sha-abc123
-# 3. Update stack with "Pull and redeploy"
-```
-
-#### Option 3: Stack Re-deployment
-
-```bash
-# 1. In Portainer: Stacks → asset-registration
-# 2. Stop stack
-# 3. Restore database from backup (if needed)
-# 4. Start stack
-```
-
 ### Production Rollback (Railway)
 
-#### Option 1: Railway Dashboard Rollback
+#### Option 1: Railway One-Click Rollback (Fastest)
 
 ```bash
-# 1. Navigate to Railway project → Deployments
+# 1. Navigate to Railway Dashboard
+# Project: kars-backend-prod → Deployments
 # 2. Find last known good deployment
 # 3. Click "..." menu → "Redeploy"
 # 4. Confirm deployment
 # 5. Monitor logs for successful rollback
+
+# Or via Railway CLI
+railway link kars-backend-prod
+railway rollback
+
+# Verify rollback
+curl https://kars.keydatalab.ca/api/health
 ```
 
-#### Option 2: Git Rollback
+#### Option 2: Git Revert (Recommended for Tracking)
 
 ```bash
-# 1. Revert commit on main branch
-git checkout main
+# 1. Revert commit on kars-prod branch
+git checkout kars-prod
 git revert <commit-hash>
-git push origin main
+git push origin kars-prod
 
 # 2. Railway auto-deploys the revert
-# Or manually trigger: railway up
 
 # 3. Verify rollback
-curl https://acs.jvhlabs.com/api/health
+curl https://kars.keydatalab.ca/api/health
+
+# 4. Post in #kars-incidents Teams channel
+# "🔄 Rolled back production to previous version due to [reason]"
 ```
 
-#### Option 3: Tag-Based Rollback
+#### Option 3: Hotfix Forward (For Complex Issues)
 
 ```bash
-# 1. Find last good release tag
-git tag -l
+# 1. Create hotfix branch from kars-prod
+git checkout kars-prod
+git pull origin kars-prod
+git checkout -b hotfix/critical-fix
 
-# 2. Deploy specific tag via Railway
-railway up --tag v1.x.x
+# 2. Apply fix
+# Make minimal changes
 
-# 3. Or push tag to main
-git checkout main
-git reset --hard v1.x.x
-git push origin main --force  # Use with caution!
+# 3. Test locally
+npm test
+
+# 4. Push and create PR
+git push origin hotfix/critical-fix
+gh pr create --base kars-prod --head hotfix/critical-fix \
+  --title "Hotfix: [Description]" \
+  --body "Emergency fix for [issue]"
+
+# 5. After approval, merge to kars-prod
+gh pr merge --merge
+
+# 6. Backport to kars-dev
+git checkout kars-dev
+git merge hotfix/critical-fix
+git push origin kars-dev
 ```
 
 ### Database Rollback
@@ -565,17 +603,20 @@ git push origin main --force  # Use with caution!
 # If database migration caused issues:
 
 # 1. Stop application
-railway scale web=0  # Railway
-# Or in Portainer: Stop containers
+railway link kars-backend-prod
+railway scale web=0
 
 # 2. Restore database from backup
-# See railway/DATABASE.md or section below
+railway run psql $DATABASE_URL < backup-pre-deploy-YYYYMMDD.sql
 
 # 3. Restart application
-railway scale web=1  # Railway
-# Or in Portainer: Start containers
+railway scale web=1
 
 # 4. Verify data integrity
+railway run psql $DATABASE_URL -c "SELECT COUNT(*) FROM users;"
+
+# 5. Post in #kars-incidents Teams channel
+# "✅ Database restored from backup. Service operational."
 ```
 
 ---
@@ -600,8 +641,13 @@ docker run --rm \
 #### PostgreSQL Backup (Railway)
 
 ```bash
-# Using Railway CLI
-railway run pg_dump > backup-$(date +%Y%m%d).sql
+# Using Railway CLI for production
+railway link kars-backend-prod
+railway run pg_dump > backup-prod-$(date +%Y%m%d).sql
+
+# Using Railway CLI for development
+railway link kars-backend-dev
+railway run pg_dump > backup-dev-$(date +%Y%m%d).sql
 
 # Using direct connection
 pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql
@@ -637,6 +683,7 @@ sqlite3 /app/data/assets.db "SELECT COUNT(*) FROM users;"
 
 ```bash
 # 1. Scale down application
+railway link kars-backend-prod
 railway scale web=0
 
 # 2. Restore database
@@ -651,7 +698,7 @@ railway run psql $DATABASE_URL -c "SELECT COUNT(*) FROM users;"
 
 ### Database Migration
 
-See [railway/DATABASE.md](railway/DATABASE.md) for detailed migration procedures.
+See [railway/SETUP-GUIDE.md](railway/SETUP-GUIDE.md) for detailed migration procedures.
 
 ---
 
@@ -863,12 +910,13 @@ railway run psql $DATABASE_URL -c "SELECT * FROM pg_stat_statements ORDER BY tot
 
 - **Incident Response:** [INCIDENT-RESPONSE.md](INCIDENT-RESPONSE.md)
 - **Release Checklist:** [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md)
-- **Railway Setup:** [railway/SETUP.md](railway/SETUP.md)
-- **Deployment Guide:** [../DEPLOYMENT.md](../DEPLOYMENT.md)
+- **Railway Setup:** [railway/SETUP-GUIDE.md](railway/SETUP-GUIDE.md)
 - **Main README:** [../README.md](../README.md)
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2025  
 **Maintained By:** DevOps Team  
-**Next Review:** Q1 2025
+**Next Review:** Q2 2025  
+**Project:** KARS (KeyData Asset Registration System)  
+**Repository:** https://github.com/humac/acs

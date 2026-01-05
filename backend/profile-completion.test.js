@@ -131,15 +131,8 @@ describe('Profile Completion Flow', () => {
     await assetDb.init();
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Cleanup test data
-    try {
-      await userDb.delete(1);
-      await userDb.delete(2);
-    } catch (err) {
-      // Ignore errors during cleanup
-    }
   });
 
   test('should create OIDC user with profile_complete = false when no manager data', async () => {

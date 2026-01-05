@@ -28,22 +28,8 @@ describe('Asset Type Usage Count', () => {
     laptopType = allTypes.find(t => t.name === 'laptop');
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Clean up test data
-    try {
-      const assets = await assetDb.getAll();
-      for (const asset of assets) {
-        if (asset.serial_number && asset.serial_number.includes(`-${timestamp}`)) {
-          await assetDb.delete(asset.id);
-        }
-      }
-      if (testCompany) {
-        await companyDb.delete(testCompany.id);
-      }
-    } catch (err) {
-      console.error('Cleanup error:', err);
-    }
   });
 
   it('should return numeric count, not string concatenation', async () => {

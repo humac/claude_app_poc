@@ -251,6 +251,17 @@ const getDb = () => {
   return sqliteDb;
 };
 
+export const closeConnection = () => {
+  if (!isPostgres && sqliteDb) {
+    try {
+      sqliteDb.close();
+    } catch (err) {
+      console.warn('Error closing database connection:', err.message);
+    }
+    sqliteDb = null;
+  }
+};
+
 const transformPlaceholders = (sql) => {
   if (!isPostgres) return sql;
   let index = 1;

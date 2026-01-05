@@ -43,37 +43,8 @@ describe('Asset Ownership Sync', () => {
     }
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Final cleanup
-    if (preloadedAsset) {
-      try {
-        await assetDb.delete(preloadedAsset.id);
-      } catch (err) {
-        // Ignore errors
-      }
-    }
-    if (employeeUser) {
-      try {
-        await userDb.delete(employeeUser.id);
-      } catch (err) {
-        // Ignore errors
-      }
-    }
-    if (managerUser) {
-      try {
-        await userDb.delete(managerUser.id);
-      } catch (err) {
-        // Ignore errors
-      }
-    }
-    if (testCompany) {
-      try {
-        await companyDb.delete(testCompany.id);
-      } catch (err) {
-        // Ignore errors
-      }
-    }
   });
 
   describe('syncAssetOwnership', () => {

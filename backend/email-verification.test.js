@@ -38,13 +38,8 @@ describe('Email Verification Token Management', () => {
     testUserId = result.id;
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Cleanup
-    if (testUserId) {
-      await emailVerificationTokenDb.deleteByUserId(testUserId);
-      await userDb.delete(testUserId);
-    }
   });
 
   describe('Token Creation', () => {

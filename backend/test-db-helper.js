@@ -1,5 +1,6 @@
 import { unlinkSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { closeConnection } from './database.js';
 
 /**
  * Sets up an isolated test database path and provides a cleanup function.
@@ -12,6 +13,7 @@ export const setupTestDb = (testName) => {
     const dbPath = resolve(process.cwd(), 'data', `test-${safeName}.db`);
 
     const cleanup = () => {
+        closeConnection();
         if (existsSync(dbPath)) {
             try {
                 unlinkSync(dbPath);

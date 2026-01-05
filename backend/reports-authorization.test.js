@@ -77,17 +77,8 @@ describe('Reports Authorization', () => {
     coordinatorToken = generateToken(coordinatorUser);
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Clean up test users
-    try {
-      if (adminUser?.id) await userDb.delete(adminUser.id);
-      if (managerUser?.id) await userDb.delete(managerUser.id);
-      if (employeeUser?.id) await userDb.delete(employeeUser.id);
-      if (coordinatorUser?.id) await userDb.delete(coordinatorUser.id);
-    } catch (error) {
-      // Ignore cleanup errors
-    }
   });
 
   describe('GET /api/reports/statistics-enhanced', () => {

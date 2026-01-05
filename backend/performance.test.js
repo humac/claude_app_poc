@@ -26,16 +26,8 @@ describe('Performance Optimizations', () => {
     testCompany = await companyDb.getById(companyResult.id);
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Clean up test company
-    if (testCompany) {
-      try {
-        await companyDb.delete(testCompany.id);
-      } catch (err) {
-        // May have assets still referencing it
-      }
-    }
   });
 
   beforeEach(async () => {

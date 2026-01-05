@@ -37,13 +37,8 @@ describe('Unregistered Manager Name Display', () => {
     employeeUser = await userDb.getByEmail(`employee-${uniqueSuffix}@test.com`);
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Clean up test data
-    if (testAssetId) await assetDb.delete(testAssetId);
-    if (employeeUser) await userDb.delete(employeeUser.id);
-    if (registeredManagerUser) await userDb.delete(registeredManagerUser.id);
-    if (testCompany) await companyDb.delete(testCompany.id);
   });
 
   describe('Asset Creation with Unregistered Manager', () => {

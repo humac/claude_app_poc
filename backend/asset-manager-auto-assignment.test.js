@@ -23,30 +23,8 @@ describe('Asset Manager Auto-Assignment', () => {
     testCompany = await companyDb.getById(companyResult.id);
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Clean up test data in reverse order
-    for (const asset of testAssets) {
-      try {
-        await assetDb.delete(asset.id);
-      } catch (e) {
-        // Asset may have been deleted already
-      }
-    }
-    for (const user of testUsers) {
-      try {
-        await userDb.delete(user.id);
-      } catch (e) {
-        // User may have been deleted already
-      }
-    }
-    if (testCompany) {
-      try {
-        await companyDb.delete(testCompany.id);
-      } catch (e) {
-        // Company may have been deleted already
-      }
-    }
   });
 
   it('should auto-assign manager role when user registers and has assets with their email as manager', async () => {

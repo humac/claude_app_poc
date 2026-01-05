@@ -36,21 +36,8 @@ describe('SMTP API Endpoints', () => {
     });
   });
 
-  afterAll(async () => {
+  afterAll(() => {
     cleanup();
-    // Reset SMTP settings to default state
-    await smtpSettingsDb.update({
-      enabled: false,
-      host: null,
-      port: 587,
-      use_tls: true,
-      username: null,
-      clear_password: true,
-      auth_method: 'plain',
-      from_name: 'ACS Notifications',
-      from_email: null,
-      default_recipient: null
-    });
   });
 
   describe('GET /api/admin/notification-settings', () => {

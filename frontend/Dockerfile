@@ -30,7 +30,7 @@ EXPOSE 80
 # Use a startup script for clarity
 RUN echo '#!/bin/sh' > /start.sh && \
     echo 'echo "BACKEND_URL:  $BACKEND_URL"' >> /start.sh && \
-    echo 'envsubst "\$BACKEND_URL" < /etc/nginx/nginx.conf.src > /etc/nginx/conf. d/default.conf' >> /start.sh && \
+    echo 'envsubst "\$BACKEND_URL" < /etc/nginx/nginx.conf.src > /etc/nginx/conf.d/default.conf' >> /start.sh && \
     echo 'cat /etc/nginx/conf.d/default.conf | grep proxy_pass' >> /start.sh && \
     echo 'exec nginx -g "daemon off;"' >> /start.sh && \
     chmod +x /start.sh

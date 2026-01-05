@@ -6,44 +6,29 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import { rmSync, mkdirSync } from 'fs';
-import { join } from 'path';
 import { assetDb, emailTemplateDb } from './database.js';
+import { setupTestDb } from './test-db-helper.js';
 
-const TEST_DB_DIR = join(process.cwd(), 'test-data-attestation-email-variables');
-const TEST_DB_PATH = join(TEST_DB_DIR, 'assets.db');
+const { dbPath, cleanup } = setupTestDb('attestation-email-variables');
 
 describe('Attestation Email Template Variables', () => {
   beforeAll(async () => {
-    // Create clean test directory
-    try {
-      rmSync(TEST_DB_DIR, { recursive: true, force: true });
-    } catch (err) {
-      // Directory doesn't exist, that's fine
-    }
-    mkdirSync(TEST_DB_DIR, { recursive: true });
-    
-    // Set DATA_DIR to test directory
-    process.env.DATA_DIR = TEST_DB_DIR;
-    
+    cleanup();
+    process.env.DB_PATH = dbPath;
+
     // Initialize database (this should create tables and seed data)
     await assetDb.init();
   });
 
   afterAll(() => {
-    // Clean up test directory
-    try {
-      rmSync(TEST_DB_DIR, { recursive: true, force: true });
-    } catch (err) {
-      console.error('Failed to clean up test directory:', err);
-    }
+    cleanup();
   });
 
   it('should have campaignDescription in attestation_registration_invite variables', async () => {
     const template = await emailTemplateDb.getByKey('attestation_registration_invite');
     expect(template).toBeDefined();
     expect(template.variables).toBeDefined();
-    
+
     const variables = JSON.parse(template.variables);
     expect(variables).toContain('campaignDescription');
     expect(variables).toContain('siteName');
@@ -59,7 +44,7 @@ describe('Attestation Email Template Variables', () => {
     const template = await emailTemplateDb.getByKey('attestation_unregistered_reminder');
     expect(template).toBeDefined();
     expect(template.variables).toBeDefined();
-    
+
     const variables = JSON.parse(template.variables);
     expect(variables).toContain('campaignDescription');
     expect(variables).toContain('siteName');
@@ -75,7 +60,7 @@ describe('Attestation Email Template Variables', () => {
     const template = await emailTemplateDb.getByKey('attestation_unregistered_escalation');
     expect(template).toBeDefined();
     expect(template.variables).toBeDefined();
-    
+
     const variables = JSON.parse(template.variables);
     expect(variables).not.toContain('campaignDescription');
     expect(variables).toContain('siteName');
@@ -91,21 +76,21 @@ describe('Attestation Email Template Variables', () => {
 
   it('should have valid JSON in all template variables fields', async () => {
     const templates = await emailTemplateDb.getAll();
-    
+
     for (const template of templates) {
       expect(template.variables).toBeDefined();
       expect(template.variables).not.toBe('null');
       expect(template.variables).not.toBe('[]');
-      
+
       // Should be valid JSON
       let variables;
       expect(() => {
         variables = JSON.parse(template.variables);
       }).not.toThrow();
-      
+
       // Should be an array
       expect(Array.isArray(variables)).toBe(true);
-      
+
       // Should have at least one variable
       expect(variables.length).toBeGreaterThan(0);
     }

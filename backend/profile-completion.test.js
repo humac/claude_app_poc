@@ -5,6 +5,9 @@ import request from 'supertest';
 import express from 'express';
 import cors from 'cors';
 import { authenticate } from './auth.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('profile-completion');
 
 // Setup minimal Express app for testing
 const app = express();
@@ -122,11 +125,14 @@ app.post('/api/auth/complete-profile', authenticate, async (req, res) => {
 
 describe('Profile Completion Flow', () => {
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     // Initialize database
     await assetDb.init();
   });
 
   afterAll(async () => {
+    cleanup();
     // Cleanup test data
     try {
       await userDb.delete(1);

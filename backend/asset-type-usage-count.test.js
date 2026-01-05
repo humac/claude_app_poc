@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { assetDb, assetTypeDb, companyDb } from './database.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('asset-type-usage-count');
 
 describe('Asset Type Usage Count', () => {
   let testCompany;
@@ -7,6 +10,8 @@ describe('Asset Type Usage Count', () => {
   let timestamp;
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     // Initialize database
     await assetDb.init();
 
@@ -24,6 +29,7 @@ describe('Asset Type Usage Count', () => {
   });
 
   afterAll(async () => {
+    cleanup();
     // Clean up test data
     try {
       const assets = await assetDb.getAll();

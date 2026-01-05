@@ -13,11 +13,20 @@ import {
   userDb,
   sanitizeDateValue
 } from './database.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('database');
 
 describe('Database Module', () => {
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     // Initialize database
     await assetDb.init();
+  });
+
+  afterAll(() => {
+    cleanup();
   });
 
   describe('sanitizeDateValue', () => {

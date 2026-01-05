@@ -4,17 +4,26 @@
  * Tests for userDb functions, specifically error handling for MFA backup codes.
  */
 
-import { describe, test, expect, beforeAll, afterEach } from '@jest/globals';
+import { describe, test, expect, beforeAll, afterEach, afterAll } from '@jest/globals';
 import { assetDb, userDb } from './database.js';
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('database-userdb');
 
 describe('UserDb MFA Backup Codes', () => {
   let testUserId;
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     await assetDb.init();
+  });
+
+  afterAll(() => {
+    cleanup();
   });
 
   afterEach(async () => {
@@ -52,8 +61,9 @@ describe('UserDb MFA Backup Codes', () => {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = dirname(__filename);
       const dataDir = process.env.DATA_DIR || join(__dirname, 'data');
-      const db = new Database(join(dataDir, 'assets.db'));
-      
+      const connectionPath = process.env.DB_PATH || join(dataDir, 'assets.db');
+      const db = new Database(connectionPath);
+
       db.prepare('UPDATE users SET mfa_backup_codes = ? WHERE id = ?').run('invalid json {', testUserId);
       db.close();
 

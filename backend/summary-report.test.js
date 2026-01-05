@@ -1,11 +1,20 @@
 // Test for summary report endpoint - regression test for issue where summary showed zeros
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { assetDb, userDb, companyDb } from './database.js';
 import { hashPassword } from './auth.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('summary-report');
 
 describe('Summary Report Tests', () => {
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     await assetDb.init();
+  });
+
+  afterAll(() => {
+    cleanup();
   });
 
   it('should correctly count assets using registration_date field', async () => {
@@ -82,7 +91,7 @@ describe('Summary Report Tests', () => {
 
     // All test assets should be in currentAssets
     expect(currentAssets.length).toBeGreaterThanOrEqual(5);
-    
+
     // Test assets created just now should NOT be in previousAssets (created within last 30 days)
     // previousAssets filters for assets with registration_date <= thirtyDaysAgo
     // Since our test assets were just created, they should have recent timestamps
@@ -112,8 +121,8 @@ describe('Summary Report Tests', () => {
     // Test manager breakdown
     const managerMap = {};
     currentAssets.forEach(asset => {
-      const name = asset.manager_first_name && asset.manager_last_name 
-        ? `${asset.manager_first_name} ${asset.manager_last_name}` 
+      const name = asset.manager_first_name && asset.manager_last_name
+        ? `${asset.manager_first_name} ${asset.manager_last_name}`
         : 'No Manager';
       const email = asset.manager_email || 'N/A';
       const key = `${name}|${email}`;
@@ -143,13 +152,13 @@ describe('Summary Report Tests', () => {
   it('should use registration_date not created_date for assets', async () => {
     // This is a documentation test to ensure developers understand the schema
     const allAssets = await assetDb.getAll();
-    
+
     if (allAssets.length > 0) {
       const firstAsset = allAssets[0];
-      
+
       // Assets should have registration_date
       expect(firstAsset).toHaveProperty('registration_date');
-      
+
       // Assets should NOT have created_date (that's for companies)
       expect(firstAsset).not.toHaveProperty('created_date');
     }

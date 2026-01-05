@@ -7,11 +7,16 @@
 
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import { assetDb, userDb, auditDb, companyDb } from './database.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('performance');
 
 describe('Performance Optimizations', () => {
   let testCompany;
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     await assetDb.init();
     // Create test company (required for assets with company_id FK)
     const companyResult = await companyDb.create({
@@ -22,6 +27,7 @@ describe('Performance Optimizations', () => {
   });
 
   afterAll(async () => {
+    cleanup();
     // Clean up test company
     if (testCompany) {
       try {
@@ -35,8 +41,8 @@ describe('Performance Optimizations', () => {
   beforeEach(async () => {
     // Clean up test data
     const testEmails = [
-      'perf1@example.com', 
-      'perf2@example.com', 
+      'perf1@example.com',
+      'perf2@example.com',
       'perf3@example.com',
       'MixedCase@example.com',
       'indexed@example.com'
@@ -51,7 +57,7 @@ describe('Performance Optimizations', () => {
     test('getByEmails should fetch multiple users in one query', async () => {
       // Create test users
       const emails = ['perf1@example.com', 'perf2@example.com', 'perf3@example.com'];
-      
+
       for (const email of emails) {
         await userDb.create({
           email,
@@ -71,7 +77,7 @@ describe('Performance Optimizations', () => {
 
       expect(users).toHaveLength(3);
       expect(users.map(u => u.email).sort()).toEqual(emails.sort());
-      
+
       // Should be fast (single query)
       expect(duration).toBeLessThan(100);
     });
@@ -142,7 +148,7 @@ describe('Performance Optimizations', () => {
 
       expect(assets).toHaveLength(5);
       expect(assets.every(a => assetIds.includes(a.id))).toBe(true);
-      
+
       // Should be fast (single query)
       expect(duration).toBeLessThan(100);
     });
@@ -238,7 +244,7 @@ describe('Performance Optimizations', () => {
       expect(emails).toContain('emp0@perftest.com');
       expect(emails).toContain('emp1@perftest.com');
       expect(emails).toContain('emp2@perftest.com');
-      
+
       // Should be fast (single query)
       expect(duration).toBeLessThan(100);
     });

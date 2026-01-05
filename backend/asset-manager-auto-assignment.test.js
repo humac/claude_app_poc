@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { assetDb, userDb, companyDb } from './database.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('asset-manager-auto-assignment');
 
 describe('Asset Manager Auto-Assignment', () => {
   let testCompany;
@@ -7,6 +10,8 @@ describe('Asset Manager Auto-Assignment', () => {
   let testUsers = [];
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     // Initialize database
     await assetDb.init();
 
@@ -19,6 +24,7 @@ describe('Asset Manager Auto-Assignment', () => {
   });
 
   afterAll(async () => {
+    cleanup();
     // Clean up test data in reverse order
     for (const asset of testAssets) {
       try {
@@ -178,7 +184,7 @@ describe('Asset Manager Auto-Assignment', () => {
   it('should return all assets for a manager email', async () => {
     // Create multiple assets with the same manager
     const managerEmail = 'multi.asset.manager@test.com';
-    
+
     for (let i = 1; i <= 3; i++) {
       const assetResult = await assetDb.create({
         employee_first_name: `Employee${i}`,
@@ -199,7 +205,7 @@ describe('Asset Manager Auto-Assignment', () => {
     // Query for assets
     const assets = await assetDb.getByManagerEmail(managerEmail);
     expect(assets.length).toBe(3);
-    
+
     // Verify all have the correct manager email
     assets.forEach(asset => {
       expect(asset.manager_email.toLowerCase()).toBe(managerEmail.toLowerCase());

@@ -8,12 +8,17 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 import { randomBytes } from 'crypto';
 import { emailVerificationTokenDb, userDb, assetDb } from './database.js';
 import { hashPassword } from './auth.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('email-verification');
 
 describe('Email Verification Token Management', () => {
   let testUserId;
   const testEmail = `test-verify-${Date.now()}@example.com`;
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     // Initialize database
     await assetDb.init();
 
@@ -34,6 +39,7 @@ describe('Email Verification Token Management', () => {
   });
 
   afterAll(async () => {
+    cleanup();
     // Cleanup
     if (testUserId) {
       await emailVerificationTokenDb.deleteByUserId(testUserId);

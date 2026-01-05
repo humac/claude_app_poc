@@ -1,11 +1,20 @@
 // Test for trends report endpoint - ensures registration_date is used correctly
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { assetDb, userDb, companyDb } from './database.js';
 import { hashPassword } from './auth.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('trends-report');
 
 describe('Trends Report Tests', () => {
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     await assetDb.init();
+  });
+
+  afterAll(() => {
+    cleanup();
   });
 
   it('should use registration_date for asset growth calculations', async () => {
@@ -72,7 +81,7 @@ describe('Trends Report Tests', () => {
     });
 
     // Test sorting by registration_date (as done in trends endpoint)
-    const sortedAssets = [...userAssets].sort((a, b) => 
+    const sortedAssets = [...userAssets].sort((a, b) =>
       new Date(a.registration_date) - new Date(b.registration_date)
     );
 
@@ -82,7 +91,7 @@ describe('Trends Report Tests', () => {
     // Test filtering by registration_date (as done in trends endpoint)
     const now = new Date();
     const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
-    
+
     const recentAssets = userAssets.filter(a => {
       const registrationDate = new Date(a.registration_date);
       return registrationDate >= thirtyDaysAgo && registrationDate <= now;
@@ -92,10 +101,10 @@ describe('Trends Report Tests', () => {
     expect(recentAssets.length).toBeGreaterThanOrEqual(3);
 
     // Test date comparison (as done in status changes calculation)
-    const assetsBeforeNow = userAssets.filter(a => 
+    const assetsBeforeNow = userAssets.filter(a =>
       new Date(a.registration_date) <= now
     );
-    
+
     expect(assetsBeforeNow.length).toBe(userAssets.length);
   });
 
@@ -107,29 +116,29 @@ describe('Trends Report Tests', () => {
 
     // Get all assets
     const allAssets = await assetDb.getAll();
-    
+
     // Simulate the trends endpoint logic
-    const sortedAssets = [...allAssets].sort((a, b) => 
+    const sortedAssets = [...allAssets].sort((a, b) =>
       new Date(a.registration_date) - new Date(b.registration_date)
     );
 
     const sampleInterval = Math.max(1, Math.floor(period / 30));
     const assetGrowth = [];
-    
+
     let assetIndex = 0;
     for (let i = 0; i <= period; i++) {
       if (i % sampleInterval !== 0 && i !== period) continue;
-      
+
       const date = new Date(startDate);
       date.setDate(date.getDate() + i);
       const dateStr = date.toISOString().split('T')[0];
-      
+
       // Count assets up to this date using sorted array
-      while (assetIndex < sortedAssets.length && 
-             new Date(sortedAssets[assetIndex].registration_date) <= date) {
+      while (assetIndex < sortedAssets.length &&
+        new Date(sortedAssets[assetIndex].registration_date) <= date) {
         assetIndex++;
       }
-      
+
       assetGrowth.push({ date: dateStr, count: assetIndex });
     }
 
@@ -157,14 +166,14 @@ describe('Trends Report Tests', () => {
     // Simulate status changes calculation from trends endpoint
     const sampleInterval = Math.max(1, Math.floor(period / 30));
     const statusChanges = [];
-    
+
     for (let i = 0; i <= period; i += sampleInterval) {
       const date = new Date(startDate);
       date.setDate(date.getDate() + i);
       const dateStr = date.toISOString().split('T')[0];
-      
+
       const statusCount = { date: dateStr, active: 0, returned: 0, lost: 0, damaged: 0, retired: 0 };
-      
+
       // Count only assets registered before or on this date
       for (const asset of allAssets) {
         if (new Date(asset.registration_date) <= date) {
@@ -173,7 +182,7 @@ describe('Trends Report Tests', () => {
           }
         }
       }
-      
+
       statusChanges.push(statusCount);
     }
 

@@ -2,6 +2,9 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { assetDb, smtpSettingsDb } from './database.js';
 import { generateToken } from './auth.js';
 import { generateMasterKey } from './utils/encryption.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('smtp-api');
 
 // Set up test environment
 process.env.KARS_MASTER_KEY = generateMasterKey('base64');
@@ -12,6 +15,8 @@ describe('SMTP API Endpoints', () => {
   let employeeToken;
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     await assetDb.init();
 
     // Create admin user for testing
@@ -32,6 +37,7 @@ describe('SMTP API Endpoints', () => {
   });
 
   afterAll(async () => {
+    cleanup();
     // Reset SMTP settings to default state
     await smtpSettingsDb.update({
       enabled: false,
@@ -50,7 +56,7 @@ describe('SMTP API Endpoints', () => {
   describe('GET /api/admin/notification-settings', () => {
     it('should return SMTP settings for admin', async () => {
       const settings = await smtpSettingsDb.get();
-      
+
       expect(settings).toBeDefined();
       expect(typeof settings.enabled).toBe('number');
       expect(typeof settings.has_password).toBe('boolean');

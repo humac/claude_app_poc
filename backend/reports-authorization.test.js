@@ -4,6 +4,9 @@ import { generateToken } from './auth.js';
 import request from 'supertest';
 import express from 'express';
 import { authenticate, authorize } from './auth.js';
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('reports-authorization');
 
 // Create minimal express app with the report endpoints for testing
 const app = express();
@@ -28,6 +31,8 @@ describe('Reports Authorization', () => {
   let timestamp;
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     // Initialize database
     await assetDb.init();
 
@@ -73,6 +78,7 @@ describe('Reports Authorization', () => {
   });
 
   afterAll(async () => {
+    cleanup();
     // Clean up test users
     try {
       if (adminUser?.id) await userDb.delete(adminUser.id);

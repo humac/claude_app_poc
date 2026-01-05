@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import { assetDb, userDb, syncAssetOwnership, companyDb } from './database.js';
 
+import { setupTestDb } from './test-db-helper.js';
+
+const { dbPath, cleanup } = setupTestDb('asset-ownership-sync');
+
 describe('Asset Ownership Sync', () => {
   let employeeUser;
   let managerUser;
@@ -8,6 +12,8 @@ describe('Asset Ownership Sync', () => {
   let testCompany;
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     // Initialize database
     await assetDb.init();
 
@@ -38,6 +44,7 @@ describe('Asset Ownership Sync', () => {
   });
 
   afterAll(async () => {
+    cleanup();
     // Final cleanup
     if (preloadedAsset) {
       try {

@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { assetDb, userDb, companyDb } from './database.js';
+import { setupTestDb } from './test-db-helper.js';
 
 const uniqueSuffix = Date.now();
+const { dbPath, cleanup } = setupTestDb('unregistered-manager');
 
 describe('Unregistered Manager Name Display', () => {
   let testAssetId;
@@ -10,6 +12,8 @@ describe('Unregistered Manager Name Display', () => {
   let testCompany;
 
   beforeAll(async () => {
+    cleanup();
+    process.env.DB_PATH = dbPath;
     // Initialize database
     await assetDb.init();
 
@@ -34,6 +38,7 @@ describe('Unregistered Manager Name Display', () => {
   });
 
   afterAll(async () => {
+    cleanup();
     // Clean up test data
     if (testAssetId) await assetDb.delete(testAssetId);
     if (employeeUser) await userDb.delete(employeeUser.id);

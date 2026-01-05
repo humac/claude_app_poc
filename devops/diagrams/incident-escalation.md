@@ -575,6 +575,6 @@ See [INCIDENT-RESPONSE.md](../INCIDENT-RESPONSE.md#post-incident-review) for ful
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2026  
 **Maintained By:** DevOps Team  
 **On-Call Rotation:** PagerDuty

@@ -745,6 +745,6 @@ const encryptedPassword = encrypt(smtpPassword, MASTER_KEY);
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2026  
 **Maintained By:** Security Team & DevOps  
 **Security Contact:** security@company.com

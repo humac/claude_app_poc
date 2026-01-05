@@ -568,5 +568,5 @@ image: ghcr.io/humac/kars/backend:develop-sha-abc123
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2026  
 **Maintained By:** DevOps Team

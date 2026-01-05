@@ -131,4 +131,4 @@ railway run psql $DATABASE_URL -c "SELECT 1;"
 
 ---
 
-**Last Updated:** December 2024
+**Last Updated:** January 2026

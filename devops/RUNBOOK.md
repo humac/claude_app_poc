@@ -869,6 +869,6 @@ railway run psql $DATABASE_URL -c "SELECT * FROM pg_stat_statements ORDER BY tot
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2026  
 **Maintained By:** DevOps Team  
-**Next Review:** Q1 2025
+**Next Review:** Q2 2026

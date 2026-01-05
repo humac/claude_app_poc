@@ -504,5 +504,5 @@ docker run --rm ghcr.io/humac/kars/backend:develop du -sh /* 2>/dev/null | sort 
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2026  
 **Maintained By:** DevOps Team

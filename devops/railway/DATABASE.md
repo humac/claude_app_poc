@@ -81,4 +81,4 @@ railway run psql $DATABASE_URL -c "\
 
 ---
 
-**Last Updated:** December 2024
+**Last Updated:** January 2026

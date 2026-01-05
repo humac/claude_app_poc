@@ -680,6 +680,6 @@ railway status
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2026  
 **Release Schedule:** Weekly (Fridays, 2:00 PM EST)  
-**Next Review:** Q1 2025
+**Next Review:** Q2 2026

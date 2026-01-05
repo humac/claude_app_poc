@@ -1034,7 +1034,7 @@ docker ps
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** January 2026  
 **Maintained By:** DevOps Team  
-**Next Review:** Q1 2025  
+**Next Review:** Q2 2026  
 **Emergency Hotline:** [Contact Info]

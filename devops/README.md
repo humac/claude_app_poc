@@ -1,6 +1,11 @@
-# DevOps Documentation - ACS
+# DevOps Documentation - KARS (ACS)
 
-**ACS (Asset Compliance System)** - DevOps documentation hub for deployment, operations, and incident response.
+**KARS (KeyData Asset Registration System)** - DevOps documentation hub for deployment, operations, and incident response.
+
+**Project:** ACS - Asset Compliance System  
+**Code Name:** KARS - KeyData Asset Registration System  
+**Repository:** humac/acs  
+**Domain:** kars.keydatalab.ca
 
 ## 📚 Documentation Index
 
@@ -13,27 +18,26 @@
 ### 🏗️ Platform-Specific Guides
 
 - **[Railway Platform](railway/)** - Railway.app deployment and configuration guides
-  - [Setup Guide](railway/SETUP.md)
-  - [Configuration](railway/CONFIGURATION.md)
-  - [Database Setup](railway/DATABASE.md)
-  - [Deployment Process](railway/DEPLOYMENT.md)
-  - [Troubleshooting](railway/TROUBLESHOOTING.md)
+  - [Setup Guide](railway/SETUP-GUIDE.md) - Complete step-by-step Railway setup
+  - [Production Configuration](railway/production-config.md) - Production environment specs
+  - [Development Configuration](railway/development-config.md) - Development environment specs
+  - [Troubleshooting](railway/troubleshooting.md) - Common Railway issues
 
 ### 📊 Architecture Diagrams
 
 All workflow diagrams are available in the [diagrams](diagrams/) folder:
 
-1. **[CI/CD Overview](diagrams/ci-cd-overview.md)** - Complete CI/CD pipeline architecture
-2. **[GitHub Actions Workflow](diagrams/github-actions-workflow.md)** - GitHub Actions pipeline details
-3. **[Docker Build Process](diagrams/docker-build-process.md)** - Multi-platform Docker builds
-4. **[Portainer Deployment](diagrams/portainer-deployment.md)** - Portainer deployment workflow
-5. **[Railway Deployment](diagrams/railway-deployment.md)** - Railway deployment workflow
-6. **[Cloudflare Tunnel](diagrams/cloudflare-tunnel.md)** - Cloudflare Tunnel architecture
-7. **[Database Backup & Restore](diagrams/database-backup-restore.md)** - Backup/restore procedures
-8. **[Monitoring & Health Checks](diagrams/monitoring-health-checks.md)** - Monitoring architecture
-9. **[Incident Escalation](diagrams/incident-escalation.md)** - Incident escalation flow
-10. **[Release Process](diagrams/release-process.md)** - Release workflow
-11. **[Security Scanning](diagrams/security-scanning.md)** - Security scanning pipeline
+1. **[Complete CI/CD Flow](diagrams/01-complete-cicd-flow.md)** - End-to-end CI/CD pipeline
+2. **[Feature Development Workflow](diagrams/02-feature-development-workflow.md)** - Feature branch to production
+3. **[Hotfix Workflow](diagrams/03-hotfix-workflow.md)** - Emergency hotfix procedures
+4. **[Weekly Release Cycle](diagrams/04-weekly-release-cycle.md)** - Friday QA → Monday deployment
+5. **[Multi-Environment Deployment](diagrams/05-multi-environment-deployment.md)** - Dev and prod environments
+6. **[Railway Auto-Deploy](diagrams/06-railway-auto-deploy.md)** - Railway deployment automation
+7. **[Branch Protection & Approval](diagrams/07-branch-protection-approval.md)** - PR review process
+8. **[Deployment Decision Tree](diagrams/08-deployment-decision-tree.md)** - Deployment decision logic
+9. **[Environment Promotion](diagrams/09-environment-promotion.md)** - Code promotion workflow
+10. **[Complete Release Workflow](diagrams/10-complete-release-workflow.md)** - Full release process
+11. **[Monitoring & Rollback](diagrams/11-monitoring-rollback.md)** - Monitoring and rollback procedures
 
 ---
 
@@ -60,12 +64,11 @@ All workflow diagrams are available in the [diagrams](diagrams/) folder:
 
 ### Current Deployment Platforms
 
-| Platform | Environment | Purpose | Status |
-|----------|-------------|---------|--------|
-| **Portainer** | Staging | Container orchestration on develop branch | ✅ Active |
-| **Railway** | Production | Cloud deployment with managed PostgreSQL | ✅ Active |
-| **GitHub Actions** | CI/CD | Automated testing and deployment | ✅ Active |
-| **Cloudflare** | Edge | SSL termination and tunnel access | ✅ Active |
+| Platform | Environment | Purpose | Branch | Domain | Status |
+|----------|-------------|---------|--------|--------|--------|
+| **Railway** | Production | Cloud deployment with PostgreSQL | kars-prod | kars.keydatalab.ca | ✅ Active |
+| **Railway** | Development | Development environment | kars-dev | kars-dev.keydatalab.ca | ✅ Active |
+| **GitHub Actions** | CI/CD | Automated testing and deployment | * | - | ✅ Active |
 
 ### Technology Stack
 
@@ -102,14 +105,17 @@ docker compose up -d --build
 ### Health Check Endpoints
 
 ```bash
-# Backend health check
+# Backend health check (local)
 curl http://localhost:3001/api/health
 
-# Frontend health check
+# Frontend health check (local)
 curl http://localhost:3000
 
 # Production health check
-curl https://acs.jvhlabs.com/api/health
+curl https://kars.keydatalab.ca/api/health
+
+# Development health check
+curl https://kars-dev.keydatalab.ca/api/health
 ```
 
 ### Database Operations
@@ -172,6 +178,13 @@ docker run --rm \
 
 ## 🚨 Emergency Contacts
 
+### Communication Channels
+
+- **Microsoft Teams:**
+  - #kars-releases - Release announcements and coordination
+  - #kars-support - User support and general questions
+  - #kars-incidents - Incident response and emergency communication
+
 ### Escalation Path
 
 1. **On-Call Engineer** - First responder for incidents
@@ -217,5 +230,7 @@ This documentation is maintained by the DevOps team and should be updated when:
 - New monitoring tools are implemented
 - Security policies change
 
-**Last Updated:** January 2026  
-**Next Review:** Q2 2026
+**Last Updated:** January 2025  
+**Next Review:** Q2 2025  
+**Project:** KARS (KeyData Asset Registration System)  
+**Repository:** https://github.com/humac/acs

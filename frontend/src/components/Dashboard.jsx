@@ -182,7 +182,7 @@ const Dashboard = () => {
       {/* Header Section */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2">
         <div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gradient mb-2">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gradient mb-2 leading-tight pb-1">
             My Dashboard
           </h1>
           <p className="text-muted-foreground text-lg">

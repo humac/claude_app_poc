@@ -142,7 +142,7 @@ const Layout = ({ theme, setTheme }) => {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold truncate leading-none mb-1.5">{user?.first_name} {user?.last_name}</p>
+                <p className="text-sm font-bold truncate leading-snug mb-1.5 pb-0.5">{user?.first_name} {user?.last_name}</p>
                 <Badge variant="secondary" className="caption-label h-5 px-2 bg-muted/40">
                   {user?.role}
                 </Badge>
@@ -262,7 +262,7 @@ const Layout = ({ theme, setTheme }) => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold truncate">{user?.first_name} {user?.last_name}</p>
+                    <p className="text-sm font-bold truncate leading-snug pb-0.5">{user?.first_name} {user?.last_name}</p>
                     <Badge variant="secondary" className="caption-label h-4 px-1.5 mt-1">
                       {user?.role}
                     </Badge>

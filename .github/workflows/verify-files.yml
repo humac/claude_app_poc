@@ -1,8 +1,9 @@
 name: Verify Critical Files
 
 on:
+  workflow_call:
   push:
-    branches: [ main, develop ]
+    branches: [ develop ]
   pull_request:
     branches: [ main, develop ]
 

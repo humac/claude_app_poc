@@ -15,8 +15,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  verify:
+    uses: ./.github/workflows/verify-files.yml
+
+  test:
+    uses: ./.github/workflows/ci-tests.yml
+
   build:
     name: Build & Push
+    needs: [verify, test]
     runs-on: ubuntu-latest
     permissions:
       packages: write

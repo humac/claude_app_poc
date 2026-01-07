@@ -7,11 +7,11 @@ name: CI Tests
 # - Manual runs via workflow_dispatch
 
 on:
+  workflow_call:
   pull_request:
     # Run on all PRs regardless of files changed
   push:
     branches:
-      - main
       - develop
     paths:
       # Only run on push when these paths change

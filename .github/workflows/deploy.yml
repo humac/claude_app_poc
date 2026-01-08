@@ -80,6 +80,7 @@ jobs:
     name: Deploy to Development
     needs: build
     runs-on: ubuntu-latest
+    environment: 'KARS Application / dev'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -98,7 +99,7 @@ jobs:
     name: Deploy to Production
     needs: deploy-dev
     runs-on: ubuntu-latest
-    environment: production
+    environment: 'KARS Application / prod'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

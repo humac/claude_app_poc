@@ -112,9 +112,9 @@ export const sendEmail = async (options) => {
         const response = await fetch(BREVO_API_URL, {
             method: 'POST',
             headers: {
-                'accept': 'application/json',
+                'Accept': 'application/json',
                 'api-key': apiKey,
-                'content-type': 'application/json'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(requestBody)
         });

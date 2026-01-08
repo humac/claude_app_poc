@@ -60,6 +60,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/frontend:sha-${{ github.sha }}
             ghcr.io/${{ github.repository }}/frontend:latest
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -71,6 +72,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/backend:sha-${{ github.sha }}
             ghcr.io/${{ github.repository }}/backend:latest
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -78,6 +80,7 @@ jobs:
     name: Deploy to Development
     needs: build
     runs-on: ubuntu-latest
+    environment: 'KARS Application / dev'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -96,7 +99,7 @@ jobs:
     name: Deploy to Production
     needs: deploy-dev
     runs-on: ubuntu-latest
-    environment: production
+    environment: 'KARS Application / prod'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
